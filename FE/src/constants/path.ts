@@ -81,9 +81,9 @@ export const ROUTES_CONSTANTS = {
     path: '/admin',
     name: 'admin',
     children: {
-      MAUSAC: {
-        path: 'mau-sac',
-        name: 'mau-sac-admin'
+      PHONG: {
+        path: 'phong',
+        name: 'phong'
       },
       THONG_KE: {
         path: 'thong-ke',

@@ -68,6 +68,9 @@ export const PREFIX_API_DOT_GIAM_GIA_ADMIN = `${PREFIX_API_ADMIN}/dot-giam-gia` 
 export const PREFIX_API_HOA_DON_ADMIN = `${PREFIX_API_ADMIN}/hoa-don` as string;
 export const PREFIX_API_VOUCHER_ADMIN = `${PREFIX_API_ADMIN}/voucher` as string;
 export const PREFIX_API_HOA_DON_DETAIL_ADMIN = `${PREFIX_API_ADMIN}/hoa-don/:id` as string;
+
+export const PREFIX_API_PHONG_ADMIN = `${PREFIX_API_ADMIN}/rooms` as string;
+
 // Permitall API PREFIX
 export const PREFIX_API_SANPHAM_PERMITALL = `${PREFIX_API_PERMITALL}/san-pham` as string;
 export const PREFIX_API_SANPHAMCHITIET_PERMITALL =

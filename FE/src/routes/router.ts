@@ -48,6 +48,11 @@ export const routes: RouteRecordRaw[] = [
         //   requiresAuth: true
         // }
       },
+      {
+        path: ROUTES_CONSTANTS.ADMIN.children.PHONG.path,
+        name: ROUTES_CONSTANTS.ADMIN.children.PHONG.name,
+        component: () => import("@/pages/admin/phong/Phong.vue"),
+      },
     ],
   },
 

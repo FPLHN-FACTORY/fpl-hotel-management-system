@@ -23,7 +23,7 @@ public class MappingConstants {
 
     public static final String API_ADMIN_NHAN_VIEN= API_ADMIN_PREFIX + "/nhan-vien";
 
-    public static final String API_ADMIN_ROOM = API_VERSION_PREFIX + "/room";
+    public static final String API_ADMIN_ROOM = API_ADMIN_PREFIX + "/rooms";
 
 
 }
