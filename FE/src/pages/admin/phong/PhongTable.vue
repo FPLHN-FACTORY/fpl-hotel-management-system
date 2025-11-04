@@ -51,6 +51,29 @@
               {{ getRoomStatusText(record.trangThaiPhong) }}
             </a-tag>
           </template>
+         <template v-if="column.key === 'operation'">
+            <div class="flex gap-1 items-center justify-center text-center">
+
+              <a-tooltip title="Xóa phòng">
+                <a-button
+                  @click="handleDeleteClick(record.id)"
+                  class="flex items-center justify-center w-8 h-8 "
+                 style="
+    background-color: #fee2e2 !important;
+    color: #d81a6c !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  "
+                >
+                  <DeleteOutlined />
+                </a-button>
+              </a-tooltip>
+
+
+            </div>
+          </template>
         </template>
 
         <template #emptyText>
@@ -76,6 +99,10 @@ import DivCustom from '@/components/custom/Div/DivCustom.vue'
 import GlobalPagination from '@/components/custom/Table/GlobalPagination.vue'
 import { HomeOutlined } from '@ant-design/icons-vue'
 import type { TableColumnsType } from 'ant-design-vue'
+import { defineEmits, defineProps } from 'vue'
+import {
+  DeleteOutlined
+} from '@ant-design/icons-vue'
 
 const props = defineProps<{
   rooms: any[]
@@ -84,7 +111,7 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const emit = defineEmits(['page-change'])
+const emit = defineEmits(['page-change','delete'])
 
 const currentPage = computed({
   get: () => props.paginationParams.page,
@@ -103,7 +130,14 @@ const columns: TableColumnsType = [
   { title: 'Loại phòng', key: 'loaiPhong', dataIndex: 'loaiPhong', align: 'center', width: 240 },
   { title: 'Giá hiện tại', key: 'giaHienTai', dataIndex: 'giaHienTai', align: 'right', width: 150 },
   { title: 'Sức chứa', key: 'sucChua', dataIndex: 'sucChua', align: 'center', width: 120 },
-  { title: 'Trạng thái', key: 'trangThaiPhong', dataIndex: 'trangThaiPhong', align: 'center', width: 140 }
+  { title: 'Trạng thái', key: 'trangThaiPhong', dataIndex: 'trangThaiPhong', align: 'center', width: 140 },
+  {
+    title: 'Hành động',
+    key: 'operation',
+    width: 130,
+    align: 'center',
+    fixed: 'right'
+  }
 ]
 
 const handlePaginationChange = async (newPage: number, newPageSize: number) => {
@@ -112,6 +146,9 @@ const handlePaginationChange = async (newPage: number, newPageSize: number) => {
   } else {
     emit('page-change', { page: newPage, pageSize: newPageSize })
   }
+}
+const handleDeleteClick = (id: string) => {
+  emit('delete', id)
 }
 
 const formatCurrency = (value: number) => {

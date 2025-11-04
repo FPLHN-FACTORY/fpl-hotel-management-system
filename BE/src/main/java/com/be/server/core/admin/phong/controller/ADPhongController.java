@@ -31,4 +31,8 @@ public class ADPhongController {
         log.info("Lấy thông tin phòng với id: {}", id);
         return Helper.createResponseEntity(service.getPhongById(id));
     }
+    @PutMapping("changeStatus/{id}")
+    public ResponseEntity<?>changeStatus(@PathVariable String id) {
+        return Helper.createResponseEntity(service.changeStatusPhong(id));
+    }
 }

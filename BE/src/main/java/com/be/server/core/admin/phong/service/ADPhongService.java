@@ -8,4 +8,5 @@ public interface ADPhongService {
     ResponseObject<?> getAllPhong(ADPhongSearchRequest request);
 
     ResponseObject<?> getPhongById(String id);
+    ResponseObject<?> changeStatusPhong(String id);
 }
