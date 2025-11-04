@@ -6,7 +6,6 @@ import com.be.server.core.common.base.ResponseObject;
 
 public interface ADPhongService {
 
-
     ResponseObject<?> getAllPhong(ADPhongSearchRequest request);
 
     ResponseObject<?> getPhongById(String id);

@@ -5,23 +5,34 @@ import type { PaginationParams, DefaultResponse, PaginationResponse } from "@/ty
 
 export interface ParamsGetPhong extends PaginationParams {
   q?: string;
-  loaiPhong?: string | null;
-  trangThaiPhong?: number | null;
-  giaMin?: number | null;
-  giaMax?: number | null;
-  sucChuaMin?: number | null;
-  sucChuaMax?: number | null;
+  loaiPhong?: string;
+  trangThaiPhong?: string; // Changed from number to string to match backend enum
+  giaMin?: number;
+  giaMax?: number;
+  sucChuaMin?: number;
+  sucChuaMax?: number;
+  sortBy?: string;
+  orderBy?: string;
 }
 
-export type PhongResponse = {
+export interface BangGiaResponse {
+  id: string;
+  maBangGia: string;
+  giaNgayThuong: number;
+  giaCuoiTuan: number;
+  heSoCaoDiem: number;
+}
+
+export interface PhongResponse {
   id: string;
   maPhong: string;
   tenPhong: string;
   loaiPhong: string;
   giaHienTai: number;
   sucChua: number;
-  trangThaiPhong: number;
-};
+  trangThaiPhong: string; // "TRONG" | "DA_DAT" | "DANG_SU_DUNG"
+  bangGia?: BangGiaResponse;
+}
 
 export type LsDatPhongRequest  = {
   tenKhachHang?: string;
@@ -50,13 +61,32 @@ function formatDateTimeRange(request: LsDatPhongRequest) {
 }
 
 export const getRooms = async (params: ParamsGetPhong) => {
-  const res = (await request({
-    url: `${PREFIX_API_PHONG_ADMIN}`,
-    method: "GET",
-    params,
-  })) as AxiosResponse<DefaultResponse<PaginationResponse<Array<PhongResponse>>>>;
+  try {
+    const res = await request({
+      url: `${PREFIX_API_PHONG_ADMIN}`,
+      method: "GET",
+      params,
+    }) as AxiosResponse<DefaultResponse<PaginationResponse<Array<PhongResponse>>>>;
 
-  return res.data;
+    return res.data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+};
+
+export const getRoomById = async (id: string) => {
+  try {
+    const res = await request({
+      url: `${PREFIX_API_PHONG_ADMIN}/${id}`,
+      method: "GET",
+    }) as AxiosResponse<DefaultResponse<PhongResponse>>;
+
+    return res.data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
 };
 
 export const getAllRoomUsageHistory = async (params: LsDatPhongRequest) => {

@@ -15,39 +15,69 @@
       </div>
     </div>
 
-    <!-- Bảng danh sách phòng -->
-    <div class="min-h-[300px]">
+    <div class="min-h-[400px] bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
       <a-table
         :columns="columns"
         :data-source="rooms"
-        :pagination="{
-          current: paginationParams.page,
-          pageSize: paginationParams.size,
-          total: totalItems,
-          showSizeChanger: true,
-          pageSizeOptions: ['5', '10', '20']
-        }"
-        :scroll="{ y: 800 }"
-        @change="handlePageChange"
+        :loading="loading"
+        bordered
+        :pagination="false"
+        :scroll="{ x: 1200 }"
+        row-key="id"
       >
-        <template #bodyCell="{ column, record }">
+        <template #bodyCell="{ column, record, index }">
+
           <template v-if="column.key === 'stt'">
-            {{ rooms.indexOf(record) + 1 }}
+            <span class="font-semibold text-gray-600">
+              {{ (paginationParams.page - 1) * paginationParams.size + index + 1 }}
+            </span>
+          </template>
+
+          <template v-if="column.key === 'maPhong'">
+            <span class="font-medium text-gray-700">{{ record.maPhong }}</span>
+          </template>
+
+          <template v-if="column.key === 'tenPhong'">
+            <span class="text-gray-700">{{ record.tenPhong }}</span>
+          </template>
+
+          <template v-if="column.key === 'loaiPhong'">
+            <a-tag color="blue" class="font-medium">
+              {{ record.loaiPhong }}
+            </a-tag>
           </template>
 
           <template v-if="column.key === 'giaHienTai'">
-            {{ formatCurrency(record.giaHienTai) }}
+            <span class="text-green-600 font-semibold">
+              {{ formatCurrency(record.giaHienTai) }}
+            </span>
+          </template>
+
+          <template v-if="column.key === 'sucChua'">
+            <span class="text-gray-600">{{ record.sucChua }} người</span>
           </template>
 
           <template v-if="column.key === 'trangThaiPhong'">
-            <a-tag :color="getRoomStatusColor(record.trangThaiPhong)">
+            <a-tag :color="getRoomStatusColor(record.trangThaiPhong)" class="font-medium">
               {{ getRoomStatusText(record.trangThaiPhong) }}
             </a-tag>
           </template>
         </template>
-      </a-table>
-    </div>
 
+        <template #emptyText>
+          <a-empty description="Không có dữ liệu phòng" />
+        </template>
+      </a-table>
+
+      <div class="mt-4 w-full">
+        <GlobalPagination
+          v-model:current="currentPage"
+          v-model:page-size="currentPageSize"
+          :total="totalItems"
+          @change="handlePaginationChange"
+        />
+      </div>
+    </div>
     <!-- Modal hiển thị lịch sử -->
     <a-modal
       v-model:open="showHistory"
@@ -124,70 +154,73 @@ import {ref, reactive, watch} from 'vue'
 import {getAllRoomUsageHistory} from '@/services/api/admin/phong.api.ts'
 import type {LeTanResponse, LsDatPhongRequest} from '@/services/api/admin/phong.api.ts'
 import dayjs from 'dayjs'
+import GlobalPagination from '@/components/custom/Table/GlobalPagination.vue'
+import { HomeOutlined } from '@ant-design/icons-vue'
 
 defineProps<{
   rooms: any[]
   paginationParams: { page: number; size: number }
   totalItems: number
+  loading?: boolean
 }>()
 
 const emit = defineEmits(['page-change'])
 
-/* ----------------- Cột bảng phòng ----------------- */
+const currentPage = computed({
+  get: () => props.paginationParams.page,
+  set: (val) => emit('page-change', { page: val, pageSize: props.paginationParams.size })
+})
+
+const currentPageSize = computed({
+  get: () => props.paginationParams.size,
+  set: (val) => emit('page-change', { page: 1, pageSize: val })
+})
+
 const columns: TableColumnsType = [
-  {title: 'STT', key: 'stt', dataIndex: 'stt', width: 80, align: 'center'},
-  {title: 'Mã phòng', key: 'maPhong', dataIndex: 'maPhong', width: 120, align: 'center'},
-  {title: 'Tên phòng', key: 'tenPhong', dataIndex: 'tenPhong', width: 150, align: 'center'},
-  {title: 'Loại phòng', key: 'loaiPhong', dataIndex: 'loaiPhong', width: 120, align: 'center'},
-  {title: 'Giá hiện tại', key: 'giaHienTai', dataIndex: 'giaHienTai', width: 120, align: 'center'},
-  {title: 'Sức chứa', key: 'sucChua', dataIndex: 'sucChua', width: 100, align: 'center'},
-  {
-    title: 'Trạng thái',
-    key: 'trangThaiPhong',
-    dataIndex: 'trangThaiPhong',
-    width: 130,
-    align: 'center'
-  }
+  { title: 'STT', key: 'stt', align: 'center', width: 70 },
+  { title: 'Mã phòng', key: 'maPhong', dataIndex: 'maPhong', align: 'center', width: 120 },
+  { title: 'Tên phòng', key: 'tenPhong', dataIndex: 'tenPhong', align: 'left', width: 250, ellipsis: true },
+  { title: 'Loại phòng', key: 'loaiPhong', dataIndex: 'loaiPhong', align: 'center', width: 240 },
+  { title: 'Giá hiện tại', key: 'giaHienTai', dataIndex: 'giaHienTai', align: 'right', width: 150 },
+  { title: 'Sức chứa', key: 'sucChua', dataIndex: 'sucChua', align: 'center', width: 120 },
+  { title: 'Trạng thái', key: 'trangThaiPhong', dataIndex: 'trangThaiPhong', align: 'center', width: 140 }
 ]
 
-const handlePageChange = (pagination: any) => {
-  emit('page-change', {page: pagination.current, pageSize: pagination.pageSize})
+const handlePaginationChange = async (newPage: number, newPageSize: number) => {
+  if (newPageSize !== props.paginationParams.size) {
+    emit('page-change', { page: 1, pageSize: newPageSize })
+  } else {
+    emit('page-change', { page: newPage, pageSize: newPageSize })
+  }
 }
 
-/* ----------------- Helpers ----------------- */
+const formatCurrency = (value: number) => {
+  if (!value && value !== 0) return '0 ₫'
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(value)
+}
+
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(value)
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 
-const getRoomStatusText = (status: string | number) => {
-  switch (status) {
-    case 'TRONG':
-    case 0:
-      return 'Trống'
-    case 'DA_DAT':
-    case 1:
-      return 'Đã đặt'
-    case 'DANG_SU_DUNG':
-    case 2:
-      return 'Đang sử dụng'
-    default:
-      return 'Không xác định'
+const getRoomStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'TRONG': 'Trống',
+    'DA_DAT': 'Đã đặt',
+    'DANG_SU_DUNG': 'Đang sử dụng'
   }
+  return statusMap[status] || 'Không xác định'
 }
 
-const getRoomStatusColor = (status: string | number) => {
-  switch (status) {
-    case 'TRONG':
-    case 0:
-      return 'green'
-    case 'DA_DAT':
-    case 1:
-      return 'orange'
-    case 'DANG_SU_DUNG':
-    case 2:
-      return 'red'
-    default:
-      return 'default'
+const getRoomStatusColor = (status: string) => {
+  const colorMap: Record<string, string> = {
+    'TRONG': 'green',
+    'DA_DAT': 'orange',
+    'DANG_SU_DUNG': 'red'
   }
+  return colorMap[status] || 'default'
 }
 
 const showHistory = ref(false)
@@ -255,6 +288,17 @@ watch(showHistory, (val) => {
 </script>
 
 <style scoped>
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa !important;
+  font-weight: 600;
+  color: #444;
+  text-align: center;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5faff !important;
+}
+
 :deep(.ant-table) {
   font-size: 13px;
 }

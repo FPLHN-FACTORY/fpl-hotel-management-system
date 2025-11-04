@@ -38,25 +38,20 @@ public class ADPhongServiceImpl implements ADPhongService {
     @Override
     public ResponseObject<?> getAllPhong(ADPhongSearchRequest request) {
         try {
+            Pageable pageable = Helper.createPageable(request, PaginationConstant.DEFAULT_SORT_BY);
 
-            Pageable pageable = Helper.createPageable(request, "maPhong");
-
-            Page<Phong> page;
-
-            if (hasFilters(request)) {
-                page = adPhongRepository.searchPhong(
-                        request.getQ(),
-                        request.getLoaiPhong(),
-                        request.getTrangThaiPhong(),
-                        request.getGiaMin(),
-                        request.getGiaMax(),
-                        request.getSucChuaMin(),
-                        request.getSucChuaMax(),
-                        pageable
-                );
-            } else {
-                page = adPhongRepository.findAll(pageable);
-            }
+            Page<PhongProjection> page = hasFilters(request)
+                    ? adPhongRepository.searchPhong(
+                    request.getQ(),
+                    request.getLoaiPhong(),
+                    request.getTrangThaiPhong(),
+                    request.getGiaMin(),
+                    request.getGiaMax(),
+                    request.getSucChuaMin(),
+                    request.getSucChuaMax(),
+                    pageable
+            )
+                    : adPhongRepository.findAllProjection(pageable);
 
             return new ResponseObject<>(
                     PageableObject.of(page),
@@ -74,7 +69,6 @@ public class ADPhongServiceImpl implements ADPhongService {
         }
     }
 
-
     private boolean hasFilters(ADPhongSearchRequest request) {
         return (request.getQ() != null && !request.getQ().trim().isEmpty()) ||
                 request.getLoaiPhong() != null ||
@@ -88,7 +82,7 @@ public class ADPhongServiceImpl implements ADPhongService {
     @Override
     public ResponseObject<?> getPhongById(String id) {
         try {
-            return adPhongRepository.findById(id)
+            return adPhongRepository.findByIdProjection(id)
                     .map(phong -> new ResponseObject<>(
                             phong,
                             HttpStatus.OK,
