@@ -34,7 +34,7 @@ public class Phong extends PrimaryEntity implements Serializable {
     @Column(name = "suc_chua")
     private Integer sucChua;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai_phong")
     private RoomStatus trangThaiPhong;
 

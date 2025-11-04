@@ -1,11 +1,12 @@
 package com.be.server.core.admin.phong.service.impl;
 
 import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
+import com.be.server.core.admin.phong.model.response.PhongProjection;
 import com.be.server.core.admin.phong.repository.ADPhongRepository;
 import com.be.server.core.admin.phong.service.ADPhongService;
 import com.be.server.core.common.base.PageableObject;
 import com.be.server.core.common.base.ResponseObject;
-import com.be.server.entity.Phong;
+import com.be.server.infrastructure.constant.PaginationConstant;
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,25 +25,20 @@ public class ADPhongServiceImpl implements ADPhongService {
     @Override
     public ResponseObject<?> getAllPhong(ADPhongSearchRequest request) {
         try {
+            Pageable pageable = Helper.createPageable(request, PaginationConstant.DEFAULT_SORT_BY);
 
-            Pageable pageable = Helper.createPageable(request, "maPhong");
-
-            Page<Phong> page;
-
-            if (hasFilters(request)) {
-                page = adPhongRepository.searchPhong(
-                        request.getQ(),
-                        request.getLoaiPhong(),
-                        request.getTrangThaiPhong(),
-                        request.getGiaMin(),
-                        request.getGiaMax(),
-                        request.getSucChuaMin(),
-                        request.getSucChuaMax(),
-                        pageable
-                );
-            } else {
-                page = adPhongRepository.findAll(pageable);
-            }
+            Page<PhongProjection> page = hasFilters(request)
+                    ? adPhongRepository.searchPhong(
+                    request.getQ(),
+                    request.getLoaiPhong(),
+                    request.getTrangThaiPhong(),
+                    request.getGiaMin(),
+                    request.getGiaMax(),
+                    request.getSucChuaMin(),
+                    request.getSucChuaMax(),
+                    pageable
+            )
+                    : adPhongRepository.findAllProjection(pageable);
 
             return new ResponseObject<>(
                     PageableObject.of(page),
@@ -60,7 +56,6 @@ public class ADPhongServiceImpl implements ADPhongService {
         }
     }
 
-
     private boolean hasFilters(ADPhongSearchRequest request) {
         return (request.getQ() != null && !request.getQ().trim().isEmpty()) ||
                 request.getLoaiPhong() != null ||
@@ -74,7 +69,7 @@ public class ADPhongServiceImpl implements ADPhongService {
     @Override
     public ResponseObject<?> getPhongById(String id) {
         try {
-            return adPhongRepository.findById(id)
+            return adPhongRepository.findByIdProjection(id)
                     .map(phong -> new ResponseObject<>(
                             phong,
                             HttpStatus.OK,
