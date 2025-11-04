@@ -8,12 +8,12 @@
       style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <div></div> <!-- div trống ép nút sang phải -->
       <div>
-        <a-button type="primary" @click="showHistory = true"
+        <a-button style="background-color: #54bddb;"type="primary" @click="showHistory = true"
                   class="d-flex justify-content-center items-center px-4">
           <template #icon>
             <i class="ri-history-line"></i>
           </template>
-          Lịch sử
+          Lịch sử đặt phòng
         </a-button>
       </div>
     </div>
@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {ref, computed, watch, reactive} from 'vue'
 import DivCustom from '@/components/custom/Div/DivCustom.vue'
 import GlobalPagination from '@/components/custom/Table/GlobalPagination.vue'
 import { HomeOutlined } from '@ant-design/icons-vue'
@@ -183,6 +183,9 @@ import { defineEmits, defineProps } from 'vue'
 import {
   DeleteOutlined
 } from '@ant-design/icons-vue'
+import {getAllRoomUsageHistory} from "@/services/api/admin/phong.api.ts";
+import type {LeTanResponse, LsDatPhongRequest} from '@/services/api/admin/phong.api.ts'
+import dayjs from "dayjs";
 
 const props = defineProps<{
   rooms: any[]
@@ -274,6 +277,16 @@ const columnsHistory: TableColumnsType = [
   {title: 'Tên phòng', dataIndex: 'tenPhong', key: 'tenPhong', align: 'center'},
   {title: 'Thời gian đặt', dataIndex: 'thoiGianDat', key: 'thoiGianDat', align: 'center'},
   {title: 'Giá hiện tại', dataIndex: 'giaHienTai', key: 'giaHienTai', align: 'center'},
+  {title: 'Thời gian check in', dataIndex: 'thoiGianCheckIn', key: 'thoiGianCheckIn', align: 'center'},
+  {title: 'Thời gian check in', dataIndex: 'thoiGianCheckOut', key: 'thoiGianCheckOut', align: 'center'},
+  {
+    title: 'Dịch vụ phát sinh',
+    dataIndex: 'dichVuPhatSinh',
+    key: 'dichVuPhatSinh',
+    align: 'center',
+    customRender: ({ text }) =>
+      Array.isArray(text) && text.length > 0 ? text.join(', ') : 'Không có'
+  },
   {title: 'Trạng thái', dataIndex: 'trangThaiPhong', key: 'trangThaiPhong', align: 'center'},
   {
     title: 'Tổng tiền phát sinh',

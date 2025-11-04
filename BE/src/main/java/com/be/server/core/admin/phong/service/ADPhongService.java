@@ -11,5 +11,6 @@ public interface ADPhongService {
     ResponseObject<?> getPhongById(String id);
 
     ResponseObject<?> roomUsageHistory(LsDatPhongRequest request);
+
     ResponseObject<?> changeStatusPhong(String id);
 }

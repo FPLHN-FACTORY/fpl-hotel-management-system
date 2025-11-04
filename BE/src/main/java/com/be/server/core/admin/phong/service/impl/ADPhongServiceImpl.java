@@ -141,4 +141,28 @@ public class ADPhongServiceImpl implements ADPhongService {
         );
     }
 
+    @Override
+    public ResponseObject<?> changeStatusPhong(String id) {
+        Optional<Phong> existingPhong = adPhongRepository.findById(id);
+        if (existingPhong.isPresent()) {
+            Phong phong = existingPhong.get();
+            if (phong.getStatus().equals(EntityStatus.INACTIVE)) {
+                phong.setStatus(EntityStatus.ACTIVE);
+            } else {
+                if(phong.getTrangThaiPhong().equals(RoomStatus.TRONG)) {
+                    phong.setStatus(EntityStatus.INACTIVE);
+                }
+                else if (phong.getTrangThaiPhong().equals(RoomStatus.DANG_SU_DUNG)) {
+                    return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Phòng đang được sử dụng!");
+                }
+                else if (phong.getTrangThaiPhong().equals(RoomStatus.DA_DAT)) {
+                    return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Phòng đã được đặt!");
+                }
+            }
+            adPhongRepository.save(phong);
+            return new ResponseObject<>(null, HttpStatus.OK, "Thay đổi trạng thái phòng thành công!");
+        }
+        return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Phòng không tồn tại!");
+
+    }
 }

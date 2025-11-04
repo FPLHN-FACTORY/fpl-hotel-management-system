@@ -21,7 +21,9 @@ public interface LsDatPhongRepository extends DatPhongRepository {
                     u.tenPhong,
                     u.thoiGianDat,
                     u.giaHienTai,
-                    u.trangThaiPhong
+                    u.trangThaiPhong,
+                    u.thoiGianCheckIn,
+                    u.thoiGianCheckOut
                 )
                 FROM DatPhong u
                 LEFT JOIN LichSuDatPhong ls ON u.id = ls.datPhong.id

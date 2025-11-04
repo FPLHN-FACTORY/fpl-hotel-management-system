@@ -24,6 +24,8 @@ public class LeTanResponse {
     private RoomStatus trangThaiPhong;
     private List<String> dichVuPhatSinh;
     private BigDecimal tongTienPhatSinh;
+    private LocalDateTime thoiGianCheckIn;
+    private LocalDateTime thoiGianCheckOut;
 
     public LeTanResponse(String datPhongId,
                          String hoTen,
@@ -31,7 +33,9 @@ public class LeTanResponse {
                          String tenPhong,
                          LocalDateTime thoiGianDat,
                          BigDecimal giaHienTai,
-                         RoomStatus trangThaiPhong){
+                         RoomStatus trangThaiPhong,
+                         LocalDateTime thoiGianCheckIn,
+                         LocalDateTime thoiGianCheckOut){
         this.datPhongId = datPhongId;
         this.hoTen = hoTen;
         this.maPhong = maPhong;
@@ -39,5 +43,7 @@ public class LeTanResponse {
         this.thoiGianDat = thoiGianDat;
         this.giaHienTai = giaHienTai;
         this.trangThaiPhong = trangThaiPhong;
+        this.thoiGianCheckIn = thoiGianCheckIn;
+        this.thoiGianCheckOut = thoiGianCheckOut;
     }
 }
