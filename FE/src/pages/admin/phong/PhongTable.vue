@@ -3,7 +3,7 @@
     <template #icon>
       <HomeOutlined />
     </template>
-    <!-- Thanh trên: chứa nút lịch sử -->
+
     <div
       style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <div></div> <!-- div trống ép nút sang phải -->
@@ -64,6 +64,29 @@
             <a-tag :color="getRoomStatusColor(record.trangThaiPhong)" class="font-medium">
               {{ getRoomStatusText(record.trangThaiPhong) }}
             </a-tag>
+          </template>
+          <template v-if="column.key === 'operation'">
+            <div class="flex gap-1 items-center justify-center text-center">
+
+              <a-tooltip title="Xóa phòng">
+                <a-button
+                  @click="handleDeleteClick(record.id)"
+                  class="flex items-center justify-center w-8 h-8 "
+                  style="
+    background-color: #fee2e2 !important;
+    color: #d81a6c !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  "
+                >
+                  <DeleteOutlined />
+                </a-button>
+              </a-tooltip>
+
+
+            </div>
           </template>
         </template>
 
@@ -151,14 +174,15 @@
 </template>
 
 <script setup lang="ts">
-import DivCustom from '@/components/custom/Div/DivCustomTable.vue'
-import type {TableColumnsType} from 'ant-design-vue'
-import {ref, reactive, watch, computed} from 'vue'
-import {getAllRoomUsageHistory} from '@/services/api/admin/phong.api.ts'
-import type {LeTanResponse, LsDatPhongRequest} from '@/services/api/admin/phong.api.ts'
-import dayjs from 'dayjs'
+import { ref, computed } from 'vue'
+import DivCustom from '@/components/custom/Div/DivCustom.vue'
 import GlobalPagination from '@/components/custom/Table/GlobalPagination.vue'
 import { HomeOutlined } from '@ant-design/icons-vue'
+import type { TableColumnsType } from 'ant-design-vue'
+import { defineEmits, defineProps } from 'vue'
+import {
+  DeleteOutlined
+} from '@ant-design/icons-vue'
 
 const props = defineProps<{
   rooms: any[]
@@ -167,7 +191,7 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const emit = defineEmits(['page-change'])
+const emit = defineEmits(['page-change','delete'])
 
 const currentPage = computed({
   get: () => props.paginationParams.page,
@@ -186,7 +210,14 @@ const columns: TableColumnsType = [
   { title: 'Loại phòng', key: 'loaiPhong', dataIndex: 'loaiPhong', align: 'center', width: 240 },
   { title: 'Giá hiện tại', key: 'giaHienTai', dataIndex: 'giaHienTai', align: 'right', width: 150 },
   { title: 'Sức chứa', key: 'sucChua', dataIndex: 'sucChua', align: 'center', width: 120 },
-  { title: 'Trạng thái', key: 'trangThaiPhong', dataIndex: 'trangThaiPhong', align: 'center', width: 140 }
+  { title: 'Trạng thái', key: 'trangThaiPhong', dataIndex: 'trangThaiPhong', align: 'center', width: 140 },
+  {
+    title: 'Hành động',
+    key: 'operation',
+    width: 130,
+    align: 'center',
+    fixed: 'right'
+  }
 ]
 
 const handlePaginationChange = async (newPage: number, newPageSize: number) => {
@@ -195,6 +226,9 @@ const handlePaginationChange = async (newPage: number, newPageSize: number) => {
   } else {
     emit('page-change', { page: newPage, pageSize: newPageSize })
   }
+}
+const handleDeleteClick = (id: string) => {
+  emit('delete', id)
 }
 
 const formatCurrency = (value: number) => {
@@ -222,7 +256,6 @@ const getRoomStatusColor = (status: string) => {
   }
   return colorMap[status] || 'default'
 }
-
 const showHistory = ref(false)
 const roomHistory = ref<LeTanResponse[]>([])
 const loadingHistory = ref(false)
@@ -286,7 +319,6 @@ watch(showHistory, (val) => {
   if (val) fetchRoomHistory()
 })
 </script>
-
 <style scoped>
 :deep(.ant-table-thead > tr > th) {
   background-color: #fafafa !important;
@@ -303,3 +335,4 @@ watch(showHistory, (val) => {
   font-size: 13px;
 }
 </style>
+
