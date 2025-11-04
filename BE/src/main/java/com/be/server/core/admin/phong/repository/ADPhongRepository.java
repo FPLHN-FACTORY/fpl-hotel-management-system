@@ -21,7 +21,7 @@ public interface ADPhongRepository extends PhongRepository {
             SELECT p FROM Phong p 
             LEFT JOIN FETCH p.bangGia
             WHERE 
-            p.status = com.be.server.infrastructure.constant.EntityStatus.ACTIVE AND
+            p.status = 0 AND
             (:q IS NULL OR :q = '' OR p.maPhong LIKE %:q% OR p.tenPhong LIKE %:q%) AND 
             (:loaiPhong IS NULL OR p.loaiPhong = :loaiPhong) AND 
             (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong) AND 
@@ -39,9 +39,9 @@ public interface ADPhongRepository extends PhongRepository {
                                       @Param("sucChuaMax") Integer sucChuaMax,
                                       Pageable pageable);
 
-    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.status = com.be.server.infrastructure.constant.EntityStatus.ACTIVE")
+    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.status = 0")
     Page<PhongProjection> findAllProjection(Pageable pageable);
 
-    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.id = :id AND p.status = com.be.server.infrastructure.constant.EntityStatus.ACTIVE")
+    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.id = :id AND p.status = 0")
     Optional<PhongProjection> findByIdProjection(@Param("id") String id);
 }
