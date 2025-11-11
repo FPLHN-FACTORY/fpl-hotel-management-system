@@ -1,9 +1,7 @@
 package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,24 +21,13 @@ import java.time.LocalDateTime;
 @Table(name = "bang_gia")
 public class BangGia extends PrimaryEntity implements Serializable {
 
-    @Column(name = "ma_bang_gia")
-    private String maBangGia;
+    @Column(name = "gia_ap_dung")
+    private BigDecimal giaApDung;
 
     @Column(name = "ngay_bat_dau")
     private LocalDateTime ngayBatDau;
 
-    @Column(name = "ngay_ket_thuc")
-    private LocalDateTime ngayKetThuc;
-
-    @Column(name = "gia_ngay_thuong")
-    private BigDecimal giaNgayThuong;
-
-    @Column(name = "gia_cuoi_tuan")
-    private BigDecimal giaCuoiTuan;
-
-    @Column(name = "he_so_cao_diem")
-    private Double heSoCaoDiem;
-
-    @Column(name = "ghi_chu")
-    private String ghiChu;
+    @ManyToOne
+    @JoinColumn(name = "phong_id")
+    private Phong phong;
 }

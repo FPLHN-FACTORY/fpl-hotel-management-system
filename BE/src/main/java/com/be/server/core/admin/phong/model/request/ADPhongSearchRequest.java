@@ -1,7 +1,9 @@
 package com.be.server.core.admin.phong.model.request;
 
 import com.be.server.core.common.base.PageableRequest;
+import com.be.server.entity.LoaiPhong;
 import com.be.server.infrastructure.constant.RoomStatus;
+import com.be.server.infrastructure.constant.TrangThaiPhong;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,15 +22,14 @@ public class ADPhongSearchRequest extends PageableRequest {
 
     private String q;
 
-    private String loaiPhong;
+    private Integer tang;
 
-    private RoomStatus trangThaiPhong;
+    private LoaiPhong loaiPhong;
+
+    private TrangThaiPhong trangThaiPhong;
 
     private BigDecimal giaMin;
 
     private BigDecimal giaMax;
 
-    private Integer sucChuaMin;
-
-    private Integer sucChuaMax;
 }

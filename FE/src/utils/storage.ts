@@ -1,49 +1,85 @@
-export const localStorageAction = {
-    get: (key: string, defaultValue = null) => {
-      const value = localStorage.getItem(key)
-  
-      return value ? JSON.parse(value) : defaultValue
-    },
-    set: (key: string, value: any) => localStorage.setItem(key, JSON.stringify(value)),
-    remove: (key: string) => localStorage.removeItem(key),
-    clear: () => localStorage.clear()
-  }
-  
-  export const sessionStorageAction = {
-    get: (key: string, defaultValue = '') => {
-      const value = sessionStorage.getItem(key)
-  
-      return value ? value : defaultValue
-    },
-    set: (key: string, value: any) => sessionStorage.setItem(key, value),
-    remove: (key: string) => sessionStorage.removeItem(key),
-    clear: () => sessionStorage.clear()
-  }
-  
-  export const cookieStorageAction = {
-    get(key: string): string {
-      const cookieArr = document.cookie.split('; ')
-      for (let i = 0, length = cookieArr.length; i < length; i++) {
-        const kv = cookieArr[i].split('=')
-        if (kv[0] === key) {
-          return kv[1]
-        }
-      }
-      return ''
-    },
-    set: (key: string, value: any, expire: number | null = 60 * 60 * 0.5) => {
-      document.cookie = `${key}=${value}; Max-Age=${expire}`
-    },
-    remove: (key: string) => {
-      document.cookie = `${key}=${1}; Max-Age=${-1}`
-    },
-    clear: () => {
-      const keys = document.cookie.match(/[^ =;]+(?==)/g)
-      if (keys) {
-        for (let i = keys.length; i--; ) {
-          document.cookie = `${keys[i]}=0;expire=${new Date(0).toUTCString()}`
-        }
-      }
+import { Storage } from '@/typings/global'
+const STORAGE_PREFIX = import.meta.env.VITE_STORAGE_PREFIX
+
+interface StorageData<T> {
+  value: T
+  expire: number | null
+}
+/** LocalStorage Partial Operations */
+function createLocalStorage<T extends Storage.Local>() {
+  // The default cache period is 7 days
+
+  function set<K extends keyof T>(key: K, value: T[K], expire: number = 60 * 60 * 24 * 7) {
+    const storageData: StorageData<T[K]> = {
+      value,
+      expire: new Date().getTime() + expire * 1000,
     }
+    const json = JSON.stringify(storageData)
+    window.localStorage.setItem(`${STORAGE_PREFIX}${String(key)}`, json)
   }
-  
+
+  function get<K extends keyof T>(key: K) {
+    const json = window.localStorage.getItem(`${STORAGE_PREFIX}${String(key)}`)
+    if (!json)
+      return null
+
+    const storageData: StorageData<T[K]> | null = JSON.parse(json)
+
+    if (storageData) {
+      const { value, expire } = storageData
+      if (expire === null || expire >= Date.now())
+        return value
+    }
+    remove(key)
+    return null
+  }
+
+  function remove(key: keyof T) {
+    window.localStorage.removeItem(`${STORAGE_PREFIX}${String(key)}`)
+  }
+
+  const clear = window.localStorage.clear
+
+  return {
+    set,
+    get,
+    remove,
+    clear,
+  }
+}
+/**
+ * Some operations of sessionStorage
+ */
+
+function createSessionStorage<T extends Storage.Session>() {
+  function set<K extends keyof T>(key: K, value: T[K]) {
+    const json = JSON.stringify(value)
+    window.sessionStorage.setItem(`${STORAGE_PREFIX}${String(key)}`, json)
+  }
+  function get<K extends keyof T>(key: K) {
+    const json = sessionStorage.getItem(`${STORAGE_PREFIX}${String(key)}`)
+    if (!json)
+      return null
+
+    const storageData: T[K] | null = JSON.parse(json)
+
+    if (storageData)
+      return storageData
+
+    return null
+  }
+  function remove(key: keyof T) {
+    window.sessionStorage.removeItem(`${STORAGE_PREFIX}${String(key)}`)
+  }
+  const clear = window.sessionStorage.clear
+
+  return {
+    set,
+    get,
+    remove,
+    clear,
+  }
+}
+
+export const local = createLocalStorage()
+export const session = createSessionStorage()

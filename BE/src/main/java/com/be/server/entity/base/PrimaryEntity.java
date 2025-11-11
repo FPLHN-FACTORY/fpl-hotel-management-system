@@ -27,5 +27,10 @@ public abstract class PrimaryEntity extends AuditEntity implements IsIdentified 
     @Enumerated(EnumType.ORDINAL)
     private EntityStatus status;
 
+    @Column(name = "ma")
+    private String ma;
+
+    @Column(name = "ten")
+    private String ten;
 
 }

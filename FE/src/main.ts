@@ -1,32 +1,35 @@
-import { router } from '@/routes/router'
-import { VueQueryPlugin } from '@tanstack/vue-query'
-import Antd, { message } from 'ant-design-vue'
-import 'ant-design-vue/dist/reset.css'
-import { createPinia } from 'pinia'
-import { createApp } from 'vue'
-import 'vue3-toastify/dist/index.css'
-import App from '@/App.vue'
-import './index.scss'
-import './assets/style/style.css'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
+import type { App } from 'vue'
+import { installRouter } from '@/router'
+import { installPinia } from '@/store'
+import AppVue from './App.vue'
+import AppLoading from './components/common/AppLoading.vue'
 
-;(window as any).global = window
+async function setupApp() {
+  // Load global loading status
+  const appLoading = createApp(AppLoading)
+  appLoading.mount('#appLoading')
 
-message.config({
-  top: '80px',
-  duration: 2,
-  maxCount: 3,
-})
+  // Create a vue instance
+  const app = createApp(AppVue)
 
-const app = createApp(App)
+  // Register module Pinia
+  await installPinia(app)
 
-app.use(router)
-app.use(Antd)
-app.use(VueQueryPlugin)
-app.use(createPinia())
+  // Register module Vue-router
+  await installRouter(app)
 
-app.mount('#app')
+  /* Register module directive/static resource */
+  Object.values(
+    import.meta.glob<{ install: (app: App) => void }>('./modules/*.ts', {
+      eager: true,
+    }),
+  ).map(i => app.use(i))
+
+  // Unmount loading animation
+  appLoading.unmount()
+
+  // Mount
+  app.mount('#app')
+}
+
+setupApp()

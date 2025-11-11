@@ -1,5 +1,6 @@
 package com.be.server.core.admin.phong.repository;
 
+import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
 import com.be.server.core.admin.phong.model.response.PhongProjection;
 import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.EntityStatus;
@@ -17,31 +18,49 @@ import java.util.Optional;
 @Repository
 public interface ADPhongRepository extends PhongRepository {
 
-    @Query("""
-            SELECT p FROM Phong p 
-            LEFT JOIN FETCH p.bangGia
-            WHERE 
-            p.status = 0 AND
-            (:q IS NULL OR :q = '' OR p.maPhong LIKE %:q% OR p.tenPhong LIKE %:q%) AND 
-            (:loaiPhong IS NULL OR p.loaiPhong = :loaiPhong) AND 
-            (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong) AND 
-            (:giaMin IS NULL OR p.giaHienTai >= :giaMin) AND 
-            (:giaMax IS NULL OR p.giaHienTai <= :giaMax) AND 
-            (:sucChuaMin IS NULL OR p.sucChua >= :sucChuaMin) AND 
-            (:sucChuaMax IS NULL OR p.sucChua <= :sucChuaMax)
-            """)
-    Page<PhongProjection> searchPhong(@Param("q") String q,
-                                      @Param("loaiPhong") String loaiPhong,
-                                      @Param("trangThaiPhong") RoomStatus trangThaiPhong,
-                                      @Param("giaMin") BigDecimal giaMin,
-                                      @Param("giaMax") BigDecimal giaMax,
-                                      @Param("sucChuaMin") Integer sucChuaMin,
-                                      @Param("sucChuaMax") Integer sucChuaMax,
-                                      Pageable pageable);
+    @Query(value = """
+        SELECT
+            p.id AS id,
+            p.ma AS ma,
+            p.ten AS ten,
+            p.giaHienTai AS price,
+            lp.moTa AS loaiPhong,
+            lp.soNguoiToiDa AS sucChua,
+            p.trangThaiPhong AS trangThai
+        FROM Phong p
+        LEFT JOIN p.loaiPhong lp
+        LEFT JOIN p.priceHistory bg
+        WHERE
+            (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%') 
+             OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
+          AND (:#{#request.loaiPhong} IS NULL OR p.loaiPhong.id = :#{#request.loaiPhong.id})
+          AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
+          AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
+          AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
+          AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+        ORDER BY p.createdDate DESC
+        """,
+            countQuery = """
+        SELECT COUNT(p.id)
+        FROM Phong p
+        LEFT JOIN p.loaiPhong lp
+        LEFT JOIN p.priceHistory bg
+        WHERE
+            (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%') 
+             OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
+          AND (:#{#request.loaiPhong} IS NULL OR p.loaiPhong.id = :#{#request.loaiPhong.id})
+          AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
+          AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
+          AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
+          AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+        """)
+    Page<PhongProjection> getAllPhong(Pageable pageable, @Param("request") ADPhongSearchRequest request);
 
-    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.status = 0")
-    Page<PhongProjection> findAllProjection(Pageable pageable);
 
-    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.id = :id AND p.status = 0")
-    Optional<PhongProjection> findByIdProjection(@Param("id") String id);
+//
+//    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.status = 0")
+//    Page<PhongProjection> findAllProjection(Pageable pageable);
+//
+//    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.id = :id AND p.status = 0")
+//    Optional<PhongProjection> findByIdProjection(@Param("id") String id);
 }

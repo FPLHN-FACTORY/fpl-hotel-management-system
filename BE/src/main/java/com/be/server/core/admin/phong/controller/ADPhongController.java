@@ -13,31 +13,28 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(MappingConstants.API_ADMIN_ROOM)
-@Slf4j
-@CrossOrigin(origins = "*")
+@RequestMapping(MappingConstants.API_LE_TAN_PHONG)
 public class ADPhongController {
 
-    private final ADPhongService service;
+    private final ADPhongService adPhongService;
 
-    @GetMapping("/history")
-    public ResponseEntity<?> getAllRoomUsageHistory(LsDatPhongRequest request){
-        return Helper.createResponseEntity(service.roomUsageHistory(request));
-    }
+//    @GetMapping("/history")
+//    public ResponseEntity<?> getAllRoomUsageHistory(LsDatPhongRequest request){
+//        return Helper.createResponseEntity(service.roomUsageHistory(request));
+//    }
 
     @GetMapping
-    public ResponseEntity<?> getAll(ADPhongSearchRequest request) {
-        log.info("Lấy danh sách phòng với filters: {}", request);
-        return Helper.createResponseEntity(service.getAllPhong(request));
+    public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
+        return Helper.createResponseEntity(adPhongService.getAllPhong(request));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getPhongById(@PathVariable String id) {
-        log.info("Lấy thông tin phòng với id: {}", id);
-        return Helper.createResponseEntity(service.getPhongById(id));
-    }
-    @PutMapping("changeStatus/{id}")
-    public ResponseEntity<?>changeStatus(@PathVariable String id) {
-        return Helper.createResponseEntity(service.changeStatusPhong(id));
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<?> getPhongById(@PathVariable String id) {
+//        log.info("Lấy thông tin phòng với id: {}", id);
+//        return Helper.createResponseEntity(service.getPhongById(id));
+//    }
+//    @PutMapping("changeStatus/{id}")
+//    public ResponseEntity<?>changeStatus(@PathVariable String id) {
+//        return Helper.createResponseEntity(service.changeStatusPhong(id));
+//    }
 }

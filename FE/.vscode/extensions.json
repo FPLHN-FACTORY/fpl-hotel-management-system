@@ -1,7 +1,15 @@
 {
   "recommendations": [
-    "Vue.volar",
+    "mikestead.dotenv",
+    "usernamehw.errorlens",
     "dbaeumer.vscode-eslint",
-    "EditorConfig.EditorConfig"
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "donjayamanne.githistory",
+    "lokalise.i18n-ally",
+    "antfu.iconify",
+    "kisstkondoros.vscode-gutter-preview",
+    "antfu.unocss",
+    "vue.volar"
   ]
 }

@@ -26,11 +26,6 @@ import java.util.Date;
 @DynamicUpdate
 public class NhanVien extends PrimaryEntity implements Serializable {
 
-    @Column(name = "ma_nhan_vien")
-    private String ma;
-
-    @Column(name = "ten_nhan_vien")
-    private String ten;
 
     @Column(name = "tinh")
     private String tinh;

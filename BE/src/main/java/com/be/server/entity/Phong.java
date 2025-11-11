@@ -2,12 +2,14 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.RoomStatus;
+import com.be.server.infrastructure.constant.TrangThaiPhong;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,14 +21,12 @@ import java.math.BigDecimal;
 @Table(name = "phong")
 public class Phong extends PrimaryEntity implements Serializable {
 
-    @Column(name = "ma_phong")
-    private String maPhong;
+    @Column(name = "tang")
+    private Integer tang;
 
-    @Column(name = "ten_phong")
-    private String tenPhong;
-
-    @Column(name = "loai_phong")
-    private String loaiPhong;
+    @JoinColumn(name = "loai_phong_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private LoaiPhong loaiPhong;
 
     @Column(name = "gia_hien_tai")
     private BigDecimal giaHienTai;
@@ -34,12 +34,14 @@ public class Phong extends PrimaryEntity implements Serializable {
     @Column(name = "suc_chua")
     private String sucChua;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "trang_thai_phong")
-    private RoomStatus trangThaiPhong;
+    private TrangThaiPhong trangThaiPhong;
 
-    @ManyToOne
-    @JoinColumn(name = "id_bang_gia")
-    private BangGia bangGia;
+    @OneToMany(mappedBy = "phong", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PhongTag> tags;
+
+    @OneToMany(mappedBy = "phong", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BangGia> priceHistory;
 
 }
