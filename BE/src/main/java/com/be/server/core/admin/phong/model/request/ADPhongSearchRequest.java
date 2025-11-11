@@ -20,11 +20,11 @@ import java.math.BigDecimal;
 public class ADPhongSearchRequest extends PageableRequest {
 
 
-    private String q;
+    private String tuKhoa;
 
     private Integer tang;
 
-    private LoaiPhong loaiPhong;
+    private String loaiPhongId;
 
     private TrangThaiPhong trangThaiPhong;
 

@@ -19,42 +19,47 @@ import java.util.Optional;
 public interface ADPhongRepository extends PhongRepository {
 
     @Query(value = """
-        SELECT
-            p.id AS id,
-            p.ma AS ma,
-            p.ten AS ten,
-            p.giaHienTai AS price,
-            lp.moTa AS loaiPhong,
-            lp.soNguoiToiDa AS sucChua,
-            p.trangThaiPhong AS trangThai
-        FROM Phong p
-        LEFT JOIN p.loaiPhong lp
-        LEFT JOIN p.priceHistory bg
-        WHERE
-            (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%') 
-             OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
-          AND (:#{#request.loaiPhong} IS NULL OR p.loaiPhong.id = :#{#request.loaiPhong.id})
-          AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
-          AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
-          AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
-          AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
-        ORDER BY p.createdDate DESC
-        """,
+    SELECT
+        p.id AS id,
+        p.ma AS ma,
+        p.ten AS ten,
+        p.giaHienTai AS price,
+        lp.moTa AS loaiPhong,
+        lp.soNguoiToiDa AS sucChua,
+        p.trangThaiPhong AS trangThai
+    FROM Phong p
+    LEFT JOIN p.loaiPhong lp
+    LEFT JOIN p.priceHistory bg
+    WHERE
+        (:#{#request.tuKhoa} IS NULL 
+            OR p.ten LIKE CONCAT('%', :#{#request.tuKhoa}, '%') 
+            OR p.ma LIKE CONCAT('%', :#{#request.tuKhoa}, '%'))
+      AND (:#{#request.loaiPhongId} IS NULL OR lp.id = :#{#request.loaiPhongId})
+      AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
+      AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
+      AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
+      AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+    ORDER BY p.createdDate DESC
+""",
             countQuery = """
-        SELECT COUNT(p.id)
-        FROM Phong p
-        LEFT JOIN p.loaiPhong lp
-        LEFT JOIN p.priceHistory bg
-        WHERE
-            (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%') 
-             OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
-          AND (:#{#request.loaiPhong} IS NULL OR p.loaiPhong.id = :#{#request.loaiPhong.id})
-          AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
-          AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
-          AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
-          AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
-        """)
+    SELECT COUNT(p.id)
+    FROM Phong p
+    LEFT JOIN p.loaiPhong lp
+    LEFT JOIN p.priceHistory bg
+    WHERE
+        (:#{#request.tuKhoa} IS NULL 
+            OR p.ten LIKE CONCAT('%', :#{#request.tuKhoa}, '%') 
+            OR p.ma LIKE CONCAT('%', :#{#request.tuKhoa}, '%'))
+      AND (:#{#request.loaiPhongId} IS NULL OR lp.id = :#{#request.loaiPhongId})
+      AND (:#{#request.trangThaiPhong} IS NULL OR p.trangThaiPhong = :#{#request.trangThaiPhong})
+      AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
+      AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
+      AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+""")
+
     Page<PhongProjection> getAllPhong(Pageable pageable, @Param("request") ADPhongSearchRequest request);
+
+
 
 
 //
