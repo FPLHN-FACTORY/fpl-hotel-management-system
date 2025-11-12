@@ -39,6 +39,7 @@ public interface ADPhongRepository extends PhongRepository {
       AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
       AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
       AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+      AND p.status = 0 
     ORDER BY p.createdDate DESC
 """,
             countQuery = """
@@ -55,6 +56,7 @@ public interface ADPhongRepository extends PhongRepository {
       AND (:#{#request.giaMin} IS NULL OR p.giaHienTai >= :#{#request.giaMin})
       AND (:#{#request.giaMax} IS NULL OR p.giaHienTai <= :#{#request.giaMax})
       AND (:#{#request.tang} IS NULL OR p.tang = :#{#request.tang})
+      AND p.status = 0 
 """)
 
     Page<PhongProjection> getAllPhong(Pageable pageable, @Param("request") ADPhongSearchRequest request);

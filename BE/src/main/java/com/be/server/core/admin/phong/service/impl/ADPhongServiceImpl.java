@@ -15,6 +15,7 @@ import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.EntityStatus;
 import com.be.server.infrastructure.constant.PaginationConstant;
 import com.be.server.infrastructure.constant.RoomStatus;
+import com.be.server.infrastructure.constant.TrangThaiPhong;
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -120,28 +121,38 @@ public class ADPhongServiceImpl implements ADPhongService {
 //        );
 //    }
 //
-//    @Override
-//    public ResponseObject<?> changeStatusPhong(String id) {
-//        Optional<Phong> existingPhong = adPhongRepository.findById(id);
-//        if (existingPhong.isPresent()) {
-//            Phong phong = existingPhong.get();
-//            if (phong.getStatus().equals(EntityStatus.INACTIVE)) {
-//                phong.setStatus(EntityStatus.ACTIVE);
-//            } else {
-//                if(phong.getTrangThaiPhong().equals(RoomStatus.TRONG)) {
-//                    phong.setStatus(EntityStatus.INACTIVE);
-//                }
-//                else if (phong.getTrangThaiPhong().equals(RoomStatus.DANG_SU_DUNG)) {
-//                    return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Phòng đang được sử dụng!");
-//                }
-//                else if (phong.getTrangThaiPhong().equals(RoomStatus.DA_DAT)) {
-//                    return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Phòng đã được đặt!");
-//                }
-//            }
-//            adPhongRepository.save(phong);
-//            return new ResponseObject<>(null, HttpStatus.OK, "Thay đổi trạng thái phòng thành công!");
-//        }
-//        return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Phòng không tồn tại!");
-//
-//    }
+
+    @Override
+    public ResponseObject<?> changeStatusPhong(String id) {
+        Optional<Phong> existingPhong = adPhongRepository.findById(id);
+        if (existingPhong.isPresent()) {
+            Phong phong = existingPhong.get();
+            if (phong.getStatus().equals(EntityStatus.INACTIVE)) {
+                phong.setStatus(EntityStatus.ACTIVE);
+            } else {
+                if(phong.getTrangThaiPhong().equals(TrangThaiPhong.TRONG)) {
+                    phong.setStatus(EntityStatus.INACTIVE);
+                }
+                else if (phong.getTrangThaiPhong().equals(TrangThaiPhong.DANG_SU_DUNG)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Không thể xóa phòng, phòng đang được sử dụng!");
+                }
+                else if (phong.getTrangThaiPhong().equals(TrangThaiPhong.DA_DAT)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Không thể xóa phòng, phòng đã được đặt!");
+                }
+                else if (phong.getTrangThaiPhong().equals(TrangThaiPhong.DANG_DON)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Không thể xóa phòng, phòng đang được dọn !");
+                }
+                else if (phong.getTrangThaiPhong().equals(TrangThaiPhong.BAO_TRI)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Không thể xóa phòng, phòng đang được bảo trì !");
+                }
+                else if (phong.getTrangThaiPhong().equals(TrangThaiPhong.TAM_KHOA)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Không thể xóa phòng, phòng đang được tạm khóa !");
+                }
+            }
+            adPhongRepository.save(phong);
+            return new ResponseObject<>(null, HttpStatus.OK, "Xóa phòng thành công!");
+        }
+        return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Phòng không tồn tại!");
+
+    }
 }

@@ -12,7 +12,7 @@ import {
   NInput,
 } from 'naive-ui'
 import TableModal from './components/TableModal.vue'
-import { getAllRooms } from '@/service/api/letan/phong' // service gọi API backend
+import { deleteRoom, getAllRooms } from '@/service/api/letan/phong' // service gọi API backend
 import type { PhongResponse } from '@/service/api/letan/phong'
 
 // --- Loading & Modal ---
@@ -87,8 +87,19 @@ function handleAddTable() {
   openModal()
 }
 
-function handleDeleteRoom(id: string) {
-  window.$message.success(`Xóa phòng id: ${id}`)
+// Xóa mềm phòng
+async function handleDeleteRoom(id: string) {
+  try {
+    const res = await deleteRoom(id)
+    window.$message.success(res?.message || `Xóa mềm phòng id: ${id} thành công!`)
+    fetchRooms(currentPage.value)
+  } catch (error: any) {
+    const msg =
+      error.response?.data?.message ||
+      error.message ||
+      'Đã xảy ra lỗi khi xóa phòng!'
+    window.$message.error(msg)
+  }
 }
 
 function handleResetSearch() {

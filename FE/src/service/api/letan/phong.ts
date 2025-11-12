@@ -48,3 +48,14 @@ export async function getAllRooms(params: ParamsGetRoom) {
     currentPage: res.data.data.currentPage || 1,
   }
 }
+
+
+// Xóa phòng (thay đổi trạng thái)
+export async function deleteRoom(id: string) {
+  const res = (await request({
+    url: `${API_LE_TAN_PHONG}/changeStatus/${id}`,
+    method: 'PUT',
+  })) as AxiosResponse<DefaultResponse<PhongResponse>>
+
+  return res.data
+}

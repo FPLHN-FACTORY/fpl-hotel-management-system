@@ -12,5 +12,5 @@ public interface ADPhongService {
 //
 //    ResponseObject<?> roomUsageHistory(LsDatPhongRequest request);
 //
-//    ResponseObject<?> changeStatusPhong(String id);
+    ResponseObject<?> changeStatusPhong(String id);
 }
