@@ -1,10 +1,9 @@
 package com.be.server.core.admin.phong.repository;
 
-import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
+
 import com.be.server.core.admin.phong.model.response.PhongProjection;
 import com.be.server.entity.Phong;
-import com.be.server.infrastructure.constant.EntityStatus;
-import com.be.server.infrastructure.constant.RoomStatus;
+import com.be.server.infrastructure.constant.TrangThaiPhong;
 import com.be.server.repository.PhongRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 
 @Repository
@@ -52,14 +52,8 @@ public interface ADPhongRepository extends PhongRepository {
             Pageable pageable
     );
 
-//
-//    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.status = 0")
-//    Page<PhongProjection> findAllProjection(Pageable pageable);
-//
-//    @Query("SELECT p FROM Phong p LEFT JOIN FETCH p.bangGia WHERE p.id = :id AND p.status = 0")
-//    Optional<PhongProjection> findByIdProjection(@Param("id") String id);
-
     Optional<Phong> findByMa(String ma);
 
     Optional<Phong> findByTen(String ten);
 }
+

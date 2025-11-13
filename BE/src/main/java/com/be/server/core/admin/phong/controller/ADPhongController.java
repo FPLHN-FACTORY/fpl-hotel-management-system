@@ -3,12 +3,10 @@ package com.be.server.core.admin.phong.controller;
 
 import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
 import com.be.server.core.admin.phong.model.request.ADSavePhongRequest;
-import com.be.server.core.admin.phong.model.request.LsDatPhongRequest;
 import com.be.server.core.admin.phong.service.ADPhongService;
 import com.be.server.infrastructure.constant.MappingConstants;
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,16 +16,6 @@ import org.springframework.web.bind.annotation.*;
 public class ADPhongController {
 
     private final ADPhongService adPhongService;
-
-    @GetMapping("/history")
-    public ResponseEntity<?> getAllRoomUsageHistory(LsDatPhongRequest request){
-        return Helper.createResponseEntity(service.roomUsageHistory(request));
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
-        return Helper.createResponseEntity(adPhongService.getAllPhong(request));
-    }
 
     @GetMapping
     public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {

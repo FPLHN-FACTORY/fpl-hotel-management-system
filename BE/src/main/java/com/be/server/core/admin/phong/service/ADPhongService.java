@@ -14,10 +14,4 @@ public interface ADPhongService {
     ResponseObject<?> savePhong(ADSavePhongRequest phong);
 
     ResponseObject<?> getAllLoaiPhong();
-//
-//    ResponseObject<?> getPhongById(String id);
-//
-//    ResponseObject<?> roomUsageHistory(LsDatPhongRequest request);
-//
-//    ResponseObject<?> changeStatusPhong(String id);
 }
