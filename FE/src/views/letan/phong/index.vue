@@ -99,7 +99,7 @@ if (sortBy.value) {
     if (typeof valA === 'string' && typeof valB === 'string') {
       return order === 'asc'
         ? valA.localeCompare(valB)
-        : valB.localeCompare(valA)
+            : valB.localeCompare(valA)
     }
     if (typeof valA === 'number' && typeof valB === 'number') {
       return order === 'asc' ? valA - valB : valB - valA
@@ -403,7 +403,12 @@ onMounted(() => {
           </template>
         </n-pagination>
 
-        <TableModal v-model:visible="visible" type="add" :modal-data="null" />
+        <TableModal
+          v-model:visible="visible"
+          type="add"
+          :modal-data="null"
+          @refresh="fetchRooms(currentPage)"
+        />
       </NSpace>
     </n-card>
   </NSpace>

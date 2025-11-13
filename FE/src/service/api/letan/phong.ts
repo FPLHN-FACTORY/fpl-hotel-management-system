@@ -28,12 +28,28 @@ export interface PhongResponse extends ResponseList {
   trangThaiPhong: 'TRONG' | 'DA_DAT' | 'DANG_SU_DUNG' | 'DANG_DON' | 'BAO_TRI' | 'TAM_KHOA'
 }
 
+export interface AddPhongRequest {
+  ma: string
+  ten: string
+  idLoaiPhong: string
+  sucChua: number
+  tang: number
+  trangThaiPhong: 'TRONG' | 'DA_DAT' | 'DANG_SU_DUNG' | 'DANG_DON' | 'BAO_TRI' | 'TAM_KHOA'
+}
+
+export interface LoaiPhongResponse {
+  id: string
+  giaHienTai: number
+  soLuongNguoiToiDa: number
+  ten : string
+}
+
 export async function getAllRooms(params: ParamsGetRoom) {
   try {
     const res = (await request({
       url: API_LE_TAN_PHONG,
       method: 'GET',
-      params: params,
+      params,
     })) as AxiosResponse<
       DefaultResponse<{
         data: PhongResponse[]
@@ -49,7 +65,8 @@ export async function getAllRooms(params: ParamsGetRoom) {
       totalPages: res.data.data.totalPages || 0,
       currentPage: params.page || 1,
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách phòng')
   }
 }
@@ -63,7 +80,38 @@ export async function deleteRoom(id: string) {
     })) as AxiosResponse<DefaultResponse<any>>
 
     return res.data
-  } catch (error: any) {
+  }
+  catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể xóa phòng')
+  }
+}
+
+// add phong
+export async function addPhong(data: AddPhongRequest) {
+  try {
+    const res = (await request({
+      url: `${API_LE_TAN_PHONG}/addPhong`,
+      method: 'POST',
+      data,
+    })) as AxiosResponse<DefaultResponse<any>>
+
+    return res.data
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể thêm phòng')
+  }
+}
+
+export async function getAllLoaiPhong() {
+  try {
+    const res = (await request({
+      url: `${API_LE_TAN_PHONG}/loai-phong`,
+      method: 'GET',
+    })) as AxiosResponse<DefaultResponse<LoaiPhongResponse[]>>
+
+    return res.data.data || []
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể tải danh sách loại phòng')
   }
 }

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -19,8 +20,8 @@ public class LoaiPhong extends PrimaryEntity implements Serializable {
     @Column(name = "mo_ta")
     private String moTa;
 
-    @Column(name = "loai_phong")
-    private EnLoaiPhong loaiPhong;
+    @Column(name = "gia_hien_tai")
+    private BigDecimal giaHienTai;
 
     @Column(name = "so_nguoi_quy_dinh")
     private Integer soNguoiQuyDinh;

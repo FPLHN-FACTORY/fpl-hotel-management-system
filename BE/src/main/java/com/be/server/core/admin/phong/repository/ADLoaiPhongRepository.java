@@ -13,8 +13,9 @@ public interface ADLoaiPhongRepository extends LoaiPhongRepository {
     @Query("""
        SELECT new com.be.server.core.admin.phong.model.response.LoaiPhongResponse(
            u.id,
-           u.loaiPhong,
-           u.soNguoiToiDa
+           u.soNguoiToiDa,
+           u.giaHienTai,
+           u.ten
        )
        FROM LoaiPhong u
        """)

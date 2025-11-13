@@ -2,35 +2,23 @@ package com.be.server.core.admin.phong.service.impl;
 
 import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
 import com.be.server.core.admin.phong.model.request.ADSavePhongRequest;
-import com.be.server.core.admin.phong.model.request.LsDatPhongRequest;
-import com.be.server.core.admin.phong.model.response.LeTanResponse;
-import com.be.server.core.admin.phong.model.response.PhongProjection;
 import com.be.server.core.admin.phong.repository.ADLoaiPhongRepository;
 import com.be.server.core.admin.phong.repository.ADPhongRepository;
-import com.be.server.core.admin.phong.repository.LsDatPhongRepository;
-import com.be.server.core.admin.phong.repository.LsDichVuPhatSinhRepository;
 import com.be.server.core.admin.phong.service.ADPhongService;
 import com.be.server.core.common.base.PageableObject;
 import com.be.server.core.common.base.ResponseObject;
-import com.be.server.entity.DichVuPhatSinh;
 import com.be.server.entity.LoaiPhong;
 import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.*;
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cglib.core.Block;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +26,6 @@ import java.util.stream.Collectors;
 public class ADPhongServiceImpl implements ADPhongService {
 
     private final ADPhongRepository adPhongRepository;
-
-    private final LsDatPhongRepository lsDatPhongRepository;
-
-    private final LsDichVuPhatSinhRepository dichVuPhatSinhRepository;
 
     private final ADLoaiPhongRepository adLoaiPhongRepository;
 
@@ -104,42 +88,40 @@ public class ADPhongServiceImpl implements ADPhongService {
     }
 
     @Override
-    public ResponseObject<?> savePhong(ADSavePhongRequest phong){
+    public ResponseObject<?> savePhong(ADSavePhongRequest phong) {
         Optional<Phong> maOptional = adPhongRepository.findByMa(phong.getMa());
-        if(maOptional.isPresent()){
-            return new ResponseObject<>(null , HttpStatus.OK , "Mã phòng này dã tồn tai");
+        if (maOptional.isPresent()) {
+            return new ResponseObject<>(null, HttpStatus.OK, "Mã phòng này đã tồn tại");
         }
 
-        Optional<Phong> tenOptional = adPhongRepository.findByMa(phong.getTen());
-        if(tenOptional.isPresent()){
-            return new ResponseObject<>(null , HttpStatus.OK , "Tên phòng này dã tồn tai");
+        Optional<Phong> tenOptional = adPhongRepository.findByTen(phong.getTen());
+        if (tenOptional.isPresent()) {
+            return new ResponseObject<>(null, HttpStatus.OK, "Tên phòng này đã tồn tại");
         }
+
         Phong addPhong = new Phong();
         addPhong.setMa(phong.getMa());
         addPhong.setTen(phong.getTen());
 
         Optional<LoaiPhong> optionalLoaiPhong = adLoaiPhongRepository.findById(phong.getIdLoaiPhong());
-        if(optionalLoaiPhong.isEmpty()){
-            return new ResponseObject<>(null , HttpStatus.NOT_FOUND , "không tìm thấy phòng");
+        if (optionalLoaiPhong.isEmpty()) {
+            return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy loại phòng");
         }
 
         LoaiPhong loaiPhong = optionalLoaiPhong.get();
-        if(loaiPhong.getLoaiPhong() == EnLoaiPhong.DON ){
-            addPhong.setGiaHienTai(new BigDecimal(1000000));
-        }else if(loaiPhong.getLoaiPhong() == EnLoaiPhong.DOI) {
-            addPhong.setGiaHienTai(new BigDecimal(2000000));
-        }else {
-            addPhong.setGiaHienTai(new BigDecimal(3000000));
+        if (phong.getSucChua() == null || phong.getSucChua() <= 0) {
+            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Sức chứa phòng không hợp lệ");
         }
-        if(phong.getSucChua() <= 0){
-            return new ResponseObject<>(null , HttpStatus.OK , "giá phòng không hợp lệ ");
-        }
+
+        addPhong.setTang(phong.getTang());
+        addPhong.setTrangThaiPhong(phong.getTrangThaiPhong());
         addPhong.setLoaiPhong(loaiPhong);
+        addPhong.setStatus(EntityStatus.ACTIVE);
         addPhong.setSucChua(phong.getSucChua());
 
         adPhongRepository.save(addPhong);
 
-        return new ResponseObject<>(null , HttpStatus.OK , "thêm thành công");
+        return new ResponseObject<>(null, HttpStatus.OK, "Thêm phòng thành công");
     }
 
     @Override
