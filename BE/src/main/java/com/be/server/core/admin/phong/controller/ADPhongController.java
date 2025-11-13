@@ -18,21 +18,12 @@ public class ADPhongController {
 
     private final ADPhongService adPhongService;
 
-//    @GetMapping("/history")
-//    public ResponseEntity<?> getAllRoomUsageHistory(LsDatPhongRequest request){
-//        return Helper.createResponseEntity(service.roomUsageHistory(request));
-//    }
 
     @GetMapping
     public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
         return Helper.createResponseEntity(adPhongService.getAllPhong(request));
     }
 
-//    @GetMapping("/{id}")
-//    public ResponseEntity<?> getPhongById(@PathVariable String id) {
-//        log.info("Lấy thông tin phòng với id: {}", id);
-//        return Helper.createResponseEntity(service.getPhongById(id));
-//    }
     @PutMapping("changeStatus/{id}")
     public ResponseEntity<?>changeStatus(@PathVariable String id) {
         return Helper.createResponseEntity(adPhongService.changeStatusPhong(id));
