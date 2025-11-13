@@ -19,6 +19,4 @@ public interface PhongProjection extends IsIdentify, IsEntityPhong {
 
     String getSucChua();
 
-    String getTrangThai();
-
 }

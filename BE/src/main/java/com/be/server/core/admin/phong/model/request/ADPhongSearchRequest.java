@@ -22,7 +22,7 @@ public class ADPhongSearchRequest extends PageableRequest {
 
     private Integer tang;
 
-    private String loaiPhongId;
+    private String loaiPhong;
 
     private TrangThaiPhong trangThaiPhong;
 

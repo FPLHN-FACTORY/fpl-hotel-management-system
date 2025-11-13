@@ -25,13 +25,12 @@ public interface ADPhongRepository extends PhongRepository {
                 p.tang AS tang,
                 lp.ten AS loaiPhong,
                 lp.soNguoiToiDa AS sucChua,
-                p.trangThaiPhong AS trangThaiPhong,
-                p.status AS trangThai            
+                p.trangThaiPhong AS trangThaiPhong
             FROM Phong p
             LEFT JOIN p.loaiPhong lp
             WHERE p.status = 0
             AND (:tuKhoa IS NULL OR :tuKhoa = '' OR p.ma LIKE %:tuKhoa% OR p.ten LIKE %:tuKhoa%)
-            AND (:loaiPhongId IS NULL OR lp.id = :loaiPhongId)
+            AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
             AND (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong)
             AND (:giaMin IS NULL OR p.giaHienTai >= :giaMin)
             AND (:giaMax IS NULL OR p.giaHienTai <= :giaMax)
@@ -41,7 +40,7 @@ public interface ADPhongRepository extends PhongRepository {
             """)
     Page<PhongProjection> getAllPhong(
             @Param("tuKhoa") String tuKhoa,
-            @Param("loaiPhongId") String loaiPhongId,
+            @Param("loaiPhong") String loaiPhong,
             @Param("trangThaiPhong") TrangThaiPhong trangThaiPhong,
             @Param("giaMin") BigDecimal giaMin,
             @Param("giaMax") BigDecimal giaMax,
@@ -51,3 +50,4 @@ public interface ADPhongRepository extends PhongRepository {
             Pageable pageable
     );
 }
+
