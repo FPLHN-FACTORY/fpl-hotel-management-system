@@ -23,7 +23,7 @@ public interface ADPhongRepository extends PhongRepository {
                 p.id AS id,
                 p.ma AS ma,
                 p.ten AS ten,
-                p.giaHienTai AS price,
+                lp.giaHienTai AS price,
                 p.tang AS tang,
                 lp.ten AS loaiPhong,
                 lp.soNguoiToiDa AS sucChua,
@@ -34,8 +34,8 @@ public interface ADPhongRepository extends PhongRepository {
             AND (:tuKhoa IS NULL OR :tuKhoa = '' OR p.ma LIKE %:tuKhoa% OR p.ten LIKE %:tuKhoa%)
             AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
             AND (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong)
-            AND (:giaMin IS NULL OR p.giaHienTai >= :giaMin)
-            AND (:giaMax IS NULL OR p.giaHienTai <= :giaMax)
+            AND (:giaMin IS NULL OR lp.giaHienTai >= :giaMin)
+            AND (:giaMax IS NULL OR lp.giaHienTai <= :giaMax)
             AND (:sucChuaMin IS NULL OR lp.soNguoiToiDa >= :sucChuaMin)
             AND (:sucChuaMax IS NULL OR lp.soNguoiToiDa <= :sucChuaMax)
             AND (:tang IS NULL OR p.tang = :tang)

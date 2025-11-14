@@ -28,9 +28,6 @@ public class Phong extends PrimaryEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private LoaiPhong loaiPhong;
 
-    @Column(name = "gia_hien_tai")
-    private BigDecimal giaHienTai;
-
     @Column(name = "suc_chua")
     private Integer sucChua;
 

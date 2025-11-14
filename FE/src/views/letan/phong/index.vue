@@ -35,7 +35,7 @@ const model = reactive({ ...initialModel })
 const formRef = ref<FormInst | null>(null)
 
 // --- Options combobox ---
-const tangOptions = [1, 2, 3, 4, 5].map(t => ({ label: `Tầng ${t}`, value: t }))
+const tangOptions = [1, 2, 3].map(t => ({ label: `Tầng ${t}`, value: t }))
 const loaiPhongOptions = [
   { label: 'Phòng 3 giường', value: 'Phòng 3 giường' },
   { label: 'Phòng 2 giường đơn', value: 'Phòng 2 giường đơn' },
