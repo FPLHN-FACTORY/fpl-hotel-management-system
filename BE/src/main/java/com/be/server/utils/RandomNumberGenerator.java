@@ -6,6 +6,14 @@ import java.util.Random;
 
 public class RandomNumberGenerator {
 
+
+        private static final Random RANDOM = new Random();
+
+        public static String generateRoomType() {
+            int number = RANDOM.nextInt(10000); // từ 0 - 9999
+            return String.format("LP-%04d", number); // luôn 4 chữ số, ví dụ MP-0123
+        }
+
     public String randomToString(String name, int soLuong) {
         Random random = new Random();
         int randomNumber = random.nextInt(soLuong);

@@ -20,12 +20,18 @@ public class LoaiPhong extends PrimaryEntity implements Serializable {
     @Column(name = "mo_ta")
     private String moTa;
 
-    @Column(name = "gia_hien_tai")
-    private BigDecimal giaHienTai;
+    @Column(name = "so_giuong_don")
+    private Integer soGiuongDon;
+
+    @Column(name = "so_giuong_doi")
+    private Integer soGiuongDoi;
 
     @Column(name = "so_nguoi_quy_dinh")
     private Integer soNguoiQuyDinh;
 
     @Column( name = "so_nguoi_toi_da")
     private Integer soNguoiToiDa;
+
+    @Column( name="gia_ca_ngay")
+    private BigDecimal giaCaNgay;
 }

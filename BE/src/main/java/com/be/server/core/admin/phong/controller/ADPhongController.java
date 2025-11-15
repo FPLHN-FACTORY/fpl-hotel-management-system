@@ -15,25 +15,25 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(MappingConstants.API_LE_TAN_PHONG)
 public class ADPhongController {
 
-    private final ADPhongService adPhongService;
+//    private final ADPhongService adPhongService;
+//
+//    @GetMapping
+//    public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
+//        return Helper.createResponseEntity(adPhongService.getAllPhong(request));
+//    }
+//
+//    @PutMapping("changeStatus/{id}")
+//    public ResponseEntity<?>changeStatus(@PathVariable String id) {
+//        return Helper.createResponseEntity(adPhongService.changeStatusPhong(id));
+//    }
+//
+//    @PostMapping("/addPhong")
+//    public ResponseEntity<?> taoPhong(@RequestBody ADSavePhongRequest request){
+//        return Helper.createResponseEntity(adPhongService.savePhong(request));
+//    }
 
-    @GetMapping
-    public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
-        return Helper.createResponseEntity(adPhongService.getAllPhong(request));
-    }
-
-    @PutMapping("changeStatus/{id}")
-    public ResponseEntity<?>changeStatus(@PathVariable String id) {
-        return Helper.createResponseEntity(adPhongService.changeStatusPhong(id));
-    }
-
-    @PostMapping("/addPhong")
-    public ResponseEntity<?> taoPhong(@RequestBody ADSavePhongRequest request){
-        return Helper.createResponseEntity(adPhongService.savePhong(request));
-    }
-
-    @GetMapping("/loai-phong")
-    public ResponseEntity<?> loaiPhong(){
-        return Helper.createResponseEntity(adPhongService.getAllLoaiPhong());
-    }
+//    @GetMapping("/loai-phong")
+//    public ResponseEntity<?> loaiPhong(){
+//        return Helper.createResponseEntity(adPhongService.getAllLoaiPhong());
+//    }
 }

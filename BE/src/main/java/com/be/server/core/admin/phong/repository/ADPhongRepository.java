@@ -17,43 +17,43 @@ import java.util.Optional;
 
 @Repository
 public interface ADPhongRepository extends PhongRepository {
-
-    @Query("""
-            SELECT
-                p.id AS id,
-                p.ma AS ma,
-                p.ten AS ten,
-                lp.giaHienTai AS price,
-                p.tang AS tang,
-                lp.ten AS loaiPhong,
-                lp.soNguoiToiDa AS sucChua,
-                p.trangThaiPhong AS trangThaiPhong
-            FROM Phong p
-            LEFT JOIN p.loaiPhong lp
-            WHERE p.status = 0
-            AND (:tuKhoa IS NULL OR :tuKhoa = '' OR p.ma LIKE %:tuKhoa% OR p.ten LIKE %:tuKhoa%)
-            AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
-            AND (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong)
-            AND (:giaMin IS NULL OR lp.giaHienTai >= :giaMin)
-            AND (:giaMax IS NULL OR lp.giaHienTai <= :giaMax)
-            AND (:sucChuaMin IS NULL OR lp.soNguoiToiDa >= :sucChuaMin)
-            AND (:sucChuaMax IS NULL OR lp.soNguoiToiDa <= :sucChuaMax)
-            AND (:tang IS NULL OR p.tang = :tang)
-            """)
-    Page<PhongProjection> getAllPhong(
-            @Param("tuKhoa") String tuKhoa,
-            @Param("loaiPhong") String loaiPhong,
-            @Param("trangThaiPhong") TrangThaiPhong trangThaiPhong,
-            @Param("giaMin") BigDecimal giaMin,
-            @Param("giaMax") BigDecimal giaMax,
-            @Param("sucChuaMin") Integer sucChuaMin,
-            @Param("sucChuaMax") Integer sucChuaMax,
-            @Param("tang") Integer tang,
-            Pageable pageable
-    );
-
-    Optional<Phong> findByMa(String ma);
-
-    Optional<Phong> findByTen(String ten);
+//
+//    @Query("""
+//            SELECT
+//                p.id AS id,
+//                p.ma AS ma,
+//                p.ten AS ten,
+//                lp.id AS price,
+//                p.tang AS tang,
+//                lp.ten AS loaiPhong,
+//                lp.soNguoiToiDa AS sucChua,
+//                p.trangThaiPhong AS trangThaiPhong
+//            FROM Phong p
+//            LEFT JOIN p.loaiPhong lp
+//            WHERE p.status = 0
+//            AND (:tuKhoa IS NULL OR :tuKhoa = '' OR p.ma LIKE %:tuKhoa% OR p.ten LIKE %:tuKhoa%)
+//            AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
+//            AND (:trangThaiPhong IS NULL OR p.trangThaiPhong = :trangThaiPhong)
+//            AND (:giaMin IS NULL OR lp.id >= :giaMin)
+//            AND (:giaMax IS NULL OR lp.id <= :giaMax)
+//            AND (:sucChuaMin IS NULL OR lp.soNguoiToiDa >= :sucChuaMin)
+//            AND (:sucChuaMax IS NULL OR lp.soNguoiToiDa <= :sucChuaMax)
+//            AND (:tang IS NULL OR p.tang = :tang)
+//            """)
+//    Page<PhongProjection> getAllPhong(
+//            @Param("tuKhoa") String tuKhoa,
+//            @Param("loaiPhong") String loaiPhong,
+//            @Param("trangThaiPhong") TrangThaiPhong trangThaiPhong,
+//            @Param("giaMin") BigDecimal giaMin,
+//            @Param("giaMax") BigDecimal giaMax,
+//            @Param("sucChuaMin") Integer sucChuaMin,
+//            @Param("sucChuaMax") Integer sucChuaMax,
+//            @Param("tang") Integer tang,
+//            Pageable pageable
+//    );
+//
+//    Optional<Phong> findByMa(String ma);
+//
+//    Optional<Phong> findByTen(String ten);
 }
 

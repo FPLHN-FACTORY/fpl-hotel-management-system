@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface LsDichVuPhatSinhRepository extends DichVuPhatSinhRepository {
-    @Query("select u from DichVuPhatSinh u where u.idDatPhong.id = ?1")
-    List<DichVuPhatSinh> findByDatPhongId(String datPhongId);
+//    @Query("select u from DichVuPhatSinh u where u.idDatPhong.id = ?1")
+//    List<DichVuPhatSinh> findByDatPhongId(String datPhongId);
 }

@@ -10,15 +10,15 @@ import java.util.List;
 
 @Repository
 public interface ADLoaiPhongRepository extends LoaiPhongRepository {
-    @Query("""
-       SELECT new com.be.server.core.admin.phong.model.response.LoaiPhongResponse(
-           u.id,
-           u.soNguoiToiDa,
-           u.giaHienTai,
-           u.ten
-       )
-       FROM LoaiPhong u
-       """)
-    List<LoaiPhongResponse> getAllLoaiPhong();
+//    @Query("""
+//       SELECT new com.be.server.core.admin.phong.model.response.LoaiPhongResponse(
+//           u.id,
+//           u.soNguoiToiDa,
+//           u.giaHienTai,
+//           u.ten
+//       )
+//       FROM LoaiPhong u
+//       """)
+//    List<LoaiPhongResponse> getAllLoaiPhong();
 
 }

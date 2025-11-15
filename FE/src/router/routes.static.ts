@@ -43,6 +43,15 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     pid: 10,
   },
   {
+    name: 'roomType',
+    path: '/list/roomType',
+    title: 'Loại phòng',
+    requiresAuth: true,
+    icon: 'icon-park-outline:list-view', componentPath: '/letan/loaiphong/index.vue',
+    id: 12,
+    pid: 10,
+  },
+  {
     name: 'datPhong',
     path: '/letan/datphong',
     title: 'Đăt phòng',

@@ -7,11 +7,11 @@ import com.be.server.core.common.base.ResponseObject;
 
 public interface ADPhongService {
 
-    ResponseObject<?> getAllPhong(ADPhongSearchRequest request);
-
-    ResponseObject<?> changeStatusPhong(String id);
-
-    ResponseObject<?> savePhong(ADSavePhongRequest phong);
-
-    ResponseObject<?> getAllLoaiPhong();
+//    ResponseObject<?> getAllPhong(ADPhongSearchRequest request);
+//
+//    ResponseObject<?> changeStatusPhong(String id);
+//
+//    ResponseObject<?> savePhong(ADSavePhongRequest phong);
+//
+//    ResponseObject<?> getAllLoaiPhong();
 }
