@@ -42,6 +42,8 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     id: 11,
     pid: 10,
   },
+
+
   {
     name: 'userCenter',
     path: '/userCenter',
