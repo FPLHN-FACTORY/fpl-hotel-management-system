@@ -61,4 +61,5 @@ public class DatPhong extends PrimaryEntity implements Serializable {
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "trang_thai_phong")
     private RoomStatus trangThaiPhong;
+
 }

@@ -27,6 +27,9 @@ public class BangGia extends PrimaryEntity implements Serializable {
     @Column(name = "ngay_bat_dau")
     private LocalDateTime ngayBatDau;
 
+    @Column(name = "ngay_ket_thuc")
+    private LocalDateTime ngayKetThuc;
+
     @ManyToOne
     @JoinColumn(name = "phong_id")
     private Phong phong;
