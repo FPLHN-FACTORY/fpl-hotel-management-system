@@ -3,6 +3,7 @@ import { API_LE_TAN_SO_DO_PHONG } from '@/constants/url'
 import type { AxiosResponse } from 'axios'
 import type { DefaultResponse } from '@/typings/api/api.common'
 import request from '@/service/request'
+import { DataCombobox } from '../dataCombobox.api'
 
 // ============================
 // Types
@@ -22,6 +23,7 @@ export interface SoDoPhongResponse {
   sucChua: number
   price: number | null
   trangThaiPhong: TrangThaiPhongDat
+  trangThaiVeSinh: string
 }
 
 // Tham số lọc khi lấy sơ đồ phòng
@@ -52,4 +54,13 @@ export async function getSoDoPhong(params: ParamsGetSoDoPhong = {}) {
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải sơ đồ phòng')
   }
+}
+
+export const fetchLoaiPhong = async () => {
+    const res = (await request({
+        url: `${API_LE_TAN_SO_DO_PHONG}/loai-phong`,
+        method: 'GET'
+    })) as AxiosResponse<DefaultResponse<DataCombobox>>
+
+    return res.data
 }
