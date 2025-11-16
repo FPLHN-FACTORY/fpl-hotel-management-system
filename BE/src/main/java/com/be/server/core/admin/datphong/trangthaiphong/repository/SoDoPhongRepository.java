@@ -1,5 +1,6 @@
 package com.be.server.core.admin.datphong.trangthaiphong.repository;
 
+import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import com.be.server.entity.Phong;
 import com.be.server.repository.PhongRepository;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
+public interface SoDoPhongRepository extends PhongRepository {
 
     @Query(value = """
         SELECT 
@@ -57,6 +58,7 @@ public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
             @Param("ten") String ten,
             @Param("loaiPhong") String loaiPhong,
             @Param("tang") Integer tang,
-            @Param("now") Long now
+            @Param("now") Long now,
+            SoDoSearch request
     );
 }

@@ -1,6 +1,7 @@
 package com.be.server.core.admin.datphong.trangthaiphong.service.impl;
 
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
+import com.be.server.core.admin.datphong.trangthaiphong.repository.ADDPLoaiPhongRepository;
 import com.be.server.core.admin.datphong.trangthaiphong.repository.SoDoPhongRepository;
 import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
 import com.be.server.core.admin.datphong.trangthaiphong.service.SoDoPhongService;
@@ -20,6 +21,8 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
     private final SoDoPhongRepository soDoPhongRepository;
     private final com.be.server.repository.ChiTietDatPhongRepository chiTietDatPhongRepository;
 
+    private final ADDPLoaiPhongRepository loaiPhongRepository;
+
     @Override
     public ResponseObject<?> getAllSoDoPhong(SoDoSearch request) {
         Long timestamp = Instant.now().toEpochMilli();
@@ -29,7 +32,8 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
                 request.getTen(),
                 request.getLoaiPhong(),
                 request.getTang(),
-                timestamp
+                timestamp,
+                request
         ).stream().map(p -> {
             // Map trạng thái phòng
             TrangThaiPhongDat trangThai = chiTietDatPhongRepository
@@ -53,5 +57,13 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
         }).collect(Collectors.toList());
 
         return ResponseObject.successForward(rooms, "Lấy danh sách thành công");
+    }
+
+    @Override
+    public ResponseObject<?> getDataLoaiPhong() {
+        return ResponseObject.successForward(
+                loaiPhongRepository.getDataCombobox(),
+                "SUCCESS"
+        );
     }
 }

@@ -6,8 +6,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-
-
 public interface SoDoPhongResponse {
     String getId();
     String getMa();
