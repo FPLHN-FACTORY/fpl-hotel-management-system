@@ -51,6 +51,15 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     id: 12,
     pid: 10,
   },
+   {
+    name: 'tagType',
+    path: '/list/tagType',
+    title: 'Tag',
+    requiresAuth: true,
+    icon: 'icon-park-outline:list-view', componentPath: '/letan/tag/index.vue',
+    id: 13,
+    pid: 10,
+  },
   {
     name: 'datPhong',
     path: '/letan/datphong',
