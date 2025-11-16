@@ -5,6 +5,7 @@ import com.be.server.core.admin.datphong.trangthaiphong.service.SoDoPhongService
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.infrastructure.constant.MappingConstants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,4 +19,13 @@ public class SoDoPhongController {
     public ResponseObject<?> getAllSoDoPhong(@ModelAttribute SoDoSearch soDoSearch) {
         return soDoPhongService.getAllSoDoPhong(soDoSearch);
     }
+
+    @PutMapping("/vesinh/{id}")
+    public ResponseEntity<?> updateTrangThaiVeSinh(
+            @PathVariable String id,
+            @RequestParam("status") Integer status
+    ) {
+        return ResponseEntity.ok(soDoPhongService.updateTrangThaiVeSinh(id, status));
+    }
+
 }

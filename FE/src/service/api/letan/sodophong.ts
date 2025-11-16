@@ -11,6 +11,8 @@ import request from '@/service/request'
 // Trạng thái phòng (từ backend)
 export type TrangThaiPhongDat = 'TRONG' | 'DANG_SU_DUNG' | 'SAP_NHAN' | 'SAP_TRA' | 'QUA_GIO_TRA'
 
+export type TrangThaiVeSinh = 'SACH' | 'DANG_DON' | 'CHUA_DON'
+
 // Dữ liệu phòng trả về từ API sơ đồ
 export interface SoDoPhongResponse {
   id: string
@@ -22,6 +24,7 @@ export interface SoDoPhongResponse {
   sucChua: number
   price: number | null
   trangThaiPhong: TrangThaiPhongDat
+    trangThaiVeSinh: TrangThaiVeSinh
 }
 
 // Tham số lọc khi lấy sơ đồ phòng
@@ -51,5 +54,36 @@ export async function getSoDoPhong(params: ParamsGetSoDoPhong = {}) {
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải sơ đồ phòng')
+  }
+}
+
+// Thay đổi trạng thái vệ sinh của phòng
+export async function updateTrangThaiVeSinh(
+  roomId: string,
+  status: 'SACH' | 'DANG_DON' | 'CHUA_DON'
+) {
+  try {
+    const res = await request.put(
+      `${API_LE_TAN_SO_DO_PHONG}/vesinh/${roomId}`,
+      null,
+      {
+        params: { status: statusToOrdinal(status) },
+      }
+    )
+    return res.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể cập nhật trạng thái vệ sinh')
+  }
+}
+
+/**
+ * Chuyển trạng thái vệ sinh sang số ordinal tương ứng với backend
+ */
+function statusToOrdinal(status: 'SACH' | 'DANG_DON' | 'CHUA_DON'): number {
+  switch (status) {
+    case 'SACH': return 0
+    case 'DANG_DON': return 1
+    case 'CHUA_DON': return 2
+    default: return 2
   }
 }

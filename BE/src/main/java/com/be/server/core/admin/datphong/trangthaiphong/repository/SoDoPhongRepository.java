@@ -2,21 +2,11 @@ package com.be.server.core.admin.datphong.trangthaiphong.repository;
 
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import com.be.server.entity.Phong;
-import com.be.server.repository.PhongRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-
-
-import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
@@ -59,4 +49,6 @@ public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
             @Param("tang") Integer tang,
             @Param("now") Long now
     );
+
+
 }

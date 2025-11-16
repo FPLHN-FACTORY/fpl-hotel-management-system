@@ -7,4 +7,6 @@ public interface SoDoPhongService {
 
     ResponseObject<?> getAllSoDoPhong(SoDoSearch search);
 
+    ResponseObject<?> updateTrangThaiVeSinh(String id, Integer trangThaiVeSinh );
+
 }
