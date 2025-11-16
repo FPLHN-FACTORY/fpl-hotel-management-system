@@ -32,7 +32,7 @@ public class Phong extends PrimaryEntity implements Serializable {
     @Column(name = "trang_thai_hoat_dong")
     private TrangThaiHoatDong trangThaiHoatDong;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "trang_thai_ve_sinh")
     private TrangThaiVeSinh trangThaiVeSinh;
 

@@ -31,14 +31,19 @@ public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
             p.tang AS tang,
             p.trang_thai_hoat_dong AS trangThaiHoatDong,
             lp.so_nguoi_toi_da AS sucChua,
-            (
-                SELECT bg.gia_ap_dung 
-                FROM bang_gia bg
-                WHERE bg.phong_id = p.id
-                AND :now BETWEEN bg.ngay_bat_dau AND bg.ngay_ket_thuc
-                ORDER BY bg.ngay_bat_dau DESC
-                LIMIT 1
-            ) AS price
+            p.trang_thai_ve_sinh AS trangThaiVeSinh,
+            COALESCE(
+                              (
+                                  SELECT bg.gia_ap_dung
+                                  FROM bang_gia bg
+                                  WHERE bg.phong_id = p.id
+                                  AND :now BETWEEN bg.ngay_bat_dau AND bg.ngay_ket_thuc
+                                  ORDER BY bg.ngay_bat_dau DESC
+                                  LIMIT 1
+                              ),
+                              lp.gia_ca_ngay -- nếu không có bảng giá, lấy giá mặc định
+                          ) AS price
+            
         FROM phong p
         LEFT JOIN loai_phong lp ON lp.id = p.loai_phong_id
         WHERE (:ma IS NULL OR p.ma LIKE CONCAT('%', :ma, '%'))

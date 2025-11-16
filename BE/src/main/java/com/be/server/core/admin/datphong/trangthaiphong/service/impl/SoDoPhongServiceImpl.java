@@ -6,7 +6,6 @@ import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch
 import com.be.server.core.admin.datphong.trangthaiphong.service.SoDoPhongService;
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.infrastructure.constant.TrangThaiPhongDat;
-import com.be.server.repository.ChiTietDatPhongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +36,7 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
                     .findActiveBookingsByRoomId(p.getId(), timestamp)
                     .orElse(TrangThaiPhongDat.TRONG);
 
+
             // Tạo đối tượng DTO với trạng thái map sau
             return new SoDoPhongResponse() {
                 @Override public String getId() { return p.getId(); }
@@ -48,6 +48,7 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
                 @Override public Integer getSucChua() { return p.getSucChua(); }
                 @Override public java.math.BigDecimal getPrice() { return p.getPrice(); }
                 @Override public TrangThaiPhongDat getTrangThaiPhong() { return trangThai; }
+                @Override public String getTrangThaiVeSinh() { return p.getTrangThaiVeSinh();}
             };
         }).collect(Collectors.toList());
 

@@ -65,7 +65,7 @@ const appStore = useAppStore()
       </div>
       <n-layout-footer v-if="appStore.showFooter && !appStore.contentFullScreen" bordered position="absolute"
         class="h-40px flex-center">
-        {{ appStore.footerText }}
+        <span class="text-gray-500 text-sm">FPL Hotel Management System © 2025 Created by FPL Team</span>
       </n-layout-footer>
       <BackTop />
     </n-layout>

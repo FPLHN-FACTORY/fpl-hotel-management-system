@@ -63,19 +63,50 @@ const updateRoomCleanStatus = (roomCode: string, newStatus: 'clean' | 'notClean'
   message.success(`Cập nhật trạng thái dọn phòng: ${roomCode} → ${newStatus === 'clean' ? 'Sạch' : 'Chưa dọn'}`)
 }
 
+// Hàm sắp xếp phòng theo thứ tự “zic-zac” (hàng lẻ / chẵn, giảm dần)
+const sortRoomsZigZag = (rooms: SoDoPhongResponse[]) => {
+  const oddRooms = rooms.filter(r => Number(r.ma) % 2 === 1).sort((a, b) => Number(b.ma) - Number(a.ma))
+  const evenRooms = rooms.filter(r => Number(r.ma) % 2 === 0).sort((a, b) => Number(b.ma) - Number(a.ma))
+  return [...oddRooms, ...evenRooms] // ghép lại, FloorRow sẽ render theo hàng lẻ / chẵn
+}
+
 // Fetch dữ liệu từ API
 const fetchData = async () => {
   try {
     const data = await getSoDoPhong()
+    // Map trạng thái vệ sinh từ 0|1|2 sang string + cleanStatus
+    const mappedData = data.map(room => {
+      let cleanStatus: 'clean' | 'notClean'
+      switch (room.trangThaiVeSinh) {
+        case '0':
+          cleanStatus = 'clean'
+          room.trangThaiVeSinh = 'SACH'
+          break
+        case '1':
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'DANG_DON'
+          break
+        case '2':
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'CHUA_DON'
+          break
+        default:
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'CHUA_DON'
+      }
+      return { ...room, cleanStatus }
+    })
+
     // Gom theo tầng
-    const grouped: Record<number, SoDoPhongResponse[]> = {}
-    data.forEach(room => {
+    const grouped: Record<number, typeof mappedData[0][]> = {}
+    mappedData.forEach(room => {
       const t = room.tang || 0
       if (!grouped[t]) grouped[t] = []
       grouped[t].push(room)
     })
+
     floors.value = Object.entries(grouped)
-      .map(([floor, rooms]) => ({ floor: Number(floor), rooms }))
+      .map(([floor, rooms]) => ({ floor: Number(floor), rooms: sortRoomsZigZag(rooms) }))
       .sort((a, b) => a.floor - b.floor)
   } catch (error: any) {
     message.error(error.message || 'Không thể tải sơ đồ phòng')
