@@ -48,8 +48,8 @@ async function fetchLoaiPhong() {
   }
 }
 const trangThaiOptions = [
-  { label: 'Hoạt đông', value: 'HOAT_DONG' },
-  { label: 'Bảo trì', value: 'BAO_TRI' },
+  { label: 'Hoạt đông', value: 'DANG_HOAT_DONG' },
+  { label: 'Bảo trì', value: 'DANG_SUA' },
   { label: 'Ngưng hoạt động', value: 'NGUNG_HOAT_DONG' },
 ]
 
@@ -243,8 +243,8 @@ const columns: DataTableColumns<PhongResponse> = [
     key: 'trangThaiHoatDong',
     render: (row) => {
       const statusMap: Record<string, { label: string, type: 'success' | 'warning' | 'error' }> = {
-        HOAT_DONG: { label: 'Hoạt động', type: 'success' },
-        BAO_TRI: { label: 'Bảo trì', type: 'warning' },
+        DANG_HOAT_DONG: { label: 'Hoạt động', type: 'success' },
+        DANG_SUA: { label: 'Bảo trì', type: 'warning' },
         NGUNG_HOAT_DONG: { label: 'Ngưng hoạt động', type: 'error' },
       }
 

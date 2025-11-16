@@ -21,6 +21,4 @@ public interface PhongProjection extends IsIdentify{
 
     String getTrangThaiHoatDong();
 
-    String getTrangThai();
-
 }

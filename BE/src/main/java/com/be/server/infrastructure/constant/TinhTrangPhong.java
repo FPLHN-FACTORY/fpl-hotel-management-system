@@ -1,7 +1,14 @@
 package com.be.server.infrastructure.constant;
 
 public enum TinhTrangPhong {
-    SACH,
+    TRONG,
+    DA_DAT,
+    DANG_SU_DUNG,
     DANG_DON,
-    CHUA_DON
+    SACH,
+    CHUA_DON,
+    SAP_NHAN,
+    SAP_TRA,
+    QUA_HAN,
+    BAO_TRI,
 }

@@ -1,6 +1,7 @@
 package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
+import com.be.server.infrastructure.constant.TinhTrangPhong;
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,10 @@ public class Phong extends PrimaryEntity implements Serializable {
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "trang_thai_hoat_dong")
     private TrangThaiHoatDong trangThaiHoatDong;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "tinh_trang_phong")
+    private TinhTrangPhong tinhTrangPhong;
 
     @OneToMany(mappedBy = "phong", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PhongTag> tags;

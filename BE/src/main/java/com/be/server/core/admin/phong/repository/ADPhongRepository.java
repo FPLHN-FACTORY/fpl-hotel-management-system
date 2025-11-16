@@ -4,7 +4,6 @@ package com.be.server.core.admin.phong.repository;
 import com.be.server.core.admin.phong.model.response.PhongProjection;
 import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
-import com.be.server.infrastructure.constant.TrangThaiPhong;
 import com.be.server.repository.PhongRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

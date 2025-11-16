@@ -1,9 +1,9 @@
 package com.be.server.core.common.base;
 
-import com.be.server.infrastructure.constant.TrangThaiPhong;
+import com.be.server.infrastructure.constant.TinhTrangPhong;
 
 public interface IsEntityPhong {
 
-    TrangThaiPhong getTrangThaiPhong();
+    TinhTrangPhong getTrangThaiPhong();
 
 }

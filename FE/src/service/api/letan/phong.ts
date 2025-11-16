@@ -9,7 +9,7 @@ export interface ParamsGetRoom extends PaginationParams {
   tuKhoa?: string
   tang?: number
   loaiPhong?: string
-  trangThaiHoatDong?:  'HOAT_DONG' | 'BAO_TRI' | 'NGUNG_HOAT_DONG'
+  trangThaiHoatDong?:  'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG'
   giaMin?: number
   giaMax?: number
   sucChuaMin?: number
@@ -25,7 +25,7 @@ export interface PhongResponse extends ResponseList {
   tang: number
   loaiPhong: string
   sucChua: string
-  trangThaiHoatDong?:  'HOAT_DONG' | 'BAO_TRI' | 'NGUNG_HOAT_DONG'
+  trangThaiHoatDong?:  'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG'
 }
 
 export interface AddPhongRequest {
@@ -33,7 +33,7 @@ export interface AddPhongRequest {
   ten: string
   idLoaiPhong: string
   tang: number
-  trangThaiHoatDong: 'HOAT_DONG' | 'BAO_TRI' | 'NGUNG_HOAT_DONG'
+  trangThaiHoatDong: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG'
 }
 
 export interface RoomTypeResponse extends ResponseList {
