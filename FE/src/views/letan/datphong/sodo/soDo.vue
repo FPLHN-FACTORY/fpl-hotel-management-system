@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import FloorRow from './components/floorRow.vue'
-import { ref, computed, onMounted } from 'vue'
-import { getSoDoPhong, SoDoPhongResponse } from '@/service/api/letan/sodophong'
-import { useMessage } from 'naive-ui'
-
-const message = useMessage()
+import { SoDoPhongResponse, TrangThaiVeSinh } from '@/service/api/letan/sodophong';
+import { computed, ref } from 'vue';
+import FloorRow from './components/floorRow.vue';
 
 const props = defineProps<{
   floors: { floor: number; rooms: SoDoPhongResponse[] }[]
 }>()
 // Lấy danh sách phòng từ API
+// Floors data
 
-// Trạng thái được chọn để lọc
+// Filter trạng thái phòng
 const selectedStatuses = ref<string[]>([])
 
-// Các trạng thái hiển thị và màu sắc
 const statuses = [
   { key: 'TRONG', label: 'Trống', color: '#34D399' },
   { key: 'SAP_NHAN', label: 'Sắp nhận', color: '#60A5FA' },
@@ -23,7 +20,6 @@ const statuses = [
   { key: 'QUA_GIO_TRA', label: 'Quá giờ trả', color: '#EF4444' }
 ]
 
-// Toggle trạng thái lọc
 const toggleStatus = (statusKey: string) => {
   if (selectedStatuses.value.includes(statusKey)) {
     selectedStatuses.value = selectedStatuses.value.filter(s => s !== statusKey)
@@ -32,15 +28,26 @@ const toggleStatus = (statusKey: string) => {
   }
 }
 
-// Đếm số phòng theo trạng thái
+// Cập nhật trạng thái vệ sinh
+const updateRoomCleanStatus = (roomId: string, status: TrangThaiVeSinh) => {
+  for (const floor of props.floors) {
+    const room = floor.rooms.find(r => r.id === roomId)
+    if (room) {
+      room.trangThaiVeSinh = status
+      break
+    }
+  }
+}
+
+// Đếm phòng theo trạng thái
 const countRooms = (statusKey: string) => {
   return props.floors.reduce((total, floor) => {
     return total + floor.rooms.filter(room => room.trangThaiPhong === statusKey).length
   }, 0)
 }
 
-// Lọc tầng hiển thị theo trạng thái
-const filteredprops = computed(() => {
+// Lọc tầng hiển thị
+const filteredFloors = computed(() => {
   if (selectedStatuses.value.length === 0) return props.floors
   return props.floors.map(floor => ({
     ...floor,
@@ -52,26 +59,10 @@ const filteredprops = computed(() => {
 const handleRoomClick = (room: SoDoPhongResponse) => {
   console.log('Phòng được chọn:', room.ma)
 }
-
-// Cập nhật trạng thái dọn phòng
-const updateRoomCleanStatus = (roomCode: string, newStatus: 'clean' | 'notClean') => {
-  props.floors.forEach(floor => {
-    floor.rooms.forEach(room => {
-      if (room.ma === roomCode) {
-        room.cleanStatus = newStatus
-      }
-    })
-  })
-  message.success(`Cập nhật trạng thái dọn phòng: ${roomCode} → ${newStatus === 'clean' ? 'Sạch' : 'Chưa dọn'}`)
-}
-
-// Fetch dữ liệu từ API
-
 </script>
 
 <template>
   <div class="p-8 space-y-8 bg-gray-50 min-h-screen">
-    <!-- Nút lọc trạng thái phòng -->
     <div class="flex space-x-4 mb-4">
       <n-button
         v-for="status in statuses"
@@ -87,9 +78,8 @@ const updateRoomCleanStatus = (roomCode: string, newStatus: 'clean' | 'notClean'
       </n-button>
     </div>
 
-    <!-- Danh sách tầng -->
     <FloorRow
-      v-for="floor in filteredprops"
+      v-for="floor in filteredFloors"
       :key="floor.floor"
       :floor="floor.floor"
       :rooms="floor.rooms"

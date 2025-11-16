@@ -6,7 +6,6 @@ import com.be.server.core.common.base.ResponseObject;
 import com.be.server.infrastructure.constant.MappingConstants;
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,4 +25,13 @@ public class SoDoPhongController {
     public ResponseEntity<?> getDataLoaiPhong() {
         return Helper.createResponseEntity(soDoPhongService.getDataLoaiPhong());
     }
+
+    @PutMapping("/vesinh/{id}")
+    public ResponseEntity<?> updateTrangThaiVeSinh(
+            @PathVariable String id,
+            @RequestParam("status") Integer status
+    ) {
+        return ResponseEntity.ok(soDoPhongService.updateTrangThaiVeSinh(id, status));
+    }
+
 }

@@ -9,4 +9,5 @@ public interface SoDoPhongService {
 
     ResponseObject<?> getDataLoaiPhong();
 
+    ResponseObject<?> updateTrangThaiVeSinh(String id, Integer trangThaiVeSinh );
 }

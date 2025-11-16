@@ -40,7 +40,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- Màn hình hiển thị -->
@@ -91,15 +90,15 @@ const fetchDataSoDoPhong = async () => {
     const mappedData = data.map(room => {
       let cleanStatus: 'clean' | 'notClean'
       switch (room.trangThaiVeSinh) {
-        case '0':
+        case 'SACH':
           cleanStatus = 'clean'
           room.trangThaiVeSinh = 'SACH'
           break
-        case '1':
+        case 'DANG_DON':
           cleanStatus = 'notClean'
           room.trangThaiVeSinh = 'DANG_DON'
           break
-        case '2':
+        case 'CHUA_DON':
           cleanStatus = 'notClean'
           room.trangThaiVeSinh = 'CHUA_DON'
           break
@@ -119,7 +118,12 @@ const fetchDataSoDoPhong = async () => {
     })
 
     floors.value = Object.entries(grouped)
-      .map(([floor, rooms]) => ({ floor: Number(floor), rooms: sortRoomsZigZag(rooms) }))
+      // .map(([floor, rooms]) => ({ floor: Number(floor), rooms: sortRoomsZigZag(rooms) }))
+      .map(([floor, rooms]) => {
+        console.log(floor)
+        console.log(rooms)
+        return { floor: Number(floor), rooms: sortRoomsZigZag(rooms) }
+      })
       .sort((a, b) => a.floor - b.floor)
   } catch (error: any) {
     notification.error({ content: error.message || 'Không thể tải sơ đồ phòng', duration: 3000 })
@@ -137,4 +141,6 @@ onMounted(() => {
   fetchDataLoaiPhong()
   fetchDataSoDoPhong()
 })
+
+
 </script>
