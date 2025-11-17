@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  # DATABASE
+  db:
+    image: mysql:8.0
+    container_name: qlksdb
+    restart: always
+    ports:
+      - "3307:3306" # host:container
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: qlksdb
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d 
+
+  # BACKEND
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "2345:2345"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306      # Kết nối nội bộ trong Docker network dùng port container
+      MYSQL_DATABASE: qlksdb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+      JPA_DDL_AUTO: update
+      SERVER_PORT: 2345
+      FRONTEND_URL: http://localhost:6689   # hoặc http://localhost nếu bạn expose 80
+      JWT_SECRET: your_jwt_secret_here
+      GOOGLE_CLIENT_ID: your_google_client_id
+      GOOGLE_CLIENT_SECRET: your_google_client_secret
+      GITHUB_CLIENT_ID: your_github_client_id
+      GITHUB_CLIENT_SECRET: your_github_client_secret
+      GENERATE_DB: true
+      USER_EMAIL: thachvietha09092006@gmail.com  
+      USER_CODE: PH50396                           
+      USER_NAME: Pham Duc Toan   
+      USER_PHONE: "0123456789"                    
+      ROLE: ADMIN
+    depends_on:
+      - db
+
+  # FRONTEND (Nginx serve SPA)
+  nova-admin:
+    build:
+      context: ./frontend
+      dockerfile: ./docker/dockerfile.product
+    container_name: nova-admin
+    ports:
+      - "6689:80"   # map cổng 80 của container (Nginx) ra 6689 host
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

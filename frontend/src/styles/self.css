@@ -1,0 +1,7 @@
+.n-button--primary-type,.n-button--info-type,.n-button--success-type,
+.n-button--warning-type,.n-button--error-type {
+  color: #fff;
+}
+.n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--horizontal--bottom{
+  bottom: 0px;
+}
