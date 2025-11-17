@@ -6,8 +6,8 @@ import FloorRow from './components/floorRow.vue';
 const props = defineProps<{
   floors: { floor: number; rooms: SoDoPhongResponse[] }[]
 }>()
-// Lấy danh sách phòng từ API
-// Floors data
+
+const emits = defineEmits()
 
 // Filter trạng thái phòng
 const selectedStatuses = ref<string[]>([])

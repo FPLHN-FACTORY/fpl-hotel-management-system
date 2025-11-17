@@ -4,6 +4,7 @@ import com.be.server.core.common.base.PageableRequest;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -15,7 +16,7 @@ public class SoDoSearch extends PageableRequest {
 
     private String ten;
 
-    private String loaiPhong;
+    private String idLoaiPhong;
 
     private Integer tang;
 

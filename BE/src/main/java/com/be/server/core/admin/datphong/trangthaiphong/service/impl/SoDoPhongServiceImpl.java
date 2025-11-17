@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,14 +37,15 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
     @Override
     public ResponseObject<?> getAllSoDoPhong(SoDoSearch request) {
         Long timestamp = Instant.now().toEpochMilli();
-
+        List<String> idsRoomUnavailable = new ArrayList<>();
+        if (request.getNgayDen() != null && request.getNgayDi() != null) {
+            idsRoomUnavailable = soDoPhongRepository.findRoomsByNgayDenAndNgayDi(request.getNgayDen(), request.getNgayDi());
+        }
         List<SoDoPhongResponse> rooms = soDoPhongRepository.getRoomOverview(
-                request.getMa(),
-                request.getTen(),
-                request.getLoaiPhong(),
-                request.getTang(),
+                request.getIdLoaiPhong(),
                 timestamp,
-                request
+                request,
+                idsRoomUnavailable
         ).stream().map(p -> {
             // Map trạng thái phòng
             TrangThaiPhongDat trangThai = chiTietDatPhongRepository

@@ -14,8 +14,7 @@
 
       <!-- Input tìm kiếm -->
       <div class="flex-1">
-        <n-input v-model="searchQuery" placeholder="Tìm kiếm khách hàng, mã đặt phòng..." clearable
-          @input="handleSearch">
+        <n-input v-model:value="stateSearch.searchQuery" placeholder="Tìm kiếm khách hàng, mã đặt phòng...">
           <template #prefix>
             <n-icon-wrapper :size="26" color="var(--success-color)" :border-radius="999">
               <nova-icon :size="18" icon="carbon:search" color="black" />
@@ -29,19 +28,27 @@
               start-placeholder="Ngày đến" end-placeholder="Ngày đi" />
           </div>
           <div class="basis-1/5">
-            <n-input v-model.number="stateSearch.checkInDate" placeholder="Giá nhỏ nhất"></n-input>
+            <n-input-number v-model:value="stateSearch.minPrice" placeholder="Giá nhỏ nhất" clearable />
           </div>
           <div class="basis-1/5">
-            <n-input v-model.number="stateSearch.checkoutDate" placeholder="Giá lớn nhất"></n-input>
+            <n-input-number v-model:value="stateSearch.maxPrice" placeholder="Giá lớn nhất" clearable></n-input-number>
           </div>
           <div class="basis-1/5">
-            <n-select placeholder="Chọn loại phòng"
+            <n-select placeholder="Chọn loại phòng" v-model:value="stateSearch.idLoaiPhong" clearable
               :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]" />
           </div>
         </div>
       </div>
     </div>
 
+    <div class="flex justify-end mt-2 gap-x-12px">
+      <n-button type="success" @click="fetchDataSoDoPhong">
+        Tìm kiếm
+      </n-button>
+      <n-button @click="resetFilter">
+        Làm mới bộ lọc
+      </n-button>
+    </div>
     <!-- Màn hình hiển thị -->
     <div class="mt-4">
       <component :floors="floors" :is="currentComponent" />
@@ -50,11 +57,11 @@
 </template>
 
 <script setup lang="ts">
+import { getSoDoPhong, SoDoPhongResponse } from '@/service/api/letan/sodophong';
 import { useDataCombobox } from '@/store/dataCombox';
+import { SelectMixedOption } from 'naive-ui/es/select/src/interface';
 import SoDo from './sodo/soDo.vue';
 import Timeline from './timeline/timeline.vue';
-import { SelectMixedOption } from 'naive-ui/es/select/src/interface';
-import { getSoDoPhong, SoDoPhongResponse } from '@/service/api/letan/sodophong';
 
 const currentView = ref<string>('map')
 const { dataCombobox, fetchDataLoaiPhong } = useDataCombobox()
@@ -66,17 +73,12 @@ const currentComponent = computed(() => {
   }
 })
 
-const searchQuery = ref<string>()
-
-const handleSearch = () => {
-
-}
-
 const stateSearch = reactive({
   stayDate: undefined as [number, number] | null | undefined,
-  checkInDate: undefined as number | undefined,
-  checkoutDate: undefined as number | undefined,
-
+  minPrice: undefined as number | undefined | null,
+  maxPrice: undefined as number | undefined | null,
+  searchQuery: undefined as string | undefined | null,
+  idLoaiPhong: undefined as string | undefined | null,
 })
 
 const floors = ref<{ floor: number; rooms: SoDoPhongResponse[] }[]>([])
@@ -85,7 +87,14 @@ const notification = useNotification()
 
 const fetchDataSoDoPhong = async () => {
   try {
-    const data = await getSoDoPhong()
+    const data = await getSoDoPhong({
+      q: stateSearch.searchQuery,
+      idLoaiPhong: stateSearch.idLoaiPhong,
+      minPrice: stateSearch.minPrice,
+      maxPrice: stateSearch.maxPrice,
+      ngayDen: stateSearch.stayDate && stateSearch.stayDate[0],
+      ngayDi: stateSearch.stayDate && stateSearch.stayDate[1],
+    })
     // Map trạng thái vệ sinh từ 0|1|2 sang string + cleanStatus
     const mappedData = data.map(room => {
       let cleanStatus: 'clean' | 'notClean'
@@ -142,5 +151,26 @@ onMounted(() => {
   fetchDataSoDoPhong()
 })
 
+const resetFilter = () => {
+  stateSearch.stayDate = null
+  stateSearch.minPrice = null
+  stateSearch.maxPrice = null
+  stateSearch.searchQuery = ''
+  stateSearch.idLoaiPhong = null
 
+  fetchDataSoDoPhong()
+}
+
+// const debnounceFetchDataSoDoPhong = debounce({ delay: 300 }, fetchDataSoDoPhong)
+
+// watch(() => [
+//   stateSearch.maxPrice,
+//   stateSearch.minPrice,
+//   stateSearch.stayDate && stateSearch.stayDate[0],
+//   stateSearch.stayDate && stateSearch.stayDate[1],
+//   stateSearch.idLoaiPhong,
+//   stateSearch.searchQuery,
+// ],
+//   debnounceFetchDataSoDoPhong
+// )
 </script>

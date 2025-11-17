@@ -30,10 +30,12 @@ export interface SoDoPhongResponse {
 
 // Tham số lọc khi lấy sơ đồ phòng
 export interface ParamsGetSoDoPhong {
-  ma?: string
-  ten?: string
-  loaiPhong?: string
-  tang?: number
+  q?: string | null
+  idLoaiPhong?: string | null
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  ngayDen?: number | null | undefined;
+  ngayDi?: number | null | undefined;
 }
 
 // ============================

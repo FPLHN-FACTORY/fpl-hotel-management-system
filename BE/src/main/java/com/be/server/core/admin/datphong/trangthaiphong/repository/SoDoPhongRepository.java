@@ -37,20 +37,26 @@ public interface SoDoPhongRepository extends PhongRepository {
             
         FROM phong p
         LEFT JOIN loai_phong lp ON lp.id = p.loai_phong_id
-        WHERE (:ma IS NULL OR p.ma LIKE CONCAT('%', :ma, '%'))
-          AND (:ten IS NULL OR p.ten LIKE CONCAT('%', :ten, '%'))
-          AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
-          AND (:tang IS NULL OR p.tang = :tang)
+        LEFT JOIN dat_phong dp on p.id = dp.id_phong 
+        WHERE((:#{#request.q} IS NULL OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
+            OR (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%')))
+            AND (:idLoaiPhong IS NULL OR lp.id = :idLoaiPhong)
+            AND (:#{#request.maxPrice} IS NULL OR :#{#request.minPrice} IS NULL OR (lp.gia_ca_ngay >= :#{#request.minPrice} AND lp.gia_ca_ngay <= :#{#request.maxPrice}))
+            AND (:idsRoomUnavailable IS NULL OR p.id NOT IN :idsRoomUnavailable)
         """,
             nativeQuery = true)
     List<SoDoPhongResponse> getRoomOverview(
-            @Param("ma") String ma,
-            @Param("ten") String ten,
-            @Param("loaiPhong") String loaiPhong,
-            @Param("tang") Integer tang,
+            @Param("idLoaiPhong") String idLoaiPhong,
             @Param("now") Long now,
-            SoDoSearch request
+            SoDoSearch request,
+            List<String> idsRoomUnavailable
     );
 
-
+    @Query("""
+    SELECT p.id
+    FROM Phong p
+    LEFT JOIN DatPhong dp on dp.phong.id = p.id
+    WHERE :ngayDen IS NULL OR :ngayDi IS NULL OR (dp.thoiGianCheckIn < :ngayDi AND dp.thoiGianCheckOut > :ngayDen)
+    """)
+    List<String> findRoomsByNgayDenAndNgayDi(Long ngayDen,Long ngayDi);
 }

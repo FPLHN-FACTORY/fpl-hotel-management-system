@@ -19,14 +19,15 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "dat_phong")
 public class DatPhong extends PrimaryEntity implements Serializable {
+
     @Column(name = "thoi_gian_dat")
-    private LocalDateTime thoiGianDat;
+    private Long thoiGianDat;
 
     @Column(name = "thoi_gian_check_in")
-    private LocalDateTime thoiGianCheckIn;
+    private Long thoiGianCheckIn;
 
     @Column(name = "thoi_gian_check_out")
-    private LocalDateTime thoiGianCheckOut;
+    private Long thoiGianCheckOut;
 
     @Column(name = "ghi_chu")
     private String ghiChu;
@@ -34,10 +35,6 @@ public class DatPhong extends PrimaryEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
-
-    @ManyToOne
-    @JoinColumn(name = "id_lich_su_dat_phong")
-    private LichSuDatPhong lichSuDatPhong;
 
     @ManyToOne
     @JoinColumn(name = "id_phong")
