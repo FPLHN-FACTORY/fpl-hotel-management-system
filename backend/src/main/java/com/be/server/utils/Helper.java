@@ -139,28 +139,7 @@ public class Helper {
         // Thay thế tất cả khoảng trắng liên tiếp bằng dấu gạch dưới
         return withoutAccentString.replaceAll("\\s+", "_");
     }
-    public static String generateCodeFromNameLowerCase(String name) {
-        // Chuyển role name chuỗi thành chữ hoa
-        String upperCaseString = name.toLowerCase();
 
-        // Thay thế các ký tự đặc biệt
-        StringBuilder stringBuilder = new StringBuilder();
-        for (char c : upperCaseString.toCharArray()) {
-            if (SPECIAL_CHAR_MAP.containsKey(c)) {
-                stringBuilder.append(SPECIAL_CHAR_MAP.get(c));
-            } else {
-                stringBuilder.append(c);
-            }
-        }
-        String replacedString = stringBuilder.toString();
-
-        // Loại bỏ dấu
-        String normalizedString = Normalizer.normalize(replacedString, Normalizer.Form.NFD);
-        String withoutAccentString = normalizedString.replaceAll("\\p{M}", "");
-
-        // Thay thế tất cả khoảng trắng liên tiếp bằng dấu gạch dưới
-        return withoutAccentString.replaceAll("\\s+", "_");
-    }
     public static String generateCodeMauSac() {
         Random random = new Random();
         int number = random.nextInt(10000);
