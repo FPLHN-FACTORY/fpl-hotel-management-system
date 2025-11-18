@@ -20,7 +20,7 @@ public interface ADTagRepository extends TagRepository {
             t.id,
             t.ma,
             t.ten,
-            t.mo_ta AS moTa,
+            t.mau,
             t.status,
             t.created_date
         FROM tag t

@@ -5,7 +5,7 @@ import { addTag, updateTag,changeStatusTag } from '@/service/api/letan/tag'
 interface Tag {
   id:string
   tenTag: string
-  moTaTag?: string
+  mauTag?: string
 }
 
 interface Props {
@@ -34,7 +34,7 @@ const title = computed(() => (props.type === 'edit' ? 'Sửa tag' : 'Thêm tag')
 const defaultTag: Tag = {
   id:'',
   tenTag: '',
-  moTaTag: ''
+  mauTag: ''
   
 }
 
@@ -61,7 +61,7 @@ watch(
       formModel.value = {
         id: val.id,              // 🔥 Quan trọng
         tenTag: val.tenTag || "",
-        moTaTag: val.moTaTag || ""
+        mauTag: val.mauTag || ""
       }
     } else {
       formModel.value = { ...defaultTag }
@@ -76,9 +76,6 @@ async function handleSubmit() {
   try {
     if (!formModel.value.tenTag?.trim()) {
       window.$message.warning('Vui lòng nhập tên tag!')
-      return
-    }if (!formModel.value.moTaTag?.trim()) {
-      window.$message.warning('Vui lòng nhập mô tả tag!')
       return
     }
      if (formModel.value.tenTag.length <= 1) {
@@ -95,7 +92,7 @@ const validNameRegex = /^[\p{L}0-9_ ]+$/u
 
     const payload = {
       ten: formModel.value.tenTag.trim(),
-      moTa: formModel.value.moTaTag?.trim() || ''
+      mau: formModel.value.mauTag?.trim() || ''
     }
 
     let res
@@ -137,15 +134,15 @@ const validNameRegex = /^[\p{L}0-9_ ]+$/u
       <n-input v-model:value="formModel.tenTag" placeholder="Nhập tên tag" />
     </n-form-item-grid-item>
 
-    <!-- Dòng 2 -->
-    <n-form-item-grid-item :span="24" label="Mô tả" path="moTaTag">
-      <n-input
-        v-model:value="formModel.moTaTag"
-        type="textarea"
-        placeholder="Nhập mô tả tag"
-        :autosize="{ minRows: 2, maxRows: 4 }"
-      />
-    </n-form-item-grid-item>
+   <!-- Chọn màu -->
+<n-form-item-grid-item :span="24" label="Color" path="mauTag">
+  <n-input
+    v-model:value="formModel.mauTag"
+    type="color"
+    placeholder="Chọn màu tag"
+  />
+</n-form-item-grid-item>
+
 
   </n-grid>
 </n-form>

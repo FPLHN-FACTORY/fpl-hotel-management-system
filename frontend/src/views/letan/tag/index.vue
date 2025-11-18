@@ -28,7 +28,7 @@ const initialModel = {
 interface Tag {
   id?: string
   tenTag: string
-  moTaTag?: string
+  mauTag?: string
 }
 
 const model = reactive({ ...initialModel })
@@ -101,7 +101,7 @@ function handleEditTable(row: TagResponse) {
   modalData.value = {
     id: row.id,
     tenTag: row.ten,
-    moTaTag: row.moTa
+    mauTag: row.mau
   }
   openModal()
 }
@@ -149,7 +149,21 @@ const columns: DataTableColumns<TagResponse> = [
     title: 'Mã',
     align: 'center',
     key: 'ma',
-    render: row => row.ma || '-',
+  render: row =>
+    h(
+      'div',
+      {
+        style: {
+          backgroundColor: row.mau || '#ccc', // tên field màu
+          padding: '6px 10px',
+          borderRadius: '6px',
+          color: '#fff',
+          display: 'inline-block',
+          minWidth: '70px'
+        }
+      },
+      row.ma || '-'
+    )
   },
   {
     title: 'Tên',
@@ -157,12 +171,7 @@ const columns: DataTableColumns<TagResponse> = [
     key: 'ten',
     render: row => row.ten|| '-',
   },
-    {
-    title: 'Mô tả',
-    align: 'center',
-    key: 'moTa',
-    render: row => row.moTa || '-',
-  },
+  
     
   
   {

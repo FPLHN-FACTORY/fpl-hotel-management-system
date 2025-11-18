@@ -16,13 +16,13 @@ export interface TagResponse  {
    rowNumber: number
   ma: string
   ten: string
-  moTa: string
+  mau: string
   status:string
 }
 
 export interface AddAndUpdateRequest {
   ten: string
-    moTa: string
+    mau: string
  }
 
 

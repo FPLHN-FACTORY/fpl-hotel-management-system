@@ -55,7 +55,7 @@ public class ADTagServiceImpl implements ADTagService {
     }
 
     @Override
-    public ResponseObject<?> addTag(@Valid ADAddAndUpdateTagRequest request) {
+    public ResponseObject<?> addTag( ADAddAndUpdateTagRequest request) {
         if (request.getTen() == null || request.getTen().isBlank()) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Tên tag không được để trống");
         }
@@ -69,13 +69,13 @@ public class ADTagServiceImpl implements ADTagService {
         tag.setMa(code);
         tag.setTen(cleanName);
         tag.setStatus(EntityStatus.ACTIVE);
-        tag.setMoTa(request.getMoTa());
+        tag.setMau(request.getMau());
         adTagRepository.save(tag);
         return new ResponseObject<>(tag, HttpStatus.OK, "Thêm Tag đã thành công");
     }
 
     @Override
-    public ResponseObject<?> updateTag(@Valid ADAddAndUpdateTagRequest request, String id) {
+    public ResponseObject<?> updateTag( ADAddAndUpdateTagRequest request, String id) {
         Optional<Tag> optionalTag = adTagRepository.findById(id);
         if (optionalTag.isEmpty()) {
             return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Tag không tồn tại");
@@ -92,7 +92,7 @@ public class ADTagServiceImpl implements ADTagService {
         String code = "#" + Helper.generateCodeFromNameLowerCase(cleanName);
         tag.setTen(cleanName);
         tag.setMa(code);
-        tag.setMoTa(request.getMoTa());
+        tag.setMau(request.getMau());
         adTagRepository.save(tag);
         return new ResponseObject<>(tag, HttpStatus.OK, "Cập nhật Tag thành công");
     }

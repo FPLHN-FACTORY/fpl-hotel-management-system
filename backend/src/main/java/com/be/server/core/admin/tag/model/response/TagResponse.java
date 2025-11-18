@@ -8,7 +8,7 @@ public interface TagResponse extends IsIdentify {
         Integer getRowNumber();
         String getMa();
         String getTen();
-        String getMoTa();
+        String getMau();
         String getStatus();
 
 

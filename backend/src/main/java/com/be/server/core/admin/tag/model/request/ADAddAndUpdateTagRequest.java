@@ -12,5 +12,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ADAddAndUpdateTagRequest extends PageableRequest {
     String ten;
-    String moTa;
+    String mau;
 }

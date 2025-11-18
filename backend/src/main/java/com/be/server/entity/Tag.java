@@ -20,8 +20,8 @@ import java.io.Serializable;
 @Table(name = "tag")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Tag extends PrimaryEntity implements Serializable {
-    @Lob
-    @Column(name = "mo_ta")
-    String moTa;
+
+    @Column(name = "mau")
+    String mau;
 
 }
