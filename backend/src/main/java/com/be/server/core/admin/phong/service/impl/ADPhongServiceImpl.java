@@ -10,7 +10,7 @@ import com.be.server.core.admin.phong.model.response.PhongResponse;
 import com.be.server.core.admin.phong.repository.ADLoaiPhongRepository;
 import com.be.server.core.admin.phong.repository.ADPhongRepository;
 import com.be.server.core.admin.phong.repository.ADPhongTagRepository;
-import com.be.server.core.admin.phong.repository.ADTagRepository;
+import com.be.server.core.admin.phong.repository.ADTagRoomRepository;
 import com.be.server.core.admin.phong.service.ADPhongService;
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.LoaiPhong;
@@ -37,7 +37,7 @@ public class ADPhongServiceImpl implements ADPhongService {
     private final ADPhongRepository adPhongRepository;
     private final ADLoaiPhongRepository adLoaiPhongRepository;
     private final ADPhongTagRepository adPhongTagRepository;
-    private final ADTagRepository adTagRepository;
+    private final ADTagRoomRepository adTagRepository;
 
     @Override
     public ResponseObject<?> getAllPhong(ADPhongSearchRequest request) {
