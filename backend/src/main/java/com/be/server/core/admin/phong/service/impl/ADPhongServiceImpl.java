@@ -96,7 +96,6 @@ public class ADPhongServiceImpl implements ADPhongService {
                     pr.setTrangThaiHoatDong(TrangThaiHoatDong.valueOf(p.getTrangThaiHoatDong()));
                     pr.setTags(tagsByPhongId.getOrDefault(p.getId(), new ArrayList<>()));
 
-                    // Get bed info from Phong's LoaiPhong
                     Phong phongDetail = phongDetailsMap.get(p.getId());
                     if (phongDetail != null && phongDetail.getLoaiPhong() != null) {
                         pr.setSoGiuongDon(phongDetail.getLoaiPhong().getSoGiuongDon());
@@ -163,20 +162,7 @@ public class ADPhongServiceImpl implements ADPhongService {
 
     @Override
     public ResponseObject<?> getAllLoaiPhong(){
-        List<LoaiPhong> entities = adLoaiPhongRepository.getAllLoaiPhongEntities();
-
-        List<LoaiPhongResponse> responses = entities.stream()
-                .map(lp -> new LoaiPhongResponse(
-                        lp.getId(),
-                        lp.getSoNguoiToiDa(),
-                        lp.getSoNguoiQuyDinh(),
-                        lp.getSoGiuongDon(),
-                        lp.getSoGiuongDoi(),
-                        lp.getGiaCaNgay(),
-                        lp.getTen()
-                ))
-                .toList();
-
+        List<LoaiPhongResponse> responses = adLoaiPhongRepository.getAllLoaiPhong();
         return new ResponseObject<>(responses, HttpStatus.OK, "lấy thành công loại phòng");
     }
 

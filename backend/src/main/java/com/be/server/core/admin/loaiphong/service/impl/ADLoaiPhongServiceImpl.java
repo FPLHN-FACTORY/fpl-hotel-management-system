@@ -64,6 +64,7 @@ public class ADLoaiPhongServiceImpl implements ADLoaiPhongService {
         lp.setSoGiuongDoi(request.getSoGiuongDoi());
         lp.setSoNguoiQuyDinh(request.getSoNguoiQuyDinh());
         lp.setSoNguoiToiDa(request.getSoNguoiToiDa());
+        lp.setStatus(request.getTrangThai());
         lp.setGiaCaNgay(request.getGiaCaNgay());
 
         repository.save(lp);

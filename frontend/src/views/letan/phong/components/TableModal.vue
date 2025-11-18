@@ -77,7 +77,8 @@ async function fetchLoaiPhong() {
     loaiPhongOptions.value = data.map(lp => ({
       label: lp.ten,
       value: String(lp.id),
-      soLuongNguoiToiDa: lp.soLuongNguoiToiDa ?? 1,
+      // Backend trả về soNguoiToiDa (không có chữ "Luong")
+      soLuongNguoiToiDa: lp.soNguoiToiDa ?? 1,
       soNguoiQuyDinh: lp.soNguoiQuyDinh ?? 1,
       soGiuongDon: lp.soGiuongDon ?? 0,
       soGiuongDoi: lp.soGiuongDoi ?? 0,
@@ -135,10 +136,12 @@ async function fetchPhongDetail(id: string) {
   }
 }
 
+// Watch loaiPhong changes - only auto-fill when in ADD mode
 watch(
   () => formModel.value.loaiPhong,
   (newLoaiPhong) => {
     if (!newLoaiPhong) {
+      // Clear fields when no room type selected
       formModel.value.gia = undefined
       formModel.value.sucChua = undefined
       formModel.value.soNguoiQuyDinh = undefined
@@ -150,17 +153,23 @@ watch(
       isSoNguoiQuyDinhLocked.value = false
       return
     }
+
     const selected = loaiPhongOptions.value.find(lp => lp.value === newLoaiPhong)
+
     if (selected) {
-      formModel.value.gia = selected.giaCaNgay
-      formModel.value.sucChua = selected.soLuongNguoiToiDa
-      formModel.value.soNguoiQuyDinh = selected.soNguoiQuyDinh
-      formModel.value.soGiuongDon = selected.soGiuongDon
-      formModel.value.soGiuongDoi = selected.soGiuongDoi
-      isGiaLocked.value = true
-      isSucChuaLocked.value = true
-      isBedInfoLocked.value = true
-      isSoNguoiQuyDinhLocked.value = true
+      // Only auto-fill in ADD mode, not EDIT mode
+      if (props.type === 'add') {
+        formModel.value.gia = selected.giaCaNgay
+        formModel.value.sucChua = selected.soLuongNguoiToiDa
+        formModel.value.soNguoiQuyDinh = selected.soNguoiQuyDinh
+        formModel.value.soGiuongDon = selected.soGiuongDon
+        formModel.value.soGiuongDoi = selected.soGiuongDoi
+
+        isGiaLocked.value = true
+        isSucChuaLocked.value = true
+        isBedInfoLocked.value = true
+        isSoNguoiQuyDinhLocked.value = true
+      }
     }
   },
 )
