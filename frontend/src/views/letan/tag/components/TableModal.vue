@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue'
-import { addTag, updateTag,changeStatusTag } from '@/service/api/letan/tag'
+import { addTag, updateTag, changeStatusTag } from '@/service/api/letan/tag'
 
 interface Tag {
-  id:string
+  id: string
   tenTag: string
   mauTag?: string
 }
@@ -32,18 +32,17 @@ function closeModal() {
 const title = computed(() => (props.type === 'edit' ? 'Sửa tag' : 'Thêm tag'))
 
 const defaultTag: Tag = {
-  id:'',
+  id: '',
   tenTag: '',
   mauTag: ''
-  
+
 }
 
-const formModel = ref<Tag>({ ...defaultTag})
+const formModel = ref<Tag>({ ...defaultTag })
+const isSubmitting = ref(false)
 
 
 
-const isSucChuaLocked = ref(false)
-const isGiaLocked = ref(false)
 
 // --- Trạng thái phòng ---
 const trangThaiOptions = ref([
@@ -73,22 +72,25 @@ watch(
 
 
 async function handleSubmit() {
+  if (isSubmitting.value) return
+
+  isSubmitting.value = true
   try {
     if (!formModel.value.tenTag?.trim()) {
       window.$message.warning('Vui lòng nhập tên tag!')
       return
     }
-     if (formModel.value.tenTag.length <= 1) {
-    window.$message.warning('Tên tag phải dài hơn 1 ký tự!')
-    return
-  }
+    if (formModel.value.tenTag.length <= 1) {
+      window.$message.warning('Tên tag phải dài hơn 1 ký tự!')
+      return
+    }
 
-  // 3. Không được chứa ký tự đặc biệt
-const validNameRegex = /^[\p{L}0-9_ ]+$/u
-  if (!validNameRegex.test(formModel.value.tenTag)) {
-    window.$message.warning('Tên tag không được chứa ký tự đặc biệt!')
-    return
-  }
+    // 3. Không được chứa ký tự đặc biệt
+    const validNameRegex = /^[\p{L}0-9_ ]+$/u
+    if (!validNameRegex.test(formModel.value.tenTag)) {
+      window.$message.warning('Tên tag không được chứa ký tự đặc biệt!')
+      return
+    }
 
     const payload = {
       ten: formModel.value.tenTag.trim(),
@@ -98,7 +100,7 @@ const validNameRegex = /^[\p{L}0-9_ ]+$/u
     let res
 
     if (props.type === 'edit' && props.modalData) {
-     res = await updateTag(payload, formModel.value.id)
+      res = await updateTag(payload, formModel.value.id)
       window.$message.success(res?.message || 'Cập nhật tag thành công!')
     } else {
       res = await addTag(payload)
@@ -107,9 +109,12 @@ const validNameRegex = /^[\p{L}0-9_ ]+$/u
 
     emit('refresh')
     closeModal()
-    formModel.value = { ...defaultTag }
+
   } catch (error: any) {
     window.$message.error(error.message || 'Lỗi thao tác tag')
+  } finally {
+    isSubmitting.value = false
+    formModel.value = { ...defaultTag }
   }
 }
 
@@ -118,34 +123,24 @@ const validNameRegex = /^[\p{L}0-9_ ]+$/u
 </script>
 
 <template>
-  <n-modal
-    v-model:show="modalVisible"
-    :mask-closable="false"
-    preset="card"
-    :title="title"
-    class="w-700px"
-    :segmented="{ content: true, action: true }"
-  >
-  <n-form label-placement="left" :model="formModel" label-align="left" :label-width="120">
-  <n-grid :cols="24" :x-gap="18">
-    
-    <!-- Dòng 1 -->
-    <n-form-item-grid-item :span="24" label="Tên tag" path="tenTag">
-      <n-input v-model:value="formModel.tenTag" placeholder="Nhập tên tag" />
-    </n-form-item-grid-item>
+  <n-modal v-model:show="modalVisible" :mask-closable="false" preset="card" :title="title" class="w-700px"
+    :segmented="{ content: true, action: true }">
+    <n-form label-placement="left" :model="formModel" label-align="left" :label-width="120">
+      <n-grid :cols="24" :x-gap="18">
 
-   <!-- Chọn màu -->
-<n-form-item-grid-item :span="24" label="Color" path="mauTag">
-  <n-input
-    v-model:value="formModel.mauTag"
-    type="color"
-    placeholder="Chọn màu tag"
-  />
-</n-form-item-grid-item>
+         <!-- Dòng 1 -->
+        <n-form-item-grid-item :span="12" label="Tên tag" path="tenTag">
+          <n-input v-model:value="formModel.tenTag" placeholder="Nhập tên tag" />
+        </n-form-item-grid-item>
 
+        <!-- Chọn màu -->
+        <n-form-item-grid-item :span="12" label="Màu sắc tag" path="mauTag">
+          <n-color-picker v-model:value="formModel.mauTag" :modes="['hex']" :show-preview="true" :actions="null"
+            :render-label="() => ''" />
+        </n-form-item-grid-item>
 
-  </n-grid>
-</n-form>
+      </n-grid>
+    </n-form>
 
 
 

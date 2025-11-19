@@ -135,49 +135,6 @@ function changePage(page: number) {
   fetchTags(page)
 }
 
-// Handle download
-async function handleDownload() {
-  try {
-    startLoading()
-    const params: any = {
-      page: 0, // Get all data
-      size: 10000, // Large number to get all records
-    }
-
-    // Apply current filters
-    if (model.maOrTen) params.maOrTen = model.maOrTen
-    if (model.status !== null && model.status !== undefined) params.status = model.status
-
-    const res = await getAllTags(params)
-
-    // Convert data to CSV
-    const headers = ['Mã tag', 'Tên tag', 'Mô tả', 'Trạng thái']
-    const csvRows = [
-      headers.join(','),
-      ...res.items.map(tag => [
-        `"${tag.maTag || ''}"`,
-        `"${tag.tenTag || ''}"`,
-        `"${tag.moTaTag || ''}"`,
-        `"${tag.status === 0 ? 'Hoạt động' : 'Ngưng hoạt động'}"`
-      ].join(','))
-    ]
-
-    const csvContent = csvRows.join('\n')
-    const blob = new Blob([
-      new Uint8Array([0xEF, 0xBB, 0xBF]), // UTF-8 BOM
-      csvContent
-    ], { type: 'text/csv;charset=utf-8;' })
-
-    downloadFile(blob, `danh_sach_tag_${new Date().toISOString().split('T')[0]}.csv`)
-
-  } catch (error: any) {
-    window.$message.error(error.message || 'Có lỗi xảy ra khi tải xuống dữ liệu')
-  } finally {
-    endLoading()
-  }
-}
-
-
 // --- Cột bảng ---
 const columns: DataTableColumns<TagResponse> = [
   {
@@ -266,14 +223,14 @@ onMounted(() => {
   <NSpace vertical size="large">
    <n-card>
   <n-form ref="formRef" :model="model" label-placement="top" :show-feedback="false">
-    <n-grid :cols="24" :x-gap="12" :y-gap="12">
+    <n-grid :cols="25" :x-gap="12" :y-gap="12">
 
       <!-- Hàng 1: Thông tin cơ bản -->
-      <n-form-item-gi :span="10" label="Mã / Tên tag" path="maOrTen">
+      <n-form-item-gi :span="12" label="Mã / Tên tag" path="maOrTen">
         <NInput v-model:value="model.maOrTen" placeholder="Nhập mã hoặc tên tag" clearable />
       </n-form-item-gi>
 
-<n-form-item-gi :span="10" label="Trạng thái" path="status">
+<n-form-item-gi :span="12" label="Trạng thái" path="status">
   <NSelect
     v-model:value="model.status"
     placeholder="Chọn trạng thái"
@@ -283,7 +240,7 @@ onMounted(() => {
 </n-form-item-gi>
 
       <!-- Hàng 4: Nút hành động -->
-     <n-form-item-gi :span="4" class="flex items-center justify-end">
+     <n-form-item-gi :span="1" class="flex items-center justify-end">
   <NButton strong secondary @click="handleResetSearch">Reset</NButton>
 </n-form-item-gi>
 
@@ -299,12 +256,7 @@ onMounted(() => {
           <NButton type="primary" @click="handleAddTable">
             Thêm tag
           </NButton>
-          <NButton strong secondary>
-            Batch Import
-          </NButton>
-          <NButton strong secondary class="ml-a" @click="handleDownload">
-            Download
-          </NButton>
+         
         </div>
 
 
