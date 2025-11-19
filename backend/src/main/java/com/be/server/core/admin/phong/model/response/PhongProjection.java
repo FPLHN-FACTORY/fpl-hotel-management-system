@@ -18,6 +18,8 @@ public interface PhongProjection extends IsIdentify{
 
     Integer getSucChua();
 
+    Integer getSoNguoiQuyDinh();
+
     String getTrangThaiHoatDong();
 
 }

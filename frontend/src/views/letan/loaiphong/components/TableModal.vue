@@ -90,6 +90,10 @@ async function handleSubmit() {
   // }
   if (formModel.value.soNguoiQuyDinh <= 0 || formModel.value.soNguoiToiDa <= 0) { window.$message.warning('Số người phải lớn hơn 0!'); return }
   if (formModel.value.soNguoiQuyDinh > formModel.value.soNguoiToiDa) { window.$message.warning('Số người quy định không được lớn hơn số người tối đa!'); return }
+  if (formModel.value.giaCaNgay! <= 0) {
+    window.$message.warning('Số tiền nhập vào phải lớn hơn 0');
+    return
+  }
 
   const payload: any = {
     ma: formModel.value.ma,
@@ -121,14 +125,8 @@ function handleClose() { emit('update:visible', false) }
 </script>
 
 <template>
-  <n-modal
-    v-model:show="modalVisible"
-    :mask-closable="false"
-    preset="card"
-    :title="title"
-    class="w-700px"
-    :segmented="{ content: true, action: true }"
-  >
+  <n-modal v-model:show="modalVisible" :mask-closable="false" preset="card" :title="title" class="w-700px"
+    :segmented="{ content: true, action: true }">
     <n-form label-placement="left" :model="formModel" label-align="left" :label-width="150">
       <n-grid :cols="24" :x-gap="18">
         <n-form-item-grid-item :span="12" label="Mã loại phòng" path="ma">
@@ -160,7 +158,8 @@ function handleClose() { emit('update:visible', false) }
         </n-form-item-grid-item>
 
         <n-form-item-grid-item :span="12" label="Trạng thái" path="trangThai">
-          <n-select v-model:value="formModel.trangThai" :options="trangThaiOptions" label-field="label" value-field="value" placeholder="Chọn trạng thái" />
+          <n-select v-model:value="formModel.trangThai" :options="trangThaiOptions" label-field="label"
+            value-field="value" placeholder="Chọn trạng thái" />
         </n-form-item-grid-item>
       </n-grid>
     </n-form>
@@ -175,5 +174,7 @@ function handleClose() { emit('update:visible', false) }
 </template>
 
 <style scoped>
-.w-700px { width: 700px; }
+.w-700px {
+  width: 700px;
+}
 </style>

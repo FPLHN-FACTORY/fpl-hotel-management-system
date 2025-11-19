@@ -1,8 +1,8 @@
 package com.be.server.core.admin.phong.controller;
 
-
 import com.be.server.core.admin.phong.model.request.ADPhongSearchRequest;
 import com.be.server.core.admin.phong.model.request.ADSavePhongRequest;
+import com.be.server.core.admin.phong.model.request.ADUpdatePhongRequest;
 import com.be.server.core.admin.phong.service.ADPhongService;
 import com.be.server.infrastructure.constant.MappingConstants;
 import com.be.server.utils.Helper;
@@ -19,15 +19,9 @@ public class ADPhongController {
 
     @GetMapping
     public ResponseEntity<?> getDanhSachPhong(@ModelAttribute ADPhongSearchRequest request) {
-
         return Helper.createResponseEntity(adPhongService.getAllPhong(request));
     }
-//
-//    @PutMapping("changeStatus/{id}")
-//    public ResponseEntity<?>changeStatus(@PathVariable String id) {
-//        return Helper.createResponseEntity(adPhongService.changeStatusPhong(id));
-//    }
-//
+
     @PostMapping("/addPhong")
     public ResponseEntity<?> taoPhong(@RequestBody ADSavePhongRequest request){
         return Helper.createResponseEntity(adPhongService.savePhong(request));
@@ -42,4 +36,20 @@ public class ADPhongController {
     public ResponseEntity<?> loaiPhong(){
         return Helper.createResponseEntity(adPhongService.getAllLoaiPhong());
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPhongById(@PathVariable String id){
+        return Helper.createResponseEntity(adPhongService.getPhongById(id));
+    }
+
+    @PutMapping("/updatePhong/{id}")
+    public ResponseEntity<?> updatePhong(@PathVariable String id, @RequestBody ADUpdatePhongRequest request){
+        return Helper.createResponseEntity(adPhongService.updatePhong(id, request));
+    }
+
+    @GetMapping("/tags")
+    public ResponseEntity<?> getAllTags(){
+        return Helper.createResponseEntity(adPhongService.getAllTags());
+    }
+
 }

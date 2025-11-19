@@ -1,24 +1,26 @@
 package com.be.server.core.admin.phong.model.response;
 
-import com.be.server.infrastructure.constant.EnLoaiPhong;
-
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoaiPhongResponse {
     private String id;
+    private Integer soNguoiToiDa;
+    private Integer soNguoiQuyDinh;
+    private Integer soGiuongDon;
+    private Integer soGiuongDoi;
     private BigDecimal giaCaNgay;
-    private Integer soLuongNguoiToiDa;
     private String ten;
 
-    public LoaiPhongResponse(String id , Integer soLuongNguoiToiDa,
-                             BigDecimal giaCaNgay , String ten) {
+    public LoaiPhongResponse(String id, Integer soNguoiToiDa, BigDecimal giaCaNgay, String ten) {
         this.id = id;
-        this.soLuongNguoiToiDa = soLuongNguoiToiDa;
+        this.soNguoiToiDa = soNguoiToiDa;
         this.giaCaNgay = giaCaNgay;
         this.ten = ten;
     }

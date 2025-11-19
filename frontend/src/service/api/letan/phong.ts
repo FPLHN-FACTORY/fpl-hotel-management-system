@@ -1,22 +1,20 @@
-// src/service/api/letan/phong.ts
 import { API_LE_TAN_PHONG } from '@/constants/url'
 import type { AxiosResponse } from 'axios'
 import type { ResponseList, PaginationParams, DefaultResponse } from '@/typings/api/api.common'
 import request from '@/service/request'
 
-// Tham số truy vấn lọc phòng
 export interface ParamsGetRoom extends PaginationParams {
   tuKhoa?: string
   tang?: number
   loaiPhong?: string
-  trangThaiHoatDong?:  'HOAT_DONG' | 'BAO_TRI' | 'NGUNG_HOAT_DONG'
+  trangThaiHoatDong?: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG' | 'DANG_SUA'
   giaMin?: number
   giaMax?: number
   sucChuaMin?: number
   sucChuaMax?: number
+  tagIds?: string[]
 }
 
-// Kiểu dữ liệu phòng trả về (projection từ backend)
 export interface PhongResponse extends ResponseList {
   id: string
   ma: string
@@ -24,8 +22,16 @@ export interface PhongResponse extends ResponseList {
   price: number
   tang: number
   loaiPhong: string
-  sucChua: string
-  trangThaiHoatDong?: 'DANG_HOAT_DONG' | 'DANG_SUA' | 'NGUNG_HOAT_DONG'
+  sucChua: number
+  soNguoiQuyDinh: number
+  soGiuongDon: number
+  soGiuongDoi: number
+  trangThaiHoatDong?: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG' | 'DANG_SUA'
+  tags?: Array<{
+    id: string
+    ma: string
+    ten: string
+  }>
 }
 
 export interface AddPhongRequest {
@@ -33,7 +39,35 @@ export interface AddPhongRequest {
   ten: string
   idLoaiPhong: string
   tang: number
-  trangThaiPhong: number  // 0: DANG_HOAT_DONG, 1: DANG_SUA, 2: NGUNG_HOAT_DONG
+  trangThaiHoatDong: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG' | 'DANG_SUA'
+  tagIds?: string[]
+}
+
+export interface UpdatePhongRequest {
+  ma: string
+  ten: string
+  idLoaiPhong: string
+  tang: number
+  trangThaiPhong: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG' | 'DANG_SUA'
+  tagIds?: string[]
+}
+
+export interface PhongDetailResponse {
+  phong: {
+    id: string
+    ma: string
+    ten: string
+    tang: number
+    idLoaiPhong: string
+    tenLoaiPhong: string
+    soNguoiToiDa: number
+    soNguoiQuyDinh: number
+    soGiuongDon: number
+    soGiuongDoi: number
+    giaCaNgay: number
+    trangThaiHoatDong: 'DANG_HOAT_DONG' | 'NGUNG_HOAT_DONG' | 'DANG_SUA'
+  }
+  tagIds: string[]
 }
 
 export interface RoomTypeResponse extends ResponseList {
@@ -48,6 +82,12 @@ export interface RoomTypeResponse extends ResponseList {
   status: 'ACTIVE' | 'INACTIVE'
 }
 
+export interface TagResponse {
+  id: string
+  ma: string
+  ten: string
+  moTa?: string
+}
 
 export async function getAllRooms(params: ParamsGetRoom) {
   try {
@@ -76,24 +116,20 @@ export async function getAllRooms(params: ParamsGetRoom) {
   }
 }
 
-// Xóa phòng
-// @param id - ID của phòng cần xóa
-// @returns Promise với dữ liệu phản hồi từ server
 export async function deleteRoom(id: string) {
   try {
-    const res = await request({
-      url: `${API_LE_TAN_PHONG}/${id}`,
-      method: 'DELETE',
-    })
+    const res = (await request({
+      url: `${API_LE_TAN_PHONG}/changeStatus/${id}`,
+      method: 'PUT',
+    })) as AxiosResponse<DefaultResponse<any>>
+
     return res.data
-  } catch (error: any) {
-    // Nếu có lỗi từ server, ném ra lỗi với thông báo từ server
-    const errorMessage = error.response?.data?.message || 'Đã xảy ra lỗi khi xóa phòng'
-    throw new Error(errorMessage)
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể xóa phòng')
   }
 }
 
-// add phong
 export async function addPhong(data: AddPhongRequest) {
   try {
     const res = (await request({
@@ -109,7 +145,35 @@ export async function addPhong(data: AddPhongRequest) {
   }
 }
 
-// --- Lấy danh sách loại phòng ---
+export async function updatePhong(id: string, data: UpdatePhongRequest) {
+  try {
+    const res = (await request({
+      url: `${API_LE_TAN_PHONG}/updatePhong/${id}`,
+      method: 'PUT',
+      data,
+    })) as AxiosResponse<DefaultResponse<any>>
+
+    return res.data
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể cập nhật phòng')
+  }
+}
+
+export async function getPhongById(id: string) {
+  try {
+    const res = (await request({
+      url: `${API_LE_TAN_PHONG}/${id}`,
+      method: 'GET',
+    })) as AxiosResponse<DefaultResponse<PhongDetailResponse>>
+
+    return res.data.data || null
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể tải thông tin phòng')
+  }
+}
+
 export async function getRoomTypes() {
   try {
     const res = await request({
@@ -117,9 +181,37 @@ export async function getRoomTypes() {
       method: 'GET',
     }) as AxiosResponse<DefaultResponse<RoomTypeResponse[]>>
 
-    return  res.data.data || []
-    
-  } catch (error: any) {
+    return res.data.data || []
+  }
+  catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách loại phòng')
+  }
+}
+
+export async function getAllTags() {
+  try {
+    const res = await request({
+      url: `${API_LE_TAN_PHONG}/tags`,
+      method: 'GET',
+    }) as AxiosResponse<DefaultResponse<TagResponse[]>>
+
+    return res.data.data || []
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể tải danh sách tags')
+  }
+}
+
+export async function getTagsByPhongId(phongId: string) {
+  try {
+    const res = await request({
+      url: `${API_LE_TAN_PHONG}/${phongId}/tags`,
+      method: 'GET',
+    }) as AxiosResponse<DefaultResponse<TagResponse[]>>
+
+    return res.data.data || []
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể tải tags của phòng')
   }
 }

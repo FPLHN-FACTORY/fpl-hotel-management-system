@@ -14,7 +14,7 @@ import {
 import TableModal from './components/TableModal.vue'
 
 import type { TagResponse } from '@/service/api/letan/tag'
-import { getAllTags, changeStatusTag, addTag, updateTag } from '@/service/api/letan/tag'
+import { getAllTags,changeStatusTag,addTag,updateTag } from '@/service/api/letan/tag'
 import { downloadFile } from '@/utils/dowload'
 
 // --- Loading & Modal ---
@@ -29,7 +29,7 @@ const initialModel = {
 interface Tag {
   id?: string
   tenTag: string
-  moTaTag?: string
+  mauTag?: string
 }
 
 const model = reactive({ ...initialModel })
@@ -102,7 +102,7 @@ function handleEditTable(row: TagResponse) {
   modalData.value = {
     id: row.id,
     tenTag: row.ten,
-    moTaTag: row.moTa
+    mauTag: row.mau
   }
   openModal()
 }
@@ -124,7 +124,7 @@ async function handleChangeStatus(id: string) {
   }
 }
 
-// ✅ Reset toàn bộ filters + reload bảng
+//Reset toàn bộ filters + reload bảng
 function handleResetSearch() {
   Object.assign(model, initialModel)
 
@@ -143,13 +143,13 @@ async function handleDownload() {
       page: 0, // Get all data
       size: 10000, // Large number to get all records
     }
-    
+
     // Apply current filters
     if (model.maOrTen) params.maOrTen = model.maOrTen
     if (model.status !== null && model.status !== undefined) params.status = model.status
 
     const res = await getAllTags(params)
-    
+
     // Convert data to CSV
     const headers = ['Mã tag', 'Tên tag', 'Mô tả', 'Trạng thái']
     const csvRows = [
@@ -161,22 +161,21 @@ async function handleDownload() {
         `"${tag.status === 0 ? 'Hoạt động' : 'Ngưng hoạt động'}"`
       ].join(','))
     ]
-    
+
     const csvContent = csvRows.join('\n')
     const blob = new Blob([
       new Uint8Array([0xEF, 0xBB, 0xBF]), // UTF-8 BOM
       csvContent
     ], { type: 'text/csv;charset=utf-8;' })
-    
+
     downloadFile(blob, `danh_sach_tag_${new Date().toISOString().split('T')[0]}.csv`)
-    
+
   } catch (error: any) {
     window.$message.error(error.message || 'Có lỗi xảy ra khi tải xuống dữ liệu')
   } finally {
     endLoading()
   }
 }
-
 
 
 // --- Cột bảng ---
@@ -186,13 +185,27 @@ const columns: DataTableColumns<TagResponse> = [
     align: 'center',
     key: 'rowNumber',
     render:row=>row.rowNumber
-  
+
   },
   {
     title: 'Mã',
     align: 'center',
     key: 'ma',
-    render: row => row.ma || '-',
+  render: row =>
+    h(
+      'div',
+      {
+        style: {
+          backgroundColor: row.mau , // tên field màu
+          padding: '6px 10px',
+          borderRadius: '6px',
+          color: '#fff',
+          display: 'inline-block',
+          minWidth: '70px'
+        }
+      },
+      row.ma || '-'
+    )
   },
   {
     title: 'Tên',
@@ -200,14 +213,9 @@ const columns: DataTableColumns<TagResponse> = [
     key: 'ten',
     render: row => row.ten|| '-',
   },
-    {
-    title: 'Mô tả',
-    align: 'center',
-    key: 'moTa',
-    render: row => row.moTa || '-',
-  },
-    
-  
+
+
+
   {
   title: 'Trạng thái',
   align: 'center',
@@ -236,13 +244,10 @@ const columns: DataTableColumns<TagResponse> = [
             { size: 'small', type: 'primary', onClick: () => handleEditTable(row) },
             { default: () => 'Sửa' },
           ),
-          h(NPopconfirm, { 
-            onPositiveClick: () => handleChangeStatus(row.id),
-            positiveText: 'Xác nhận',
-            negativeText: 'Hủy'
-          }, {
+          h(NPopconfirm, { onPositiveClick: () => handleChangeStatus(row.id) }, {
             default: () => 'Xác nhận thay đổi trạng thái tag?',
-            trigger: () => h(NButton, { size: 'small', type: 'error' }, { default: () => 'Thay đổi' }),
+            trigger: () =>
+              h(NButton, { size: 'small', type: 'error' }, { default: () => 'Thay đổi' }),
           }),
         ],
       }),
@@ -262,14 +267,14 @@ onMounted(() => {
    <n-card>
   <n-form ref="formRef" :model="model" label-placement="top" :show-feedback="false">
     <n-grid :cols="24" :x-gap="12" :y-gap="12">
-      
+
       <!-- Hàng 1: Thông tin cơ bản -->
       <n-form-item-gi :span="10" label="Mã / Tên tag" path="maOrTen">
         <NInput v-model:value="model.maOrTen" placeholder="Nhập mã hoặc tên tag" clearable />
       </n-form-item-gi>
 
 <n-form-item-gi :span="10" label="Trạng thái" path="status">
-  <NSelect 
+  <NSelect
     v-model:value="model.status"
     placeholder="Chọn trạng thái"
     clearable

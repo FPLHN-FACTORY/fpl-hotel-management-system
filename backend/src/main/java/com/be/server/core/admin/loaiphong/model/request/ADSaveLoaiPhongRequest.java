@@ -1,5 +1,6 @@
 package com.be.server.core.admin.loaiphong.model.request;
 
+import com.be.server.infrastructure.constant.EntityStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -26,5 +27,7 @@ public class ADSaveLoaiPhongRequest {
     private Integer soNguoiToiDa;
 
     private BigDecimal giaCaNgay;
+
+    private EntityStatus trangThai;
 
 }

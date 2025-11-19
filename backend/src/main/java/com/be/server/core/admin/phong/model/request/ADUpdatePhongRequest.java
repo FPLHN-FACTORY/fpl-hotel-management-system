@@ -1,23 +1,26 @@
 package com.be.server.core.admin.phong.model.request;
 
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@ToString
 @NoArgsConstructor
-public class ADSavePhongRequest {
-    private String ma;
-    private String ten;
-    private String idLoaiPhong;
-    private Integer tang;
-    private TrangThaiHoatDong trangThaiPhong;
-    private List<String> tagIds;
+@AllArgsConstructor
+public class ADUpdatePhongRequest {
 
+    private String ma;
+
+    private String ten;
+
+    private String idLoaiPhong;
+
+    private Integer tang;
+
+    private TrangThaiHoatDong trangThaiPhong;
+
+    private List<String> tagIds;
 }
