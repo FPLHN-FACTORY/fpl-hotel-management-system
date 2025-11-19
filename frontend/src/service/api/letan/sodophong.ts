@@ -1,7 +1,7 @@
 // src/service/api/letan/sodophong.ts
 import { API_LE_TAN_SO_DO_PHONG } from '@/constants/url'
 import type { AxiosResponse } from 'axios'
-import type { DefaultResponse } from '@/typings/api/api.common'
+import type { DataCombobox, DefaultResponse } from '@/typings/api/api.common'
 import request from '@/service/request'
 
 // ============================
@@ -24,15 +24,17 @@ export interface SoDoPhongResponse {
   sucChua: number
   price: number | null
   trangThaiPhong: TrangThaiPhongDat
-    trangThaiVeSinh: TrangThaiVeSinh
+  trangThaiVeSinh: TrangThaiVeSinh
 }
 
 // Tham số lọc khi lấy sơ đồ phòng
 export interface ParamsGetSoDoPhong {
-  ma?: string
-  ten?: string
-  loaiPhong?: string
-  tang?: number
+  q?: string | null
+  idLoaiPhong?: string | null
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  ngayDen?: number | null | undefined;
+  ngayDi?: number | null | undefined;
 }
 
 // ============================
@@ -57,6 +59,14 @@ export async function getSoDoPhong(params: ParamsGetSoDoPhong = {}) {
   }
 }
 
+export const fetchLoaiPhong = async () => {
+  const res = (await request({
+    url: `${API_LE_TAN_SO_DO_PHONG}/loai-phong`,
+    method: 'GET'
+  })) as AxiosResponse<DefaultResponse<DataCombobox>>
+
+  return res.data
+}
 // Thay đổi trạng thái vệ sinh của phòng
 export async function updateTrangThaiVeSinh(
   roomId: string,

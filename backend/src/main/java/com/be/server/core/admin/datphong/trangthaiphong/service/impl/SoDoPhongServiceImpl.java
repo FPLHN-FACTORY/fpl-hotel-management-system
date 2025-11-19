@@ -1,6 +1,7 @@
 package com.be.server.core.admin.datphong.trangthaiphong.service.impl;
 
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
+import com.be.server.core.admin.datphong.trangthaiphong.repository.ADDPLoaiPhongRepository;
 import com.be.server.core.admin.datphong.trangthaiphong.repository.SoDoPhongRepository;
 import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
 import com.be.server.core.admin.datphong.trangthaiphong.repository.UpdateTrangThaiVeSinhRepo;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,18 +30,22 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
 
     private final com.be.server.repository.ChiTietDatPhongRepository chiTietDatPhongRepository;
 
+    private final ADDPLoaiPhongRepository loaiPhongRepository;
+
     private final UpdateTrangThaiVeSinhRepo updateTrangThaiVeSinhRepo;
 
     @Override
     public ResponseObject<?> getAllSoDoPhong(SoDoSearch request) {
         Long timestamp = Instant.now().toEpochMilli();
-
+        List<String> idsRoomUnavailable = new ArrayList<>();
+        if (request.getNgayDen() != null && request.getNgayDi() != null) {
+            idsRoomUnavailable = soDoPhongRepository.findRoomsByNgayDenAndNgayDi(request.getNgayDen(), request.getNgayDi());
+        }
         List<SoDoPhongResponse> rooms = soDoPhongRepository.getRoomOverview(
-                request.getMa(),
-                request.getTen(),
-                request.getLoaiPhong(),
-                request.getTang(),
-                timestamp
+                request.getIdLoaiPhong(),
+                timestamp,
+                request,
+                idsRoomUnavailable
         ).stream().map(p -> {
             // Map trạng thái phòng
             TrangThaiPhongDat trangThai = chiTietDatPhongRepository
@@ -102,6 +108,14 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
         }).collect(Collectors.toList());
 
         return ResponseObject.successForward(rooms, "Lấy danh sách thành công");
+    }
+
+    @Override
+    public ResponseObject<?> getDataLoaiPhong() {
+        return ResponseObject.successForward(
+                loaiPhongRepository.getDataCombobox(),
+                "SUCCESS"
+        );
     }
 
     @Override

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import FloorRow from './components/floorRow.vue'
-import { ref, computed, onMounted } from 'vue'
-import { getSoDoPhong, SoDoPhongResponse, TrangThaiVeSinh, updateTrangThaiVeSinh } from '@/service/api/letan/sodophong'
-import { useMessage } from 'naive-ui'
+import { SoDoPhongResponse, TrangThaiVeSinh } from '@/service/api/letan/sodophong';
+import { computed, ref } from 'vue';
+import FloorRow from './components/floorRow.vue';
 
-const message = useMessage()
+const props = defineProps<{
+  floors: { floor: number; rooms: SoDoPhongResponse[] }[]
+}>()
 
-// Danh sách tầng + phòng
-const floors = ref<{ floor: number; rooms: SoDoPhongResponse[] }[]>([])
+const emits = defineEmits()
 
-// Trạng thái được chọn để lọc
+// Filter trạng thái phòng
 const selectedStatuses = ref<string[]>([])
 
 const statuses = [
@@ -28,13 +28,12 @@ const toggleStatus = (statusKey: string) => {
   }
 }
 
-// **Cập nhật trạng thái vệ sinh tại tầng & phòng**
+// Cập nhật trạng thái vệ sinh
 const updateRoomCleanStatus = (roomId: string, status: TrangThaiVeSinh) => {
-  for (const floor of floors.value) {
+  for (const floor of props.floors) {
     const room = floor.rooms.find(r => r.id === roomId)
     if (room) {
       room.trangThaiVeSinh = status
-      room.cleanStatus = status === 'SACH' ? 'clean' : 'notClean'
       break
     }
   }
@@ -42,15 +41,15 @@ const updateRoomCleanStatus = (roomId: string, status: TrangThaiVeSinh) => {
 
 // Đếm phòng theo trạng thái
 const countRooms = (statusKey: string) => {
-  return floors.value.reduce((total, floor) => {
+  return props.floors.reduce((total, floor) => {
     return total + floor.rooms.filter(room => room.trangThaiPhong === statusKey).length
   }, 0)
 }
 
 // Lọc tầng hiển thị
 const filteredFloors = computed(() => {
-  if (selectedStatuses.value.length === 0) return floors.value
-  return floors.value.map(floor => ({
+  if (selectedStatuses.value.length === 0) return props.floors
+  return props.floors.map(floor => ({
     ...floor,
     rooms: floor.rooms.filter(room => selectedStatuses.value.includes(room.trangThaiPhong))
   }))
@@ -60,45 +59,6 @@ const filteredFloors = computed(() => {
 const handleRoomClick = (room: SoDoPhongResponse) => {
   console.log('Phòng được chọn:', room.ma)
 }
-
-// Sắp xếp zig-zag
-const sortRoomsZigZag = (rooms: SoDoPhongResponse[]) => {
-  const oddRooms = rooms.filter(r => Number(r.ma) % 2 === 1).sort((a, b) => Number(b.ma) - Number(a.ma))
-  const evenRooms = rooms.filter(r => Number(r.ma) % 2 === 0).sort((a, b) => Number(b.ma) - Number(a.ma))
-  return [...oddRooms, ...evenRooms]
-}
-
-// Lấy dữ liệu
-const fetchData = async () => {
-  try {
-    const data = await getSoDoPhong()
-    const mappedData = data.map(room => {
-      let cleanStatus: 'clean' | 'notClean'
-      switch (room.trangThaiVeSinh) {
-        case '0': cleanStatus = 'clean'; room.trangThaiVeSinh = 'SACH'; break
-        case '1': cleanStatus = 'notClean'; room.trangThaiVeSinh = 'DANG_DON'; break
-        case '2': cleanStatus = 'notClean'; room.trangThaiVeSinh = 'CHUA_DON'; break
-        default: cleanStatus = 'notClean'; room.trangThaiVeSinh = 'CHUA_DON'
-      }
-      return { ...room, cleanStatus }
-    })
-
-    const grouped: Record<number, typeof mappedData[0][]> = {}
-    mappedData.forEach(room => {
-      const t = room.tang || 0
-      if (!grouped[t]) grouped[t] = []
-      grouped[t].push(room)
-    })
-
-    floors.value = Object.entries(grouped)
-      .map(([floor, rooms]) => ({ floor: Number(floor), rooms: sortRoomsZigZag(rooms) }))
-      .sort((a, b) => a.floor - b.floor)
-  } catch (error: any) {
-    message.error(error.message || 'Không thể tải sơ đồ phòng')
-  }
-}
-
-onMounted(fetchData)
 </script>
 
 <template>

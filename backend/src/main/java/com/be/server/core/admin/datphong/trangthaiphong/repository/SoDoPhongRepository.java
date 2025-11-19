@@ -1,7 +1,8 @@
 package com.be.server.core.admin.datphong.trangthaiphong.repository;
 
+import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
-import com.be.server.entity.Phong;
+import com.be.server.repository.PhongRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 @Repository
-public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
+public interface SoDoPhongRepository extends PhongRepository {
 
     @Query(value = """
         SELECT 
@@ -36,19 +37,26 @@ public interface SoDoPhongRepository extends JpaRepository<Phong, String> {
             
         FROM phong p
         LEFT JOIN loai_phong lp ON lp.id = p.loai_phong_id
-        WHERE (:ma IS NULL OR p.ma LIKE CONCAT('%', :ma, '%'))
-          AND (:ten IS NULL OR p.ten LIKE CONCAT('%', :ten, '%'))
-          AND (:loaiPhong IS NULL OR lp.ten = :loaiPhong)
-          AND (:tang IS NULL OR p.tang = :tang)
+        LEFT JOIN dat_phong dp on p.id = dp.id_phong 
+        WHERE((:#{#request.q} IS NULL OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
+            OR (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%')))
+            AND (:idLoaiPhong IS NULL OR lp.id = :idLoaiPhong)
+            AND (:#{#request.maxPrice} IS NULL OR :#{#request.minPrice} IS NULL OR (lp.gia_ca_ngay >= :#{#request.minPrice} AND lp.gia_ca_ngay <= :#{#request.maxPrice}))
+            AND (:idsRoomUnavailable IS NULL OR p.id NOT IN :idsRoomUnavailable)
         """,
             nativeQuery = true)
     List<SoDoPhongResponse> getRoomOverview(
-            @Param("ma") String ma,
-            @Param("ten") String ten,
-            @Param("loaiPhong") String loaiPhong,
-            @Param("tang") Integer tang,
-            @Param("now") Long now
+            @Param("idLoaiPhong") String idLoaiPhong,
+            @Param("now") Long now,
+            SoDoSearch request,
+            List<String> idsRoomUnavailable
     );
 
-
+    @Query("""
+    SELECT p.id
+    FROM Phong p
+    LEFT JOIN DatPhong dp on dp.phong.id = p.id
+    WHERE :ngayDen IS NULL OR :ngayDi IS NULL OR (dp.thoiGianCheckIn < :ngayDi AND dp.thoiGianCheckOut > :ngayDen)
+    """)
+    List<String> findRoomsByNgayDenAndNgayDi(Long ngayDen,Long ngayDi);
 }

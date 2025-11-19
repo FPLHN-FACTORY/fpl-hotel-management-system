@@ -25,3 +25,8 @@ export type ResponseList = {
   id?: string;
   orderNumber?: number;
 };
+
+export type DataCombobox = Array<{
+    label: string | number,
+    value: string
+}> | undefined | null

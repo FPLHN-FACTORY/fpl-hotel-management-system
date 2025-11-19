@@ -1,7 +1,7 @@
 <template>
   <div class="full-container p-4">
     <!-- Nút chọn màn hình -->
-    <div class="flex items-center space-x-4">
+    <div class="flex space-x-4">
       <n-button-group>
         <n-button :type="currentView === 'timeline' ? 'primary' : 'default'" @click="currentView = 'timeline'">
           Timeline
@@ -13,53 +13,152 @@
       </n-button-group>
 
       <!-- Input tìm kiếm -->
-      <n-input 
-        v-model="searchQuery" 
-        placeholder="Tìm kiếm khách hàng, mã đặt phòng..." 
-        clearable
-        @input="handleSearch"
-        width="250px"
-      >
-        <template #prefix>
-          <n-icon-wrapper :size="26" color="var(--success-color)" :border-radius="999">
-            <nova-icon :size="18" icon="carbon:search" color="black" />
-          </n-icon-wrapper>
-        </template>
-      </n-input>
+      <div class="flex-1">
+        <n-input v-model:value="stateSearch.searchQuery" placeholder="Tìm kiếm khách hàng, mã đặt phòng...">
+          <template #prefix>
+            <n-icon-wrapper :size="26" color="var(--success-color)" :border-radius="999">
+              <nova-icon :size="18" icon="carbon:search" color="black" />
+            </n-icon-wrapper>
+          </template>
+        </n-input>
+
+        <div class="mt-[20px] flex gap-x-2">
+          <div class="basis-2/5">
+            <n-date-picker v-model:value="stateSearch.stayDate" type="datetimerange" clearable
+              start-placeholder="Ngày đến" end-placeholder="Ngày đi" />
+          </div>
+          <div class="basis-1/5">
+            <n-input-number v-model:value="stateSearch.minPrice" placeholder="Giá nhỏ nhất" clearable />
+          </div>
+          <div class="basis-1/5">
+            <n-input-number v-model:value="stateSearch.maxPrice" placeholder="Giá lớn nhất" clearable></n-input-number>
+          </div>
+          <div class="basis-1/5">
+            <n-select placeholder="Chọn loại phòng" v-model:value="stateSearch.idLoaiPhong" clearable
+              :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]" />
+          </div>
+        </div>
+      </div>
     </div>
 
+    <div class="flex justify-end mt-2 gap-x-12px">
+      <n-button type="success" @click="fetchDataSoDoPhong">
+        Tìm kiếm
+      </n-button>
+      <n-button @click="resetFilter">
+        Làm mới bộ lọc
+      </n-button>
+    </div>
     <!-- Màn hình hiển thị -->
     <div class="mt-4">
-      <component :is="currentComponent" />
+      <component :floors="floors" :is="currentComponent" />
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { getSoDoPhong, SoDoPhongResponse } from '@/service/api/letan/sodophong';
+import { useDataCombobox } from '@/store/dataCombox';
+import { SelectMixedOption } from 'naive-ui/es/select/src/interface';
 import SoDo from './sodo/soDo.vue';
 import Timeline from './timeline/timeline.vue';
 
-export default {
-  components: { Timeline, SoDo },
-  data() {
-    return {
-      currentView: 'map', // mặc định hiển thị Sơ đồ
-      searchQuery: ''
-    }
-  },
-  computed: {
-    currentComponent() {
-      switch (this.currentView) {
-        case 'timeline': return 'Timeline';
-        case 'map': return 'SoDo';
-        default: return 'SoDo'; // fallback mặc định
+const currentView = ref<string>('map')
+const { dataCombobox, fetchDataLoaiPhong } = useDataCombobox()
+const currentComponent = computed(() => {
+  switch (currentView.value) {
+    case 'timeline': return Timeline;
+    case 'map': return SoDo;
+    default: return SoDo; // fallback mặc định
+  }
+})
+
+const stateSearch = reactive({
+  stayDate: undefined as [number, number] | null | undefined,
+  minPrice: undefined as number | undefined | null,
+  maxPrice: undefined as number | undefined | null,
+  searchQuery: undefined as string | undefined | null,
+  idLoaiPhong: undefined as string | undefined | null,
+})
+
+const floors = ref<{ floor: number; rooms: SoDoPhongResponse[] }[]>([])
+
+const notification = useNotification()
+
+const fetchDataSoDoPhong = async () => {
+  try {
+    const data = await getSoDoPhong({
+      q: stateSearch.searchQuery,
+      idLoaiPhong: stateSearch.idLoaiPhong,
+      minPrice: stateSearch.minPrice,
+      maxPrice: stateSearch.maxPrice,
+      ngayDen: stateSearch.stayDate && stateSearch.stayDate[0],
+      ngayDi: stateSearch.stayDate && stateSearch.stayDate[1],
+    })
+    // Map trạng thái vệ sinh từ 0|1|2 sang string + cleanStatus
+    const mappedData = data.map(room => {
+      let cleanStatus: 'clean' | 'notClean'
+      switch (room.trangThaiVeSinh) {
+        case 'SACH':
+          cleanStatus = 'clean'
+          room.trangThaiVeSinh = 'SACH'
+          break
+        case 'DANG_DON':
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'DANG_DON'
+          break
+        case 'CHUA_DON':
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'CHUA_DON'
+          break
+        default:
+          cleanStatus = 'notClean'
+          room.trangThaiVeSinh = 'CHUA_DON'
       }
-    }
-  },
-  methods: {
-    handleSearch() {
-      // xử lý tìm kiếm
-    }
+      return { ...room, cleanStatus }
+    })
+
+    // Gom theo tầng
+    const grouped: Record<number, typeof mappedData[0][]> = {}
+    mappedData.forEach(room => {
+      const t = room.tang || 0
+      if (!grouped[t]) grouped[t] = []
+      grouped[t].push(room)
+    })
+
+    floors.value = Object.entries(grouped)
+      // .map(([floor, rooms]) => ({ floor: Number(floor), rooms: sortRoomsZigZag(rooms) }))
+      .map(([floor, rooms]) => {
+        console.log(floor)
+        console.log(rooms)
+        return { floor: Number(floor), rooms: sortRoomsZigZag(rooms) }
+      })
+      .sort((a, b) => a.floor - b.floor)
+  } catch (error: any) {
+    notification.error({ content: error.message || 'Không thể tải sơ đồ phòng', duration: 3000 })
   }
 }
+
+// Hàm sắp xếp phòng theo thứ tự “zic-zac” (hàng lẻ / chẵn, giảm dần)
+const sortRoomsZigZag = (rooms: SoDoPhongResponse[]) => {
+  const oddRooms = rooms.filter(r => Number(r.ma) % 2 === 1).sort((a, b) => Number(b.ma) - Number(a.ma))
+  const evenRooms = rooms.filter(r => Number(r.ma) % 2 === 0).sort((a, b) => Number(b.ma) - Number(a.ma))
+  return [...oddRooms, ...evenRooms] // ghép lại, FloorRow sẽ render theo hàng lẻ / chẵn
+}
+
+onMounted(() => {
+  fetchDataLoaiPhong()
+  fetchDataSoDoPhong()
+})
+
+const resetFilter = () => {
+  stateSearch.stayDate = null
+  stateSearch.minPrice = null
+  stateSearch.maxPrice = null
+  stateSearch.searchQuery = ''
+  stateSearch.idLoaiPhong = null
+
+  fetchDataSoDoPhong()
+}
+
 </script>

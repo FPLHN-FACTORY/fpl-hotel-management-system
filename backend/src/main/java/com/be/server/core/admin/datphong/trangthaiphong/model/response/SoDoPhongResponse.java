@@ -6,8 +6,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-
-
 public interface SoDoPhongResponse {
     String getId();
     String getMa();
@@ -17,7 +15,6 @@ public interface SoDoPhongResponse {
     String getTrangThaiHoatDong();
     Integer getSucChua();
     BigDecimal getPrice();
-    // Không map trong query, map sau trong service
     default TrangThaiPhongDat getTrangThaiPhong() {
         return null;
     }

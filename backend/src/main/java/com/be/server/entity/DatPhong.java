@@ -2,7 +2,13 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.RoomStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +16,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,13 +25,13 @@ import java.time.LocalDateTime;
 @Table(name = "dat_phong")
 public class DatPhong extends PrimaryEntity implements Serializable {
     @Column(name = "thoi_gian_dat")
-    private LocalDateTime thoiGianDat;
+    private Long thoiGianDat;
 
     @Column(name = "thoi_gian_check_in")
-    private LocalDateTime thoiGianCheckIn;
+    private Long thoiGianCheckIn;
 
     @Column(name = "thoi_gian_check_out")
-    private LocalDateTime thoiGianCheckOut;
+    private Long thoiGianCheckOut;
 
     @Column(name = "ghi_chu")
     private String ghiChu;
@@ -34,10 +39,6 @@ public class DatPhong extends PrimaryEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
-
-    @ManyToOne
-    @JoinColumn(name = "id_lich_su_dat_phong")
-    private LichSuDatPhong lichSuDatPhong;
 
     @ManyToOne
     @JoinColumn(name = "id_phong")
