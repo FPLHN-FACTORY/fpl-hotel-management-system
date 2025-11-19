@@ -15,6 +15,7 @@ import TableModal from './components/TableModal.vue'
 
 import type { TagResponse } from '@/service/api/letan/tag'
 import { getAllTags,changeStatusTag,addTag,updateTag } from '@/service/api/letan/tag'
+import { downloadFile } from '@/utils/dowload'
 
 // --- Loading & Modal ---
 const { bool: loading, setTrue: startLoading, setFalse: endLoading } = useBoolean(false)
@@ -123,7 +124,7 @@ async function handleChangeStatus(id: string) {
   }
 }
 
-// ✅ Reset toàn bộ filters + reload bảng
+//Reset toàn bộ filters + reload bảng
 function handleResetSearch() {
   Object.assign(model, initialModel)
 
@@ -134,6 +135,47 @@ function changePage(page: number) {
   fetchTags(page)
 }
 
+// Handle download
+async function handleDownload() {
+  try {
+    startLoading()
+    const params: any = {
+      page: 0, // Get all data
+      size: 10000, // Large number to get all records
+    }
+
+    // Apply current filters
+    if (model.maOrTen) params.maOrTen = model.maOrTen
+    if (model.status !== null && model.status !== undefined) params.status = model.status
+
+    const res = await getAllTags(params)
+
+    // Convert data to CSV
+    const headers = ['Mã tag', 'Tên tag', 'Mô tả', 'Trạng thái']
+    const csvRows = [
+      headers.join(','),
+      ...res.items.map(tag => [
+        `"${tag.maTag || ''}"`,
+        `"${tag.tenTag || ''}"`,
+        `"${tag.moTaTag || ''}"`,
+        `"${tag.status === 0 ? 'Hoạt động' : 'Ngưng hoạt động'}"`
+      ].join(','))
+    ]
+
+    const csvContent = csvRows.join('\n')
+    const blob = new Blob([
+      new Uint8Array([0xEF, 0xBB, 0xBF]), // UTF-8 BOM
+      csvContent
+    ], { type: 'text/csv;charset=utf-8;' })
+
+    downloadFile(blob, `danh_sach_tag_${new Date().toISOString().split('T')[0]}.csv`)
+
+  } catch (error: any) {
+    window.$message.error(error.message || 'Có lỗi xảy ra khi tải xuống dữ liệu')
+  } finally {
+    endLoading()
+  }
+}
 
 
 // --- Cột bảng ---
@@ -143,7 +185,7 @@ const columns: DataTableColumns<TagResponse> = [
     align: 'center',
     key: 'rowNumber',
     render:row=>row.rowNumber
-  
+
   },
   {
     title: 'Mã',
@@ -171,9 +213,9 @@ const columns: DataTableColumns<TagResponse> = [
     key: 'ten',
     render: row => row.ten|| '-',
   },
-  
-    
-  
+
+
+
   {
   title: 'Trạng thái',
   align: 'center',
@@ -225,14 +267,14 @@ onMounted(() => {
    <n-card>
   <n-form ref="formRef" :model="model" label-placement="top" :show-feedback="false">
     <n-grid :cols="24" :x-gap="12" :y-gap="12">
-      
+
       <!-- Hàng 1: Thông tin cơ bản -->
       <n-form-item-gi :span="10" label="Mã / Tên tag" path="maOrTen">
         <NInput v-model:value="model.maOrTen" placeholder="Nhập mã hoặc tên tag" clearable />
       </n-form-item-gi>
 
 <n-form-item-gi :span="10" label="Trạng thái" path="status">
-  <NSelect 
+  <NSelect
     v-model:value="model.status"
     placeholder="Chọn trạng thái"
     clearable
@@ -260,7 +302,7 @@ onMounted(() => {
           <NButton strong secondary>
             Batch Import
           </NButton>
-          <NButton strong secondary class="ml-a">
+          <NButton strong secondary class="ml-a" @click="handleDownload">
             Download
           </NButton>
         </div>
