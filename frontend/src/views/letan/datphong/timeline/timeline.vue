@@ -2,19 +2,19 @@
   <div class="flex w-full h-full overflow-hidden bg-gray-50">
 
     <!-- Sidebar -->
-    <SidebarFloors :floors="floors" class="w-48 border-r" />
+    <!-- <SidebarFloors :floors="floors" class="w-48 border-r" /> -->
 
     <!-- Timeline -->
-    <div class="flex-1 overflow-auto relative">
+    <!-- <div class="flex-1 overflow-auto relative"> -->
 
       <!-- Header ngày -->
-      <TimelineHeader :dates="dates" />
+      <!-- <TimelineHeader :dates="dates" /> -->
 
       <!-- Grid timeline -->
-      <TimelineGrid :dates="dates" />
+      <!-- <TimelineGrid :dates="dates" /> -->
 
       <!-- Danh sách phòng -->
-      <div>
+      <!-- <div>
         <RoomRow
           v-for="room in rooms"
           :key="room.code"
@@ -22,7 +22,7 @@
           :dates="dates"
         />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -75,3 +75,4 @@ const dates = [
   { day: 21, weekday: "Thứ sáu" },
 ]
 </script>
+
