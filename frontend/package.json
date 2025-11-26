@@ -52,6 +52,7 @@
   "dependencies": {
     "@vicons/antd": "^0.13.0",
     "@vicons/carbon": "^0.13.0",
+    "@vicons/fa": "^0.13.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vueuse/core": "^13.1.0",
     "alova": "^3.2.10",

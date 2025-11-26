@@ -9,16 +9,36 @@ export interface NhanVienListParams {
   q?: string
 }
 
-export interface NhanVienItem {
-  id: string
-  ma: string
-  ten: string
-  email?: string
-  sdt?: string
-  cccd?: string
-  gioiTinh?: string
-  vaiTro?: string
+export enum EntityRole {
+  QUAN_LY = 'QUAN_LY',
+  NHAN_VIEN = 'NHAN_VIEN'
 }
+
+export enum EntityVaiTro {
+  QUAN_LY = 'QUAN_LY',
+  LE_TAN = 'LE_TAN',
+}
+
+export interface NhanVien {
+  id?: string;
+  ma?: string;
+  ten: string;
+  sdt: string;
+  email: string;
+  gioiTinh: boolean | null;
+  ngaySinh: string | null;
+  cccd: string;
+  tinh: string;
+  huyen: string;
+  xa: string;
+  diaChi: string;
+  chucVu: EntityRole | null;
+  vaiTro: EntityVaiTro | null;
+  matKhau?: string;
+  avatar?: string;
+  trangThai?: string;
+}
+
 
 export async function getAllNhanVien(params: NhanVienListParams) {
   const res = (await request({
@@ -27,7 +47,7 @@ export async function getAllNhanVien(params: NhanVienListParams) {
     params,
   })) as AxiosResponse<
     DefaultResponse<{
-      data: NhanVienItem[]
+      data: NhanVien[]
       totalPages: number
       currentPage: number
       totalElements: number
@@ -46,7 +66,7 @@ export async function getNhanVienById(id: string) {
   const res = (await request({
     url: `${API_ADMIN_NHAN_VIEN}/${id}`,
     method: 'GET',
-  })) as AxiosResponse<DefaultResponse<NhanVienItem>>
+  })) as AxiosResponse<DefaultResponse<NhanVien>>
   return res.data.data
 }
 

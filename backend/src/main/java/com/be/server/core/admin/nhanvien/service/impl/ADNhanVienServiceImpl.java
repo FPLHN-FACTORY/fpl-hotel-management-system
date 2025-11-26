@@ -108,7 +108,7 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
                 nhanVien.setDiaChi(request.getDiaChi());
 
-                nhanVien.setGioiTimh(request.getGioiTinh());
+                nhanVien.setGioiTinh(request.getGioiTinh());
 
 
                 nhanVien.setXa(request.getXa());
@@ -165,7 +165,7 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
         nhanVien.setDiaChi(request.getDiaChi());
 
-        nhanVien.setGioiTimh(request.getGioiTinh());
+        nhanVien.setGioiTinh(request.getGioiTinh());
 
         nhanVien.setNgaySinh(request.getNgaySinh());
 
