@@ -27,11 +27,9 @@ const handleMenuSelect = async (status: TrangThaiVeSinh) => {
 
   try {
     await updateTrangThaiVeSinh(props.room.id, status)
-    // Cập nhật UI sau khi API thành công
     emit('updateCleanStatus', props.room.id, status)
     message.success(`Cập nhật trạng thái phòng ${props.room.ma} thành công!`)
   } catch (err: any) {
-    // rollback
     emit('updateCleanStatus', props.room.id, oldStatus)
     message.error(err.message || 'Cập nhật thất bại')
   } finally {
@@ -39,7 +37,6 @@ const handleMenuSelect = async (status: TrangThaiVeSinh) => {
   }
 }
 
-// Card style
 const bgColor = computed(() => {
   switch (props.room.trangThaiPhong) {
     case 'TRONG': return 'bg-white border-gray-200 text-gray-900'
@@ -72,12 +69,12 @@ const hoverBorderColor = computed(() => {
 
 <template>
   <n-card
-    class="room-card flex flex-col justify-between p-3 rounded-xl cursor-pointer transition-shadow border"
+    class="room-card flex flex-col justify-between p-3 rounded-xl cursor-pointer transition-all border"
     :class="bgColor"
     @click="$emit('click', room)"
     size="small"
     style="min-width: 142px; margin-top: 0px;"
-    :style="{ '--hover-border': hoverBorderColor }"
+    :style="{ '--hover-border': hoverBorderColor, borderColor: hoverBorderColor }"
   >
     <div class="flex justify-between items-center mb-2">
       <n-tag
@@ -134,12 +131,12 @@ const hoverBorderColor = computed(() => {
   min-height: 160px;
   transition: all 0.2s ease;
   border-width: 1px;
-  border: 1px solid #0f0e0e;
+  transform: translateY(-2px);
+  box-shadow: 12px 12px var(--hover-border);
 }
 
 .room-card:hover {
-  border-color: var(--hover-border);
-  transform: translateY(-2px);
-  box-shadow: 12px 12px var(--hover-border);
+  transform: translateY(-4px);
+  box-shadow: 16px 16px var(--hover-border);
 }
 </style>

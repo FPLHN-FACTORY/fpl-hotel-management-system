@@ -22,7 +22,7 @@ export function setupRouterGuard(router: Router) {
     const isLogin = Boolean(local.get('accessToken'))
     if (!isLogin) {
       if (to.name === 'login')
-        next()
+        next({path: '/letan/datphong'})
 
       if (to.name !== 'login') {
         const redirect = to.name === '404' ? undefined : to.fullPath

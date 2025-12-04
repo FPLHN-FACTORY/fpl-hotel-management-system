@@ -67,8 +67,8 @@ const handleRoomClick = (room: SoDoPhongResponse) => {
       <n-button
         v-for="status in statuses"
         :key="status.key"
-        :style="{ 
-          backgroundColor: selectedStatuses.includes(status.key) ? status.color : 'white', 
+        :style="{
+          backgroundColor: selectedStatuses.includes(status.key) ? status.color : 'white',
           color: selectedStatuses.includes(status.key) ? 'white' : 'black',
           fontWeight: '600'
         }"

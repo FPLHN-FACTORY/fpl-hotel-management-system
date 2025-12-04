@@ -291,7 +291,7 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
             <NSelect v-model:value="model.tagIds" :options="tagOptions" placeholder="Chọn tags" multiple clearable />
           </n-form-item-gi>
           <n-gi :span="24" class="flex justify-end gap-3">
-            <NButton strong secondary @click="handleResetSearch">Reset</NButton>
+            <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
           </n-gi>
         </n-grid>
       </n-form>
@@ -300,8 +300,6 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
       <NSpace vertical size="large">
         <div class="flex gap-4">
           <NButton type="primary" @click="handleAddTable">Thêm phòng</NButton>
-          <NButton strong secondary>Batch Import</NButton>
-          <NButton strong secondary class="ml-a">Download</NButton>
         </div>
 
         <NAlert v-if="errorMessage && listData.length === 0" type="warning" :bordered="false">
