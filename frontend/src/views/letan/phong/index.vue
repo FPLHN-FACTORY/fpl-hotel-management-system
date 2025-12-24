@@ -361,9 +361,49 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
   padding: 0 8px;
   font-weight: 500;
   flex-shrink: 0;
+  font-size: 17px;
 }
 
 .ml-a {
   margin-left: auto;
+}
+
+/* Tăng font size cho toàn bộ trang */
+:deep(.n-card-header__main) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th),
+:deep(.n-data-table-td) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th__title) {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:deep(.n-tag),
+:deep(.n-pagination),
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
+}
+
+:deep(.n-alert__content) {
+  font-size: 17px;
 }
 </style>

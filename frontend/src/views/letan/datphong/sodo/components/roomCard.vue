@@ -139,4 +139,20 @@ const hoverBorderColor = computed(() => {
   transform: translateY(-4px);
   box-shadow: 16px 16px var(--hover-border);
 }
+
+/* Tăng font size cho số/tên phòng */
+:deep(.text-base) {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+/* Giữ nguyên font size cho giá */
+:deep(.text-sm) {
+  font-size: 0.875rem !important;
+}
+
+/* Tag trạng thái vệ sinh */
+:deep(.n-tag) {
+  font-size: 14px;
+}
 </style>

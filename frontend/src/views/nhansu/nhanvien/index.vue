@@ -593,3 +593,65 @@ onMounted(async () => {
       @refresh="fetchNhanVien(currentPage)" @province-change="handleModalProvinceChange" />
   </NSpace>
 </template>
+
+
+<style scoped>
+/* Tăng font size cho toàn bộ trang nhân viên */
+:deep(.n-card-header__main) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th),
+:deep(.n-data-table-td) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th__title) {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:deep(.n-tag) {
+  font-size: 17px;
+}
+
+:deep(.n-pagination) {
+  font-size: 17px;
+}
+
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
+}
+
+:deep(.n-alert) {
+  font-size: 17px;
+}
+
+/* Icon và text trong expand row */
+:deep(.n-data-table__expand) span {
+  font-size: 17px;
+}
+
+/* Popconfirm text */
+:deep(.n-popconfirm__body) {
+  font-size: 17px;
+}
+
+:deep(.n-popconfirm__action) .n-button__content {
+  font-size: 17px;
+}
+</style>

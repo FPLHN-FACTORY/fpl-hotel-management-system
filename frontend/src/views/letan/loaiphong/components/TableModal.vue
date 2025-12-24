@@ -77,7 +77,7 @@ const title = computed(() => (props.type === 'edit' ? 'Sửa loại phòng' : 'T
 
 async function handleSubmit() {
   if (!formModel.value.ten?.trim()) { window.$message.warning('Vui lòng nhập tên loại phòng!'); return }
-   // thống báo số giường phải lớn hơn 0 
+   // thống báo số giường phải lớn hơn 0
   const totalBeds = (formModel.value.soGiuongDon || 0) + (formModel.value.soGiuongDoi || 0);
   if (totalBeds < 1) {
     window.$message.warning('Phải có ít nhất 1 giường (đơn hoặc đôi)!');
@@ -176,5 +176,28 @@ function handleClose() { emit('update:visible', false) }
 <style scoped>
 .w-700px {
   width: 700px;
+}
+
+/* Tăng font size cho modal */
+:deep(.n-card-header) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
 }
 </style>

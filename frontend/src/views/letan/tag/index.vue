@@ -295,3 +295,51 @@ onMounted(() => {
     </n-card>
   </NSpace>
 </template>
+
+
+<style scoped>
+/* Tăng font size cho toàn bộ trang tag */
+:deep(.n-card-header__main) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th),
+:deep(.n-data-table-td) {
+  font-size: 17px;
+}
+
+:deep(.n-data-table-th__title) {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:deep(.n-tag) {
+  font-size: 17px;
+}
+
+:deep(.n-pagination) {
+  font-size: 17px;
+}
+
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
+}
+
+/* Tăng font cho cột Mã có background màu */
+:deep(.n-data-table-td) div[style*="backgroundColor"] {
+  font-size: 17px;
+}
+</style>

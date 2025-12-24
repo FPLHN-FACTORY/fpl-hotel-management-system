@@ -39,7 +39,7 @@ const appStore = useAppStore()
             <Search />
             <Notices />
             <FullScreen />
-            <DarkModeSwitch />
+            <DarkModeSwitch v-if="false"/>
             <LangsSwitch v-if="false" />
             <Setting />
             <UserCenter />

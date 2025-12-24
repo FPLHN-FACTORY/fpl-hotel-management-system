@@ -577,4 +577,40 @@ onBeforeUnmount(() => {
 :deep(.n-upload-trigger) {
   width: 100%;
 }
+
+/* Tăng font size cho modal */
+:deep(.n-card-header) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
+}
+
+:deep(.n-date-picker-panel-month__month-item) {
+  font-size: 17px;
+}
+
+:deep(.n-date-panel-date__date) {
+  font-size: 17px;
+}
+
+/* Scanner modal text */
+:deep(.text-gray-500) {
+  font-size: 17px;
+}
 </style>

@@ -193,3 +193,35 @@ const resetFilter = () => {
   fetchDataSoDoPhong()
 }
 </script>
+
+<style scoped>
+/* Tăng font size cho các input và select trong bộ lọc */
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input) {
+  font-size: 17px;
+}
+
+:deep(.n-input__placeholder) {
+  font-size: 17px;
+}
+
+:deep(.n-base-select-option__content) {
+  font-size: 17px;
+}
+
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+/* Date picker */
+:deep(.n-date-picker-panel-month__month-item) {
+  font-size: 17px;
+}
+
+:deep(.n-date-panel-date__date) {
+  font-size: 17px;
+}
+</style>

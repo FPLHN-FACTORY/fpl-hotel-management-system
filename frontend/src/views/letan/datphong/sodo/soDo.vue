@@ -88,3 +88,10 @@ const handleRoomClick = (room: SoDoPhongResponse) => {
     />
   </div>
 </template>
+
+<style scoped>
+/* Tăng font size cho button bộ lọc */
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+</style>
