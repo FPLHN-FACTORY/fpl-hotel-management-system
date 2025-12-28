@@ -132,7 +132,10 @@
     "userCenter": "Trung tâm cá nhân",
     "accountSetting": "Cài đặt người dùng",
     "cascader": "Lựa chọn vùng quản trị",
-    "dict": "Ví dụ từ điển"
+    "dict": "Ví dụ từ điển",
+    "personnel": "Quản lí nhân sự",
+    "employee": "Quản lí nhân viên",
+    "customer": "Quản lí khách hàng"
   },
   "http": {
     "400": "Lỗi cú pháp trong yêu cầu",
@@ -164,3 +167,4 @@
     }
   }
 }
+

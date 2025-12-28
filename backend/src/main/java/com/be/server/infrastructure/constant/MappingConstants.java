@@ -30,4 +30,5 @@ public class MappingConstants {
     public static final String API_LE_TAN_SO_DO_PHONG = API_LE_TAN_PREFIX + "/so-do-phong";
 
     public static final String API_LE_TAN_TAG = API_LE_TAN_PREFIX + "/tag";
+    public static final String API_LE_TAN_KHACH_HANG = API_LE_TAN_PREFIX + "/khach-hang";
 }
