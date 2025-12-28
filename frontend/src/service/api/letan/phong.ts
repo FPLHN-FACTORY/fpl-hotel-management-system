@@ -31,6 +31,7 @@ export interface PhongResponse extends ResponseList {
     id: string
     ma: string
     ten: string
+    mau?: string
   }>
 }
 
@@ -86,6 +87,7 @@ export interface TagResponse {
   id: string
   ma: string
   ten: string
+  mau?: string
   moTa?: string
 }
 

@@ -76,7 +76,8 @@ public class ADPhongServiceImpl implements ADPhongService {
                         .map(pt -> new PhongResponse.TagInfo(
                                 pt.getTag().getId(),
                                 pt.getTag().getMa(),
-                                pt.getTag().getTen()
+                                pt.getTag().getTen(),
+                                pt.getTag().getMau()
                         ))
                         .toList();
                 tagsByPhongId.put(phong.getId(), tags);

@@ -67,8 +67,8 @@ const handleRoomClick = (room: SoDoPhongResponse) => {
       <n-button
         v-for="status in statuses"
         :key="status.key"
-        :style="{ 
-          backgroundColor: selectedStatuses.includes(status.key) ? status.color : 'white', 
+        :style="{
+          backgroundColor: selectedStatuses.includes(status.key) ? status.color : 'white',
           color: selectedStatuses.includes(status.key) ? 'white' : 'black',
           fontWeight: '600'
         }"
@@ -88,3 +88,10 @@ const handleRoomClick = (room: SoDoPhongResponse) => {
     />
   </div>
 </template>
+
+<style scoped>
+/* Tăng font size cho button bộ lọc */
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+</style>

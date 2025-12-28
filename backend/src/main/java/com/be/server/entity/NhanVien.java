@@ -57,8 +57,8 @@ public class NhanVien extends PrimaryEntity implements Serializable {
     @Column(name = "vai_tro")
     private EntityVaiTro vaitro;
 
-    @Column(name = "gioi_timh")
-    private Boolean gioiTimh;
+    @Column(name = "gioi_tinh")
+    private Boolean gioiTinh;
 
     @Column(name = "chuc_vu")
     private EntityRole chucVu;

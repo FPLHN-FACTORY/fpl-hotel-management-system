@@ -47,4 +47,5 @@ public class ADNhanVienRequest {
 
     private String matKhau;
 
+    private String vaiTro;
 }

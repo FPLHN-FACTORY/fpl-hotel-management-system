@@ -36,13 +36,26 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
     @Override
     public ResponseObject<?> getAllNhanVien(ADNhanVienSearchRequest request) {
         Pageable pageable = Helper.createPageable(request, "created_date");
-        System.out.println(request.getQ());
-        Page<NhanVien> page;
-        if (request.getQ() == null || request.getQ().isEmpty()) {
-            page = adNhanVienRepository.findAll(pageable);
-        } else {
-            page = adNhanVienRepository.findByMaContainingOrTenContaining(request.getQ(), request.getQ(), pageable);
+        
+        EntityVaiTro vaiTro = null;
+        if (request.getVaiTro() != null && !request.getVaiTro().isEmpty()) {
+            try {
+                vaiTro = EntityVaiTro.valueOf(request.getVaiTro());
+            } catch (IllegalArgumentException e) {
+                // ignore invalid enum values
+            }
         }
+
+        Boolean gioiTinh = null;
+        if (request.getGioiTinh() != null && !request.getGioiTinh().isEmpty()) {
+            if ("MALE".equalsIgnoreCase(request.getGioiTinh())) {
+                gioiTinh = true;
+            } else if ("FEMALE".equalsIgnoreCase(request.getGioiTinh())) {
+                gioiTinh = false;
+            }
+        }
+
+        Page<NhanVien> page = adNhanVienRepository.searchNhanVien(request.getQ(), vaiTro, gioiTinh, pageable);
 
         return new ResponseObject<>(
                 PageableObject.of(page),
@@ -81,14 +94,19 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
     @Override
     public ResponseObject<?> modifyMNhanVien(ADNhanVienRequest request) {
-        if (request.getCccd() != null && checkDuplicateField("cccd", request.getCccd(), request.getId())) {
-            throw new RuntimeException("Mã định danh (CCCD) đã tồn tại!");
-        }
-        if (request.getSdt() != null && checkDuplicateField("sdt", request.getSdt(), request.getId())) {
-            throw new RuntimeException("Số điện thoại đã tồn tại!");
-        }
-        if (request.getEmail() != null && checkDuplicateField("email", request.getEmail(), request.getId())) {
-            throw new RuntimeException("Email đã tồn tại!");
+        System.out.println("Modify Request: ID=" + request.getId() + ", Email=" + request.getEmail());
+        
+        // Only check for duplicates if creating a new employee (no ID)
+        if (request.getId() == null || request.getId().isEmpty()) {
+            if (request.getCccd() != null && checkDuplicateField("cccd", request.getCccd(), request.getId())) {
+                return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mã định danh (CCCD) đã tồn tại!");
+            }
+            if (request.getSdt() != null && checkDuplicateField("sdt", request.getSdt(), request.getId())) {
+                return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Số điện thoại đã tồn tại!");
+            }
+            if (request.getEmail() != null && checkDuplicateField("email", request.getEmail(), request.getId())) {
+                return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Email đã tồn tại!");
+            }
         }
 
         if (request.getId() != null && StringUtils.hasLength(request.getId())) {
@@ -108,8 +126,7 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
                 nhanVien.setDiaChi(request.getDiaChi());
 
-                nhanVien.setGioiTimh(request.getGioiTinh());
-
+                nhanVien.setGioiTinh(request.getGioiTinh());
 
                 nhanVien.setXa(request.getXa());
 
@@ -121,7 +138,29 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
                 nhanVien.setCccd(request.getCccd());
 
-                nhanVien.setChucVu(EntityRole.STAFF);
+                // Set vai trò nếu FE truyền lên
+                if (request.getVaiTro() != null && !request.getVaiTro().isEmpty()) {
+                    try {
+                        EntityVaiTro vaiTroEnum = EntityVaiTro.valueOf(request.getVaiTro());
+                        nhanVien.setVaitro(vaiTroEnum);
+                        
+                        // Map to Role: QUAN_LY -> ADMIN, NHAN_VIEN -> STAFF
+                        if (vaiTroEnum == EntityVaiTro.QUAN_LY) {
+                            nhanVien.setChucVu(EntityRole.ADMIN);
+                        } else {
+                            nhanVien.setChucVu(EntityRole.STAFF);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        // Fallback for backward compatibility if "ADMIN"/"STAFF" is sent
+                        if ("ADMIN".equalsIgnoreCase(request.getVaiTro())) {
+                             nhanVien.setChucVu(EntityRole.ADMIN);
+                             nhanVien.setVaitro(EntityVaiTro.QUAN_LY);
+                        } else {
+                             nhanVien.setChucVu(EntityRole.STAFF);
+                             nhanVien.setVaitro(EntityVaiTro.NHAN_VIEN);
+                        }
+                    }
+                }
 
                 nhanVien.setStatus(EntityStatus.ACTIVE);    
 
@@ -162,7 +201,7 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
         nhanVien.setDiaChi(request.getDiaChi());
 
-        nhanVien.setGioiTimh(request.getGioiTinh());
+        nhanVien.setGioiTinh(request.getGioiTinh());
 
         nhanVien.setNgaySinh(request.getNgaySinh());
 
@@ -172,13 +211,32 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
         nhanVien.setTinh(request.getTinh());
 
+        // Default
         nhanVien.setVaitro(EntityVaiTro.NHAN_VIEN);
+        nhanVien.setChucVu(EntityRole.STAFF);
 
         nhanVien.setCccd(request.getCccd());
 
         nhanVien.setMatKhau("$2y$10$ey6ASnw6etj4YQtRFKZTjOlzjynNjDYgKXzf9/LDibTIXjEOdOgwa");
 
-        nhanVien.setChucVu(EntityRole.STAFF);
+        // Set vai trò theo request nếu có
+        if (request.getVaiTro() != null && !request.getVaiTro().isEmpty()) {
+            try {
+                EntityVaiTro vaiTroEnum = EntityVaiTro.valueOf(request.getVaiTro());
+                nhanVien.setVaitro(vaiTroEnum);
+                if (vaiTroEnum == EntityVaiTro.QUAN_LY) {
+                    nhanVien.setChucVu(EntityRole.ADMIN);
+                } else {
+                    nhanVien.setChucVu(EntityRole.STAFF);
+                }
+            } catch (IllegalArgumentException e) {
+                // Fallback
+                if ("ADMIN".equalsIgnoreCase(request.getVaiTro())) {
+                    nhanVien.setChucVu(EntityRole.ADMIN);
+                    nhanVien.setVaitro(EntityVaiTro.QUAN_LY);
+                }
+            }
+        }
 
         nhanVien.setStatus(EntityStatus.ACTIVE);
 
@@ -215,30 +273,26 @@ public class ADNhanVienServiceImpl implements ADNhanVienService {
 
     @Override
     public ResponseObject<?> changeNhanVienStatus(String id) {
-        Optional<NhanVien> nemberOptional = adNhanVienRepository.findById(id);
-
-        nemberOptional.map(nember -> {
-            nember.setStatus(nember.getStatus() == EntityStatus.ACTIVE ? EntityStatus.INACTIVE : EntityStatus.ACTIVE);
-            return new ResponseObject(adNhanVienRepository.save(nember), HttpStatus.OK, "Thay đổi trạng thái thành công");
-        });
-
-        return nemberOptional
-                .map(product -> ResponseObject.successForward(HttpStatus.OK, "Đổi trạng thái thành công"))
-                .orElseGet(() -> ResponseObject.successForward(HttpStatus.NOT_FOUND, "Không tìm nhân viên "));
+        Optional<NhanVien> optional = adNhanVienRepository.findById(id);
+        if (optional.isEmpty()) {
+            return ResponseObject.successForward(HttpStatus.NOT_FOUND, "Không tìm nhân viên ");
+        }
+        NhanVien nv = optional.get();
+        nv.setStatus(nv.getStatus() == EntityStatus.ACTIVE ? EntityStatus.INACTIVE : EntityStatus.ACTIVE);
+        nv = adNhanVienRepository.save(nv);
+        return new ResponseObject<>(nv, HttpStatus.OK, "Đổi trạng thái thành công");
     }
 
     @Override
     public ResponseObject<?> changeNhanVienRole(String id) {
-        Optional<NhanVien> nemberOptional = adNhanVienRepository.findById(id);
-
-        nemberOptional.map(nember -> {
-            nember.setChucVu(nember.getChucVu() == EntityRole.ADMIN ? EntityRole.STAFF : EntityRole.ADMIN);
-            return new ResponseObject(adNhanVienRepository.save(nember), HttpStatus.OK, "Thay đổi vai trò nhân viên thành công");
-        });
-
-        return nemberOptional
-                .map(product -> ResponseObject.successForward(HttpStatus.OK, "Đổi vai trò nhân viên thành công"))
-                .orElseGet(() -> ResponseObject.successForward(HttpStatus.NOT_FOUND, "Không tìm nhân viên "));
+        Optional<NhanVien> optional = adNhanVienRepository.findById(id);
+        if (optional.isEmpty()) {
+            return ResponseObject.successForward(HttpStatus.NOT_FOUND, "Không tìm nhân viên ");
+        }
+        NhanVien nv = optional.get();
+        nv.setChucVu(nv.getChucVu() == EntityRole.ADMIN ? EntityRole.STAFF : EntityRole.ADMIN);
+        nv = adNhanVienRepository.save(nv);
+        return new ResponseObject<>(nv, HttpStatus.OK, "Đổi vai trò nhân viên thành công");
     }
 
     @Override

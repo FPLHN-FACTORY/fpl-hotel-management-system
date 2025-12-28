@@ -24,6 +24,6 @@ public class LichSuDatPhong extends PrimaryEntity implements Serializable{
     private DatPhong datPhong;
 
     @ManyToOne
-    @JoinColumn(name = "id_le_tan")
-    private LeTan leTan;
+    @JoinColumn(name = "id_nhan_vien")
+    private NhanVien nhanVien;
 }

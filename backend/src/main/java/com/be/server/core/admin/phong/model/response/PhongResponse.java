@@ -33,6 +33,14 @@ public class PhongResponse implements Serializable {
         private String id;
         private String ma;
         private String ten;
+        private String mau;
+
+        public TagInfo(String id, String ma, String ten) {
+            this.id = id;
+            this.ma = ma;
+            this.ten = ten;
+            this.mau = null;
+        }
     }
 
     public String getCapacityRange() {

@@ -37,3 +37,10 @@ const handleUpdateCleanStatus = (roomId: string, status: string) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Tăng font size cho tiêu đề tầng */
+.font-bold.text-lg {
+  font-size: 20px !important;
+}
+</style>

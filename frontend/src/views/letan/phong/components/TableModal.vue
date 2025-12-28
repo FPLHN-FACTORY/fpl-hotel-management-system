@@ -13,7 +13,7 @@ interface Room {
   soNguoiQuyDinh?: number
   soGiuongDon?: number
   soGiuongDoi?: number
-  trangThaiHoatDong: 'DANG_HOAT_DONG' | 'DANG_SUA' | 'NGUNG_HOAT_DONG'
+  trangThaiHoatDong: string
   tags?: string[]
 }
 
@@ -57,13 +57,13 @@ const defaultRoom: Room = {
 const formModel = ref<Room>({ ...defaultRoom })
 const isLoading = ref(false)
 
-const loaiPhongOptions = ref<{ label: string; value: string; soLuongNguoiToiDa: number; soNguoiQuyDinh: number; soGiuongDon: number; soGiuongDoi: number; giaCaNgay: number }[]>([])
+const loaiPhongOptions = ref<{ label: string, value: string, soLuongNguoiToiDa: number, soNguoiQuyDinh: number, soGiuongDon: number, soGiuongDoi: number, giaCaNgay: number }[]>([])
 const isSucChuaLocked = ref(false)
 const isGiaLocked = ref(false)
 const isBedInfoLocked = ref(false)
 const isSoNguoiQuyDinhLocked = ref(false)
 
-const tagOptions = ref<{ label: string; value: string }[]>([])
+const tagOptions = ref<{ label: string, value: string }[]>([])
 
 const trangThaiOptions = ref([
   { label: 'Hoạt động', value: 'DANG_HOAT_DONG' },
@@ -71,13 +71,15 @@ const trangThaiOptions = ref([
   { label: 'Ngưng hoạt động', value: 'NGUNG_HOAT_DONG' },
 ])
 
+// Computed để disable tên phòng khi edit
+const isTenPhongDisabled = computed(() => props.type === 'edit')
+
 async function fetchLoaiPhong() {
   try {
     const data = await getRoomTypes()
     loaiPhongOptions.value = data.map(lp => ({
       label: lp.ten,
       value: String(lp.id),
-      // Backend trả về soNguoiToiDa (không có chữ "Luong")
       soLuongNguoiToiDa: lp.soNguoiToiDa ?? 1,
       soNguoiQuyDinh: lp.soNguoiQuyDinh ?? 1,
       soGiuongDon: lp.soGiuongDon ?? 0,
@@ -136,12 +138,10 @@ async function fetchPhongDetail(id: string) {
   }
 }
 
-// Watch loaiPhong changes - only auto-fill when in ADD mode
 watch(
   () => formModel.value.loaiPhong,
   (newLoaiPhong) => {
     if (!newLoaiPhong) {
-      // Clear fields when no room type selected
       formModel.value.gia = undefined
       formModel.value.sucChua = undefined
       formModel.value.soNguoiQuyDinh = undefined
@@ -157,7 +157,6 @@ watch(
     const selected = loaiPhongOptions.value.find(lp => lp.value === newLoaiPhong)
 
     if (selected) {
-      // Only auto-fill in ADD mode, not EDIT mode
       if (props.type === 'add') {
         formModel.value.gia = selected.giaCaNgay
         formModel.value.sucChua = selected.soLuongNguoiToiDa
@@ -222,11 +221,11 @@ function validateForm() {
 }
 
 async function handleSubmit() {
-  if (!validateForm()) return
+  if (!validateForm())
+    return
 
   try {
     if (props.type === 'edit' && formModel.value.id) {
-
       const payload = {
         ma: formModel.value.maPhong.trim(),
         ten: formModel.value.tenPhong.trim(),
@@ -240,13 +239,13 @@ async function handleSubmit() {
       window.$message.success(res?.message || 'Cập nhật phòng thành công!')
     }
     else {
-
       const payload = {
         ma: formModel.value.maPhong.trim(),
         ten: formModel.value.tenPhong.trim(),
         idLoaiPhong: formModel.value.loaiPhong!,
+        sucChua: formModel.value.sucChua!,
         tang: formModel.value.tang!,
-        trangThaiPhong: formModel.value.trangThaiHoatDong,
+        trangThaiHoatDong: formModel.value.trangThaiHoatDong,
         tagIds: formModel.value.tags || [],
       }
 
@@ -281,14 +280,18 @@ onMounted(() => {
     :mask-closable="false"
     preset="card"
     :title="title"
-    class="w-700px"
+    class="w-700px modal-custom-font"
     :segmented="{ content: true, action: true }"
   >
     <n-spin :show="isLoading">
       <n-form label-placement="left" :model="formModel" label-align="left" :label-width="150">
         <n-grid :cols="24" :x-gap="18">
           <n-form-item-grid-item :span="24" label="Tên phòng" path="tenPhong">
-            <n-input v-model:value="formModel.tenPhong" placeholder="Nhập tên phòng" />
+            <n-input
+              v-model:value="formModel.tenPhong"
+              placeholder="Nhập tên phòng"
+              :disabled="isTenPhongDisabled"
+            />
           </n-form-item-grid-item>
 
           <n-form-item-grid-item :span="12" label="Tầng" path="tang">
@@ -376,6 +379,7 @@ onMounted(() => {
               filterable
             />
           </n-form-item-grid-item>
+
         </n-grid>
       </n-form>
     </n-spin>
@@ -396,5 +400,27 @@ onMounted(() => {
 <style scoped>
 .w-700px {
   width: 700px;
+}
+
+.modal-custom-font :deep(.n-card-header) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-custom-font :deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+.modal-custom-font :deep(.n-input__input-el),
+.modal-custom-font :deep(.n-input__textarea-el),
+.modal-custom-font :deep(.n-base-selection-label),
+.modal-custom-font :deep(.n-base-selection-input),
+.modal-custom-font :deep(.n-input-number-input),
+.modal-custom-font :deep(.n-button__content) {
+  font-size: 17px;
+}
+
+.modal-custom-font :deep(.n-base-select-option__content) {
+  font-size: 17px;
 }
 </style>

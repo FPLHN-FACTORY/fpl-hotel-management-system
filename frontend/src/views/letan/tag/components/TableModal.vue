@@ -157,4 +157,26 @@ async function handleSubmit() {
 .w-700px {
   width: 700px;
 }
+
+/* Tăng font size cho modal */
+:deep(.n-card-header) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-form-item-label) {
+  font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-button__content) {
+  font-size: 17px;
+}
+
+:deep(.n-color-picker-trigger__value) {
+  font-size: 17px;
+}
 </style>

@@ -12,6 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ADNhanVienSearchRequest extends PageableRequest {
 
-   private String q;
+    private String q;
+    private String vaiTro;
+    private String gioiTinh;
 
 }

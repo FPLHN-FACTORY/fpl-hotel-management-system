@@ -8,21 +8,20 @@ import { App } from '@/typings/global'
 export type TransitionAnimation = '' | 'fade-slide' | 'fade-bottom' | 'fade-scale' | 'zoom-fade' | 'zoom-out'
 export type LayoutMode = 'leftMenu' | 'topMenu' | 'mixMenu'
 
-const { VITE_DEFAULT_LANG, VITE_COPYRIGHT_INFO } = import.meta.env
+const { VITE_COPYRIGHT_INFO } = import.meta.env
 
 const docEle = ref(document.documentElement)
 
 const { isFullscreen, toggle } = useFullscreen(docEle)
 
-const { system, store } = useColorMode({
-  emitAuto: true,
-})
+// Bỏ useColorMode, sử dụng giá trị cố định
+const colorMode = ref('light')
 
 export const useAppStore = defineStore('app-store', {
   state: () => {
     return {
       footerText: VITE_COPYRIGHT_INFO,
-      lang: VITE_DEFAULT_LANG ? VITE_DEFAULT_LANG.toString() as App.lang : 'enUS' as App.lang,
+      lang: 'viVN' as App.lang, // Luôn là tiếng Việt
       theme: themeConfig as GlobalThemeOverrides,
       primaryColor: themeConfig.common.primaryColor,
       collapsed: false,
@@ -44,10 +43,10 @@ export const useAppStore = defineStore('app-store', {
   },
   getters: {
     storeColorMode() {
-      return store.value
+      return 'light' // Luôn trả về light
     },
     colorMode() {
-      return store.value === 'auto' ? system.value : store.value
+      return 'light' // Luôn trả về light
     },
     fullScreen() {
       return isFullscreen.value
@@ -76,9 +75,10 @@ export const useAppStore = defineStore('app-store', {
       this.setPrimaryColor(this.primaryColor)
     },
     setAppLang(lang: App.lang) {
-      setLocale(lang)
-      local.set('lang', lang)
-      this.lang = lang
+      // Luôn giữ tiếng Việt, không cho thay đổi
+      this.lang = 'viVN'
+      setLocale('viVN')
+      local.set('lang', 'viVN')
     },
     /* Set theme color */
     setPrimaryColor(color: string) {
@@ -90,7 +90,8 @@ export const useAppStore = defineStore('app-store', {
       set(this.theme, 'common.primaryColorSuppl', brightenColor)
     },
     setColorMode(mode: 'light' | 'dark' | 'auto') {
-      store.value = mode
+      // Không làm gì cả, luôn giữ light mode
+      colorMode.value = 'light'
     },
     /* Toggle sidebar collapse */
     toggleCollapse() {
