@@ -161,6 +161,24 @@ public class Helper {
         // Thay thế tất cả khoảng trắng liên tiếp bằng dấu gạch dưới
         return withoutAccentString.replaceAll("\\s+", "_");
     }
+    public static String toLower(String input) {
+        return input == null ? null : input.toLowerCase();
+    }
+    public static String extractLastName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "";
+        }
+
+        // Xóa khoảng trắng dư và trim
+        fullName = fullName.trim().replaceAll("\\s+", " ");
+
+        // Tách theo khoảng trắng
+        String[] parts = fullName.split(" ");
+
+        // Trả về phần cuối cùng
+        return parts[parts.length - 1];
+    }
+
     public static String generateCodeMauSac() {
         Random random = new Random();
         int number = random.nextInt(10000);
@@ -168,7 +186,22 @@ public class Helper {
 
         return code;
     }
+    public static String generateCodeKhachHang() {
+        // Random 3 chữ cái A-Z
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder randomLetters = new StringBuilder();
+        java.util.Random random = new java.util.Random();
 
+        for (int i = 0; i < 3; i++) {
+            randomLetters.append(letters.charAt(random.nextInt(letters.length())));
+        }
+
+        // Timestamp
+        String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+        return "KH-" + randomLetters + "-" + timestamp;
+    }
     public static String generateCodeNhanVien() {
         Random random = new Random();
         int number = random.nextInt(10000);
@@ -257,13 +290,13 @@ public class Helper {
         return code;
     }
 
-    public static String generateCodeKhachHang() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("KH%04d", number);
-
-        return code;
-    }
+//    public static String generateCodeKhachHang() {
+//        Random random = new Random();
+//        int number = random.nextInt(10000);
+//        String code = String.format("KH%04d", number);
+//
+//        return code;
+//    }
 
     public static String generateCodeChatLieu() {
         Random random = new Random();
