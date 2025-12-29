@@ -12,3 +12,4 @@ export const API_ADMIN_NHAN_VIEN = `${API_URL}/leTan/nhan-vien` as string
 export const API_LE_TAN_DAT_PHONG = `${API_URL}/leTan/dat-phong` as string
 
 
+export const API_LE_TAN_KHACH_HANG= `${API_URL}/leTan/khach-hang` as string

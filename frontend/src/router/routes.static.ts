@@ -43,7 +43,6 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     id: 10,
     pid: null,
   },
-
   {
     name: 'roomList',
     path: '/rooms/roomList',
@@ -117,4 +116,3 @@ export const staticRoutes: AppRoute.RowRoute[] = [
   // },
 
 ]
-
