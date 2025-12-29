@@ -2,7 +2,6 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.StatusChiTietDatPhong;
-import com.be.server.infrastructure.constant.TrangThaiPhongDat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;

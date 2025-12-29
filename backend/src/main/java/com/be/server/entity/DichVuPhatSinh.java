@@ -37,6 +37,6 @@ public class DichVuPhatSinh extends PrimaryEntity implements Serializable {
     private DatPhong idDatPhong;
 
     @ManyToOne
-    @JoinColumn(name = "id_le_tan")
-    private LeTan idLeTan;
+    @JoinColumn(name = "id_nhan_vien")
+    private NhanVien nhanVien;
 }
