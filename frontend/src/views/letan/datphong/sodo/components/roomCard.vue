@@ -12,15 +12,19 @@ const loading = ref(false)
 
 const menuOptions = computed(() => {
   const current = props.room.trangThaiVeSinh
-  const options: { label: string; key: TrangThaiVeSinh }[] = []
-  if (current !== 'SACH') options.push({ label: 'Sạch', key: 'SACH' })
-  if (current !== 'DANG_DON') options.push({ label: 'Đang dọn', key: 'DANG_DON' })
-  if (current !== 'CHUA_DON') options.push({ label: 'Chưa dọn', key: 'CHUA_DON' })
+  const options: { label: string, key: TrangThaiVeSinh }[] = []
+  if (current !== 'SACH')
+    options.push({ label: 'Sạch', key: 'SACH' })
+  if (current !== 'DANG_DON')
+    options.push({ label: 'Đang dọn', key: 'DANG_DON' })
+  if (current !== 'CHUA_DON')
+    options.push({ label: 'Chưa dọn', key: 'CHUA_DON' })
   return options
 })
 
-const handleMenuSelect = async (status: TrangThaiVeSinh) => {
-  if (loading.value) return
+async function handleMenuSelect(status: TrangThaiVeSinh) {
+  if (loading.value)
+    return
   loading.value = true
 
   const oldStatus = props.room.trangThaiVeSinh
@@ -29,10 +33,12 @@ const handleMenuSelect = async (status: TrangThaiVeSinh) => {
     await updateTrangThaiVeSinh(props.room.id, status)
     emit('updateCleanStatus', props.room.id, status)
     message.success(`Cập nhật trạng thái phòng ${props.room.ma} thành công!`)
-  } catch (err: any) {
+  }
+  catch (err: any) {
     emit('updateCleanStatus', props.room.id, oldStatus)
     message.error(err.message || 'Cập nhật thất bại')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -71,10 +77,10 @@ const hoverBorderColor = computed(() => {
   <n-card
     class="room-card flex flex-col justify-between p-3 rounded-xl cursor-pointer transition-all border"
     :class="bgColor"
-    @click="$emit('click', room)"
     size="small"
     style="min-width: 142px; margin-top: 0px;"
-    :style="{ '--hover-border': hoverBorderColor, borderColor: hoverBorderColor }"
+    :style="{ '--hover-border': hoverBorderColor, 'borderColor': hoverBorderColor }"
+    @click="$emit('click', room)"
   >
     <div class="flex justify-between items-center mb-2">
       <n-tag
@@ -92,8 +98,8 @@ const hoverBorderColor = computed(() => {
           props.room.trangThaiVeSinh === 'SACH'
             ? 'Sạch'
             : props.room.trangThaiVeSinh === 'DANG_DON'
-            ? 'Đang dọn'
-            : 'Chưa dọn'
+              ? 'Đang dọn'
+              : 'Chưa dọn'
         }}
       </n-tag>
 
@@ -107,8 +113,10 @@ const hoverBorderColor = computed(() => {
     </div>
 
     <div class="flex flex-col gap-1 mb-2 truncate">
-      <div class="text-base font-semibold text-gray-800 truncate">{{ room.ma }}</div>
-      <div class="text-sm text-gray-600" v-if="room.trangThaiPhong === 'TRONG'">
+      <div class="text-base font-semibold text-gray-800 truncate">
+        {{ room.ma }}
+      </div>
+      <div v-if="room.trangThaiPhong === 'TRONG'" class="text-sm text-gray-600">
         {{ room.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price) : '-' }}/đêm
       </div>
     </div>

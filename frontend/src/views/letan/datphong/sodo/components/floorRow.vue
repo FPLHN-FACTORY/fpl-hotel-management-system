@@ -9,7 +9,7 @@ defineProps<{
 
 const emit = defineEmits(['room-click', 'updateCleanStatus'])
 
-const handleUpdateCleanStatus = (roomId: string, status: string) => {
+function handleUpdateCleanStatus(roomId: string, status: string) {
   emit('updateCleanStatus', roomId, status)
 }
 </script>
@@ -20,7 +20,7 @@ const handleUpdateCleanStatus = (roomId: string, status: string) => {
       <span class="font-bold text-lg text-gray-700 whitespace-nowrap">
         Tầng {{ floor }} ({{ rooms.length }} phòng)
       </span>
-      <div class="flex-1 ml-4 h-[2px] bg-gray-300"></div>
+      <div class="flex-1 ml-4 h-[2px] bg-gray-300" />
     </div>
 
     <div
@@ -32,7 +32,7 @@ const handleUpdateCleanStatus = (roomId: string, status: string) => {
         :key="room.id"
         :room="room"
         @click="$emit('room-click', room)"
-        @updateCleanStatus="handleUpdateCleanStatus"
+        @update-clean-status="handleUpdateCleanStatus"
       />
     </div>
   </div>

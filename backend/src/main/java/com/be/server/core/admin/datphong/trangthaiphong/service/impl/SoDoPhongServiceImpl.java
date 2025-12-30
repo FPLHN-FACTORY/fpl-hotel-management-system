@@ -16,10 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +31,7 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
     private final ADDPLoaiPhongRepository loaiPhongRepository;
 
     private final UpdateTrangThaiVeSinhRepo updateTrangThaiVeSinhRepo;
+
 
     @Override
     public ResponseObject<?> getAllSoDoPhong(SoDoSearch request) {

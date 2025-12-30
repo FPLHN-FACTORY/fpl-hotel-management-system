@@ -2,6 +2,7 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.RoomStatus;
+import com.be.server.infrastructure.constant.TrangThaiPhongDat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -59,8 +60,5 @@ public class DatPhong extends PrimaryEntity implements Serializable {
     @Column(name = "suc_chua")
     private String sucChua;
 
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "trang_thai_phong")
-    private RoomStatus trangThaiPhong;
 
 }
