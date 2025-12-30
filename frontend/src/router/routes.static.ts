@@ -1,11 +1,11 @@
 export const staticRoutes: AppRoute.RowRoute[] = [
     {
     name: 'datPhong',
-    path: '/letan/lichdatphong',
+    path: '/letan/datphong',
     title: 'Đăt phòng',
     requiresAuth: true,
     icon: 'mdi:bed-outline',
-    componentPath: '/letan/lichdatphong/index.vue',
+    componentPath: '/letan/datphong/index.vue',
     id: 20,
     pid: null,
   },

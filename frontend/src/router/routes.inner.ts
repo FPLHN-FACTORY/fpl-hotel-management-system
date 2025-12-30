@@ -5,7 +5,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'root',
-    redirect: '/letan/lichdatphong',
+    redirect: '/letan/datphong',
     children: [
     ],
   },
