@@ -3,9 +3,12 @@ import { computed, defineEmits, defineProps, onMounted, ref, reactive, watch } f
 import { addPhong, getAllTags, getPhongById, getRoomTypes, updatePhong } from '@/service/api/letan/phong'
 import { addKhachHang, updateKhachHang, fetchLoaiKhachHang, fetchTinhThanhPho, TinhReponse, fetchPhuongXaQuanHuyen, fetchSearch, SearchDiaChiCuReponse } from '@/service/api/nhansu/khachhang'
 import { normalize, normalizeTinh } from '@/utils/addressconvert'
-import { QrCodeOutline } from '@vicons/ionicons5'
+import { QrCodeOutline, CameraOutline, CloudUploadOutline } from '@vicons/ionicons5'
 import CccdScanner from '@/components/custom/CccdScanner.vue';
+import CccdOCR from '@/components/custom/CccdOCR.vue';
+
 import dayjs from 'dayjs'
+
 
 
 onMounted(() => {
@@ -16,10 +19,10 @@ interface Customer {
   id?: string
   hoTen?: string
   soDienThoai?: string
-  ngaySinh?: number
-  gioiTinh?: string
+  ngaySinh?: number | null
+  gioiTinh?: string | null
   email?: string
-  loaiGiayTo?: string
+  loaiGiayTo?: number | null
   soGiayTo?: string
   diaChi?: string
   idLoaiKhachHang?: string
@@ -51,13 +54,6 @@ function closeModal() {
 const title = computed(() => (props.type === 'edit' ? 'Sửa thông tin khách hàng' : 'Thêm khách hàng'))
 
 const defaultCustomer: Customer = {
-  // hoTen: '',
-  // soDienThoai: '',
-  // email: '',
-  // soCCCD: '',
-  // soHoChieu: '',
-  // diaChi: '',
-  // idLoaiKhachHang: null,
   hoTen: '',
   soDienThoai: '',
   ngaySinh: null,
@@ -83,6 +79,7 @@ const loaiKhachHangOptions = ref([]);
 const tinhThanhPhoOptions = ref([])
 const phuongOptions = ref([]);
 const showScanner = ref(false)
+const showOCRModal = ref(false)
 async function loadLoaiKhachHang() {
   const res = await fetchLoaiKhachHang();
 
@@ -145,7 +142,7 @@ function validateForm() {
   const loaiGiayTo = formModel.value.loaiGiayTo
   const soGiayTo = formModel.value.soGiayTo?.trim()
 
-  if (loaiGiayTo==null) {
+  if (loaiGiayTo == null) {
     window.$message.warning('Vui lòng chọn loại giấy tờ !')
     return false
   }
@@ -154,13 +151,13 @@ function validateForm() {
     window.$message.warning('Vui lòng nhập số giấy tờ!')
     return false
   }
-  if (loaiGiayTo === "CCCD" && !regexCCCD.test(soGiayTo)) {
+  if (loaiGiayTo === 0 && !regexCCCD.test(soGiayTo)) {
     window.$message.warning('CCCD phải gồm 12 số!')
     return false
   }
 
 
-  if (loaiGiayTo === "HO_CHIEU" && !regexPassport.test(soGiayTo)) {
+  if (loaiGiayTo === 1 && !regexPassport.test(soGiayTo)) {
     window.$message.warning('Số hộ chiếu phải có dạng: 1 chữ cái + 7 số (Ví dụ: B1234567)')
     return false
   }
@@ -274,25 +271,25 @@ watch(
           formModelDiaChi.phuongId = diaChi.ward.code
         } catch { }
       }
-    // } else if (props.type === 'add' && props.modalData) {
-    //   const val = props.modalData
-    //   resetForm() // reset trước khi điền dữ liệu QR
-    //   const str = val.ngaySinh; // ddMMyyyy
-    //   const ngay = parseInt(str.slice(0, 2));
-    //   const thang = parseInt(str.slice(2, 4));
-    //   const nam = parseInt(str.slice(4, 8));
-    //   formModel.value.ngaySinh = new Date(nam, thang - 1, ngay);
+      // } else if (props.type === 'add' && props.modalData) {
+      //   const val = props.modalData
+      //   resetForm() // reset trước khi điền dữ liệu QR
+      //   const str = val.ngaySinh; // ddMMyyyy
+      //   const ngay = parseInt(str.slice(0, 2));
+      //   const thang = parseInt(str.slice(2, 4));
+      //   const nam = parseInt(str.slice(4, 8));
+      //   formModel.value.ngaySinh = new Date(nam, thang - 1, ngay);
 
-    //   formModel.value.hoTen = val.hoTen || ''
-    //   formModel.value.soGiayTo = val.soGiayTo || ''
-    //   formModel.value.diaChi = val.diaChi || ''
+      //   formModel.value.hoTen = val.hoTen || ''
+      //   formModel.value.soGiayTo = val.soGiayTo || ''
+      //   formModel.value.diaChi = val.diaChi || ''
 
-    //   formModel.value.gioiTinh = val.gioiTinh?.toUpperCase() || '';
+      //   formModel.value.gioiTinh = val.gioiTinh?.toUpperCase() || '';
 
 
-    //   if (val.diaChi) {
-    //     await doiDiaChiCuSangMoi(val.diaChi)
-    //   }
+      //   if (val.diaChi) {
+      //     await doiDiaChiCuSangMoi(val.diaChi)
+      //   }
     }
   },
   { immediate: true }
@@ -414,41 +411,88 @@ watch(
 
 function handleQuetCCCD() {
 
-  if(formModel.value.loaiGiayTo != 0){
+  if (formModel.value.loaiGiayTo != 0) {
     window.$message.warning('Vui lòng chọn loại giấy tờ là CCCD để quét!')
     return
   }
   showScanner.value = true
 }
-async function onScanResult (data: any) {
+
+function handleOCRCCCD() {
+
+  showOCRModal.value = true
+}
+async function onScanResult(data: any) {
   // data sẽ có các trường: cccd, hoTen, ngaySinh, gioiTinh, diaChi, ngayCap
   console.log('CCCD data:', data)
 
 
-    const val = data
-    // reset trước khi điền dữ liệu QR
-      const str = val.ngaySinh; // ddMMyyyy
-      const ngay = parseInt(str.slice(0, 2));
-      const thang = parseInt(str.slice(2, 4));
-      const nam = parseInt(str.slice(4, 8));
-      formModel.value.ngaySinh = new Date(nam, thang - 1, ngay);
+  const val = data
+  // reset trước khi điền dữ liệu QR
+  const str = val.ngaySinh; // ddMMyyyy
+  const ngay = parseInt(str.slice(0, 2));
+  const thang = parseInt(str.slice(2, 4));
+  const nam = parseInt(str.slice(4, 8));
+  formModel.value.ngaySinh = new Date(nam, thang - 1, ngay);
 
-      formModel.value.hoTen = val.hoTen || ''
-      formModel.value.soGiayTo = val.soGiayTo || ''
-      formModel.value.diaChi = val.diaChi || ''
+  formModel.value.hoTen = val.hoTen || ''
+  formModel.value.soGiayTo = val.soGiayTo || ''
+  formModel.value.diaChi = val.diaChi || ''
 
-      formModel.value.gioiTinh = val.gioiTinh==='Nam'?0:(val.gioiTinh==='Nữ'?1:2);
+  formModel.value.gioiTinh = val.gioiTinh === 'Nam' ? 0 : (val.gioiTinh === 'Nữ' ? 1 : 2);
 
 
-      if (val.diaChi) {
-        await doiDiaChiCuSangMoi(val.diaChi)
-      }
+  if (val.diaChi) {
+    await doiDiaChiCuSangMoi(val.diaChi)
+  }
 
   showScanner.value = false // đóng scanner
+}
+
+
+async function onOCRResult(data: any) {
+  if (!data || Object.keys(data).length === 0) {
+    window.$message.error(
+      "Đọc dữ liệu ảnh không thành công (Ảnh mờ nhòe hoặc loại giấy tờ chưa được hỗ trợ,...)"
+    )
+
+    return
+  }
+  // data sẽ có các trường: cccd, hoTen, ngaySinh, gioiTinh, diaChi, ngayCap
+  console.log('OCR:', data)
+
+
+  const val = data
+  // reset trước khi điền dữ liệu QR
+  if (val.ngaySinh) {
+    const [ngay, thang, nam] = val.ngaySinh.split('/').map(Number)
+    formModel.value.ngaySinh = new Date(nam, thang - 1, ngay)
+  } else {
+    formModel.value.ngaySinh = null
+  }
+
+  formModel.value.loaiGiayTo = val.loaiGiayTo ?? null
+  console.log("loai gaiy to", formModel.value.loaiGiayTo)
+  formModel.value.hoTen = val.hoTen || ''
+  formModel.value.soGiayTo = val.soGiayTo || ''
+  formModel.value.diaChi = val.diaChi || ''
+
+  formModel.value.gioiTinh = val.gioiTinh === 'Nam' ? 0 : (val.gioiTinh === 'Nữ' ? 1 : val.gioiTinh === 'X' ? 2 : null);
+
+
+  if (val.diaChi) {
+    await doiDiaChiCuSangMoi(val.diaChi)
+  }
+
+
+   showOCRModal.value = false
+
 }
 </script>
 
 <template>
+  <CccdOCR v-model="showOCRModal" @result="onOCRResult" @close="showOCRModal = false" />
+
   <CccdScanner v-model="showScanner" @scan-result="onScanResult" />
   <n-modal v-model:show="modalVisible" :mask-closable="false" preset="card" :title="title" class="w-900px"
     :segmented="{ content: true, action: true }">
@@ -463,19 +507,29 @@ async function onScanResult (data: any) {
             <n-date-picker v-model:value="formModel.ngaySinh" type="date" placeholder="Chọn ngày sinh"
               style="width: 100%" clearable />
           </n-form-item-grid-item>
-          <n-form-item-grid-item :span="18" label="Loại giấy tờ" path="loaiGiayTo">
+          <n-form-item-grid-item :span="20" label="Loại giấy tờ" path="loaiGiayTo">
             <n-select v-model:value="formModel.loaiGiayTo" :options="loaiGiayToOptions" placeholder="Chọn loại giấy tờ"
               clearable />
           </n-form-item-grid-item>
-            <n-form-item-grid-item :span="3">
-          <n-button type="primary" style="border-radius: 6px" @click="handleQuetCCCD">
-            <template #icon>
-              <n-icon>
-                <QrCodeOutline />
-              </n-icon>
-            </template>
-          </n-button>
-</n-form-item-grid-item> 
+          <n-form-item-grid-item :span="4">
+            <n-space size="small">
+              <n-button type="primary" style="border-radius: 6px" @click="handleQuetCCCD">
+                <template #icon>
+                  <n-icon>
+                    <QrCodeOutline />
+                  </n-icon>
+                </template>
+              </n-button>
+              <n-button type="primary" style="border-radius: 6px" @click="handleOCRCCCD">
+                <template #icon>
+                  <n-icon>
+                    <CameraOutline />
+                  </n-icon>
+                </template>
+              </n-button>
+              
+            </n-space>
+          </n-form-item-grid-item>
           <n-form-item-grid-item :span="12" label="Số giấy tờ" path="soGiayTo">
             <NInput v-model:value="formModel.soGiayTo" placeholder="Nhập số giấy tờ" clearable />
           </n-form-item-grid-item>
