@@ -261,7 +261,7 @@ onMounted(() => {
 
           <!-- Hàng 4: Nút hành động -->
           <n-form-item-gi :span="1" class="flex items-center justify-end">
-            <NButton strong secondary @click="handleResetSearch">Reset</NButton>
+            <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
           </n-form-item-gi>
 
 

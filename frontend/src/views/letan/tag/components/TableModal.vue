@@ -128,7 +128,7 @@ async function handleSubmit() {
     <n-form label-placement="left" :model="formModel" label-align="left" :label-width="120">
       <n-grid :cols="24" :x-gap="18">
 
-         <!-- Dòng 1 -->
+        <!-- Dòng 1 -->
         <n-form-item-grid-item :span="12" label="Tên tag" path="tenTag">
           <n-input v-model:value="formModel.tenTag" placeholder="Nhập tên tag" />
         </n-form-item-grid-item>

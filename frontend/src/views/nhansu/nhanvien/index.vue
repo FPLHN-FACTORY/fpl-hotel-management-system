@@ -532,7 +532,7 @@ onMounted(async () => {
     <n-card>
       <n-form ref="formRef" :model="model" label-placement="left" :show-feedback="false">
         <n-grid :cols="24" :x-gap="12" :y-gap="8">
-          <n-form-item-gi :span="8" label="Từ khóa" path="tuKhoa">
+          <n-form-item-gi :span="8" label="Tên" path="tuKhoa">
             <NInput v-model:value="model.tuKhoa" placeholder="Nhập tên, email hoặc CCCD" clearable
               @keyup.enter="fetchNhanVien(1)" @update:value="() => fetchNhanVien(1)" />
           </n-form-item-gi>
@@ -551,7 +551,7 @@ onMounted(async () => {
             <NButton strong secondary @click="handleResetSearch">
               <template #icon>
               </template>
-              reset
+              Làm mới
             </NButton>
           </n-gi>
         </n-grid>

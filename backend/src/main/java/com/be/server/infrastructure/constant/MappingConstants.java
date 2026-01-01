@@ -21,7 +21,7 @@ public class MappingConstants {
     /* API FOR ROLE ADMIN */
     public static final String API_LE_TAN_PREFIX = API_VERSION_PREFIX + LE_TAN;
 
-    public static final String API_ADMIN_NHAN_VIEN= API_LE_TAN_PREFIX + "/nhan-vien";
+    public static final String API_ADMIN_NHAN_VIEN = API_LE_TAN_PREFIX + "/nhan-vien";
 
     public static final String API_LE_TAN_PHONG = API_LE_TAN_PREFIX + "/phong";
 
@@ -30,4 +30,6 @@ public class MappingConstants {
     public static final String API_LE_TAN_SO_DO_PHONG = API_LE_TAN_PREFIX + "/so-do-phong";
 
     public static final String API_LE_TAN_TAG = API_LE_TAN_PREFIX + "/tag";
+
+    public static final String API_ADMIN_DOAN_LUU_TRU = API_LE_TAN_PREFIX + "/doan-luu-tru";
 }
