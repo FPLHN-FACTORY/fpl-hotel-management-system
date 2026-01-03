@@ -10,6 +10,7 @@ import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.TrangThaiPhongDat;
 import com.be.server.infrastructure.constant.TrangThaiVeSinh;
+import com.be.server.repository.ChiTietDatPhongRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
 
     private final SoDoPhongRepository soDoPhongRepository;
 
-    private final com.be.server.repository.ChiTietDatPhongRepository chiTietDatPhongRepository;
+    private final ChiTietDatPhongRepository chiTietDatPhongRepository;
 
     private final ADDPLoaiPhongRepository loaiPhongRepository;
 

@@ -20,11 +20,11 @@ const currentComponent = computed(() => {
 })
 
 const stateSearch = reactive({
-  stayDate: undefined as [number, number] | null | undefined,
-  minPrice: undefined as number | undefined | null,
-  maxPrice: undefined as number | undefined | null,
-  searchQuery: undefined as string | undefined | null,
-  idLoaiPhong: undefined as string | undefined | null,
+  stayDate: null as [number, number] | null,
+  minPrice: null as number | null,
+  maxPrice: null as number | null,
+  searchQuery: null as string | null,
+  idLoaiPhong: null as string | null,
 })
 
 const floors = ref<{ floor: number, rooms: SoDoPhongResponse[] }[]>([])
@@ -40,13 +40,6 @@ const bookingData = ref<{
   danhSachLoaiPhong: ChonLoaiPhong[]
 } | null>(null)
 
-function getTodayRange(): [number, number] {
-  const now = new Date()
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-  return [startOfDay.getTime(), endOfDay.getTime()]
-}
-
 async function fetchDataSoDoPhong() {
   try {
     const data = await getSoDoPhong({
@@ -54,8 +47,8 @@ async function fetchDataSoDoPhong() {
       idLoaiPhong: stateSearch.idLoaiPhong,
       minPrice: stateSearch.minPrice,
       maxPrice: stateSearch.maxPrice,
-      ngayDen: stateSearch.stayDate && stateSearch.stayDate[0],
-      ngayDi: stateSearch.stayDate && stateSearch.stayDate[1],
+      ngayDen: stateSearch.stayDate?.[0] || null,
+      ngayDi: stateSearch.stayDate?.[1] || null,
     })
 
     const mappedData = data.map((room) => {
@@ -129,20 +122,15 @@ watch(() => stateSearch.idLoaiPhong, () => {
   fetchDataSoDoPhong()
 })
 
-function initializeWithTodayFilter() {
-  stateSearch.stayDate = getTodayRange()
-  fetchDataSoDoPhong()
-}
-
 onMounted(() => {
   fetchDataLoaiPhong()
-  initializeWithTodayFilter()
+  fetchDataSoDoPhong()
 })
 
 function resetFilter() {
   stateSearch.minPrice = null
   stateSearch.maxPrice = null
-  stateSearch.searchQuery = ''
+  stateSearch.searchQuery = null
   stateSearch.idLoaiPhong = null
   stateSearch.stayDate = null
   fetchDataSoDoPhong()

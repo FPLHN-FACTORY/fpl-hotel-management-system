@@ -36,7 +36,6 @@ public interface SoDoPhongRepository extends PhongRepository {
             
         FROM phong p
         LEFT JOIN loai_phong lp ON lp.id = p.loai_phong_id
-        LEFT JOIN dat_phong dp on p.id = dp.id_phong 
         WHERE((:#{#request.q} IS NULL OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
             OR (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%')))
             AND (:idLoaiPhong IS NULL OR lp.id = :idLoaiPhong)
@@ -52,10 +51,16 @@ public interface SoDoPhongRepository extends PhongRepository {
     );
 
     @Query("""
-    SELECT p.id
-    FROM Phong p
-    LEFT JOIN DatPhong dp on dp.phong.id = p.id
-    WHERE :ngayDen IS NULL OR :ngayDi IS NULL OR (dp.thoiGianCheckIn < :ngayDi AND dp.thoiGianCheckOut > :ngayDen)
+            SELECT DISTINCT ctdp.room.id
+            FROM ChiTietDatPhong ctdp
+            JOIN ctdp.phieuDatPhong pdp
+            WHERE :ngayDen IS NOT NULL
+                AND :ngayDi IS NOT NULL
+                AND pdp.checkInDate < :ngayDi
+                AND pdp.checkOutDate > :ngayDen
     """)
-    List<String> findRoomsByNgayDenAndNgayDi(Long ngayDen,Long ngayDi);
+    List<String> findRoomsByNgayDenAndNgayDi(
+            @Param("ngayDen") Long ngayDen,
+            @Param("ngayDi") Long ngayDi
+    );
 }
