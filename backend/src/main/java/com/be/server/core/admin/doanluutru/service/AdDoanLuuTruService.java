@@ -1,23 +1,25 @@
 package com.be.server.core.admin.doanluutru.service;
 
-import com.be.server.core.admin.doanluutru.request.AddMemberRequest;
-import com.be.server.core.admin.doanluutru.request.CreateDoanRequest;
-import com.be.server.entity.ChiTietDoan;
+import com.be.server.core.admin.doanluutru.modal.request.AddMemberRequest;
+import com.be.server.core.admin.doanluutru.modal.request.CreateDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.SearchMemberRequest;
+import com.be.server.core.common.base.ResponseObject;
+import com.be.server.entity.DatPhong;
 import com.be.server.entity.DoanLuuTru;
 import java.util.List;
 
-import com.be.server.core.admin.doanluutru.request.FindDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.FindDoanRequest;
 
 public interface AdDoanLuuTruService {
-    DoanLuuTru createDoan(CreateDoanRequest request);
+    ResponseObject<?> createDoan(CreateDoanRequest request);
 
-    ChiTietDoan addMember(AddMemberRequest request);
+    ResponseObject<?>addMember(AddMemberRequest request);
 
-    List<ChiTietDoan> getMembers(String idDoan);
+    ResponseObject<?> getMembers(String idDoanLuuTru,SearchMemberRequest request);
 
     DoanLuuTru getDoanByBooking(String idDatPhong);
 
-    List<DoanLuuTru> getAllDoan(FindDoanRequest request);
+    ResponseObject<?> getAllDoan(FindDoanRequest request);
 
-    List<com.be.server.entity.DatPhong> getAvailableBookings();
+    ResponseObject<?> getAllBooked();
 }

@@ -1,6 +1,7 @@
 package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
+import com.be.server.infrastructure.constant.EntityVaiTroDoan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,5 +26,6 @@ public class ChiTietDoan extends PrimaryEntity implements Serializable {
     private KhachHang khachHang;
 
     @Column(name = "vai_tro")
-    private String vaiTro;
+    @Enumerated(EnumType.ORDINAL)
+    private EntityVaiTroDoan vaiTro;
 }

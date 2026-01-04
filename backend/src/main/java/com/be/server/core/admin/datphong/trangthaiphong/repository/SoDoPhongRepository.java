@@ -1,6 +1,7 @@
 package com.be.server.core.admin.datphong.trangthaiphong.repository;
 
 import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
+import com.be.server.core.admin.datphong.trangthaiphong.model.response.DSPhongDaDatCombox;
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import com.be.server.repository.PhongRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -59,4 +60,8 @@ public interface SoDoPhongRepository extends PhongRepository {
     WHERE :ngayDen IS NULL OR :ngayDi IS NULL OR (dp.thoiGianCheckIn < :ngayDi AND dp.thoiGianCheckOut > :ngayDen)
     """)
     List<String> findRoomsByNgayDenAndNgayDi(Long ngayDen,Long ngayDi);
+
+
+
+
 }

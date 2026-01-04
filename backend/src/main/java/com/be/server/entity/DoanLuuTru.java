@@ -22,19 +22,12 @@ public class DoanLuuTru extends PrimaryEntity implements Serializable {
     @Column(name = "ten_doan")
     private String tenDoan;
 
-    @ManyToOne
-    @JoinColumn(name = "id_truong_doan")
-    private KhachHang truongDoan;
-
     @OneToOne
     @JoinColumn(name = "id_dat_phong")
     private DatPhong datPhong;
 
     @Column(name = "ghi_chu")
     private String ghiChu;
-
-    @Column(name = "so_nguoi")
-    private Integer soNguoi;
 
     @Column(name = "thoi_gian_check_in")
     private Long thoiGianCheckIn;
@@ -44,4 +37,7 @@ public class DoanLuuTru extends PrimaryEntity implements Serializable {
 
     @Column(name = "trang_thai")
     private Integer trangThai;
+
+
+
 }

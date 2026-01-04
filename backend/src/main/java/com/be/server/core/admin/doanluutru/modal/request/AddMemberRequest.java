@@ -1,7 +1,9 @@
-package com.be.server.core.admin.doanluutru.request;
+package com.be.server.core.admin.doanluutru.modal.request;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -13,12 +15,15 @@ public class AddMemberRequest {
 
     // New customer info (if creating new)
     private String hoTen;
+    private Integer gioiTinh;
+    private LocalDate ngaySinh;
     private String email;
-    private String soCccd;
+    private Integer loaiGiayTo;
+    private String soGiayTo;
     private String soDienThoai;
     private String diaChi;
     private String quocTich;
     // ... add more if needed
 
-    private String vaiTro; // "MEMBER", "LEADER"
+    private Boolean confirmUseOld;
 }

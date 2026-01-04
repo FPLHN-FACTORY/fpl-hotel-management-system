@@ -161,6 +161,23 @@ public class Helper {
         // Thay thế tất cả khoảng trắng liên tiếp bằng dấu gạch dưới
         return withoutAccentString.replaceAll("\\s+", "_");
     }
+    public static String toLower(String input) {
+        return input == null ? null : input.toLowerCase();
+    }
+    public static String extractLastName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "";
+        }
+
+        // Xóa khoảng trắng dư và trim
+        fullName = fullName.trim().replaceAll("\\s+", " ");
+
+        // Tách theo khoảng trắng
+        String[] parts = fullName.split(" ");
+
+        // Trả về phần cuối cùng
+        return parts[parts.length - 1];
+    }
     public static String generateCodeMauSac() {
         Random random = new Random();
         int number = random.nextInt(10000);

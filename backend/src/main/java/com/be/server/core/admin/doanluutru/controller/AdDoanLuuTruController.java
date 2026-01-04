@@ -1,12 +1,15 @@
 package com.be.server.core.admin.doanluutru.controller;
 
-import com.be.server.core.admin.doanluutru.request.AddMemberRequest;
-import com.be.server.core.admin.doanluutru.request.CreateDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.AddMemberRequest;
+import com.be.server.core.admin.doanluutru.modal.request.CreateDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.FindDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.SearchMemberRequest;
 import com.be.server.core.admin.doanluutru.service.AdDoanLuuTruService;
-import com.be.server.entity.ChiTietDoan;
 import com.be.server.entity.DoanLuuTru;
+import com.be.server.utils.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.be.server.core.common.base.ResponseObject;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,7 +17,7 @@ import java.util.List;
 import com.be.server.infrastructure.constant.MappingConstants;
 
 @RestController
-@RequestMapping(MappingConstants.API_ADMIN_DOAN_LUU_TRU)
+@RequestMapping(MappingConstants.API_LE_TAN_DOAN_LUU_TRU)
 @CrossOrigin("*")
 public class AdDoanLuuTruController {
 
@@ -22,13 +25,13 @@ public class AdDoanLuuTruController {
     private AdDoanLuuTruService service;
 
     @PostMapping("/create")
-    public ResponseObject<DoanLuuTru> createDoan(@RequestBody CreateDoanRequest request) {
-        return ResponseObject.successForward(service.createDoan(request), "Tạo đoàn thành công");
+    public ResponseEntity<?> createDoan(@RequestBody CreateDoanRequest request) {
+        return Helper.createResponseEntity(service.createDoan(request));
     }
 
     @PostMapping("/add-member")
-    public ResponseObject<ChiTietDoan> addMember(@RequestBody AddMemberRequest request) {
-        return ResponseObject.successForward(service.addMember(request), "Thêm thành viên thành công");
+    public ResponseEntity<?> addMember(@RequestBody AddMemberRequest request) {
+        return Helper.createResponseEntity(service.addMember(request));
     }
 
     @GetMapping("/booking/{idBooking}")
@@ -38,19 +41,18 @@ public class AdDoanLuuTruController {
     }
 
     @GetMapping("/{idDoan}/members")
-    public ResponseObject<List<ChiTietDoan>> getMembers(@PathVariable String idDoan) {
-        return ResponseObject.successForward(service.getMembers(idDoan), "Lấy danh sách thành viên thành công");
+    public ResponseEntity<?> getMembers(@PathVariable String idDoan,@ModelAttribute SearchMemberRequest request) {
+        return Helper.createResponseEntity(service.getMembers(idDoan,request));
     }
 
     @GetMapping("/list")
-    public ResponseObject<List<DoanLuuTru>> getAll(
-            @ModelAttribute com.be.server.core.admin.doanluutru.request.FindDoanRequest request) {
-        return ResponseObject.successForward(service.getAllDoan(request), "Lấy danh sách đoàn thành công");
+    public ResponseEntity<?> getAllDoan(
+            @ModelAttribute FindDoanRequest request) {
+        return Helper.createResponseEntity(service.getAllDoan(request));
     }
 
-    @GetMapping("/active-bookings")
-    public ResponseObject<List<com.be.server.entity.DatPhong>> getActiveBookings() {
-        return ResponseObject.successForward(service.getAvailableBookings(),
-                "Lấy danh sách booking khả dụng thành công");
+    @GetMapping("/booked")
+    public ResponseEntity<?> getAllBooked() {
+        return Helper.createResponseEntity(service.getAllBooked());
     }
 }
