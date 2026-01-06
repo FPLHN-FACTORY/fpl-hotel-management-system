@@ -527,7 +527,7 @@ async function onOCRResult(data: any) {
                   </n-icon>
                 </template>
               </n-button>
-              
+
             </n-space>
           </n-form-item-grid-item>
           <n-form-item-grid-item :span="12" label="Số giấy tờ" path="soGiayTo">

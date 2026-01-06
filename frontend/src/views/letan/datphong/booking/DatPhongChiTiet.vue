@@ -219,259 +219,188 @@ function getTagColor(tag: any): string {
     :mask-closable="false"
     preset="card"
     title="Đặt phòng chi tiết"
-    class="w-1100px modal-custom-font"
+    class="w-1300px modal-custom-font"
     :segmented="{ content: true, action: true }"
   >
     <n-spin :show="isLoading">
-      <div class="space-y-4">
-        <!-- Thông tin đặt phòng -->
-        <n-card v-if="bookingData" size="small" title="Thông tin đặt phòng" :bordered="false" class="bg-blue-50">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <div class="text-sm text-gray-600 mb-1">
-                <nova-icon icon="carbon:calendar" class="mr-1" />
-                Nhận phòng
+      <div class="grid grid-cols-12 gap-5 min-h-[500px]">
+        <div class="col-span-6 space-y-4">
+          <n-card size="small" :bordered="false">
+            <template #header>
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-semibold">Danh sách phòng</span>
+                <n-tag type="info" size="large">
+                  Đã chọn: {{ selectedPhongIds.length }}/{{ danhSachPhong.length }} phòng
+                </n-tag>
               </div>
-              <div class="font-semibold text-base">
-                {{ formatDate(bookingData.ngayNhan) }}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-gray-600 mb-1">
-                <nova-icon icon="carbon:calendar" class="mr-1" />
-                Trả phòng
-              </div>
-              <div class="font-semibold text-base">
-                {{ formatDate(bookingData.ngayTra) }}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-gray-600 mb-1">
-                <nova-icon icon="carbon:user-multiple" class="mr-1" />
-                Số khách
-              </div>
-              <div class="font-semibold text-base">
-                {{ bookingData.soLuongKhach }} người
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-gray-600 mb-1">
-                <nova-icon icon="carbon:time" class="mr-1" />
-                Thời gian lưu trú
-              </div>
-              <div class="font-semibold text-base text-blue-600">
-                {{ soNgayO }} đêm
-              </div>
-            </div>
-          </div>
-        </n-card>
+            </template>
 
-        <!-- Thông tin khách hàng -->
-        <n-card size="small" title="Thông tin khách hàng" :bordered="false">
-          <n-form-item label="Tìm kiếm khách hàng">
-            <n-select
-              v-model:value="selectedKhachHang"
-              filterable
-              placeholder="Nhập tên, SĐT, CCCD hoặc Email để tìm..."
-              :options="khachHangOptions.map(kh => ({
-                label: `${kh.hoTen} - ${kh.soDienThoai || kh.email}`,
-                value: kh.id,
-              }))"
-              :loading="isSearchingKH"
-              clearable
-              remote
-              :clear-filter-after-select="false"
-              @search="(val: string) => keywordKhachHang = val"
-            >
-              <template #empty>
-                <div class="p-4 text-center text-gray-500">
-                  Nhập từ khóa để tìm kiếm khách hàng
-                </div>
-              </template>
-            </n-select>
-          </n-form-item>
-
-          <n-card v-if="selectedKhachHangInfo" size="small" class="mt-3 bg-gray-50">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <div class="text-sm text-gray-600">
-                  Họ tên
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.hoTen }}
-                </div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-600">
-                  Mã khách hàng
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.maNguoiDung }}
-                </div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-600">
-                  Số điện thoại
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.soDienThoai }}
-                </div>
-              </div>
-              <div v-if="selectedKhachHangInfo.email">
-                <div class="text-sm text-gray-600">
-                  Email
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.email }}
-                </div>
-              </div>
-              <div v-if="selectedKhachHangInfo.soCCCD">
-                <div class="text-sm text-gray-600">
-                  CCCD/CMND
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.soCCCD }}
-                </div>
-              </div>
-              <div v-if="selectedKhachHangInfo.quocTich">
-                <div class="text-sm text-gray-600">
-                  Quốc tịch
-                </div>
-                <div class="font-semibold">
-                  {{ selectedKhachHangInfo.quocTich }}
+            <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              <div
+                v-for="phong in danhSachPhong"
+                :key="phong.idPhong"
+                class="border rounded-lg p-4 cursor-pointer transition-all text-sm"
+                :class="[
+                  selectedPhongIds.includes(phong.idPhong)
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-blue-300 hover:shadow-sm',
+                ]"
+                @click="togglePhong(phong.idPhong)"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="flex items-start gap-3 flex-1">
+                    <n-checkbox
+                      :checked="selectedPhongIds.includes(phong.idPhong)"
+                      @click.stop
+                      @update:checked="() => togglePhong(phong.idPhong)"
+                    />
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <h4 class="font-bold text-base">
+                          {{ phong.tenPhong }}
+                        </h4>
+                        <n-tag size="small" type="success">
+                          {{ phong.tenLoaiPhong }}
+                        </n-tag>
+                      </div>
+                      <div class="text-gray-600 space-y-1">
+                        <div class="flex items-center gap-4 text-sm">
+                          <span class="flex items-center gap-1">
+                            <nova-icon icon="carbon:building" :size="14" />
+                            Tầng {{ phong.tang }}
+                          </span>
+                          <span class="flex items-center gap-1">
+                            <nova-icon icon="carbon:user-multiple" :size="14" />
+                            {{ phong.sucChua }} người
+                          </span>
+                        </div>
+                        <div v-if="phong.tags && phong.tags.length > 0" class="flex gap-2 flex-wrap mt-2">
+                          <n-tag
+                            v-for="tag in phong.tags"
+                            :key="tag.id"
+                            size="small"
+                            round
+                            :color="{ color: getTagColor(tag), textColor: '#fff', borderColor: getTagColor(tag) }"
+                          >
+                            {{ tag.ten }}
+                          </n-tag>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right ml-4">
+                    <div class="text-lg font-bold text-blue-600">
+                      {{ phong.gia.toLocaleString('vi-VN') }}
+                    </div>
+                    <div class="text-xs text-gray-500">VNĐ / đêm</div>
+                  </div>
                 </div>
               </div>
             </div>
           </n-card>
-        </n-card>
+        </div>
 
-        <!-- Danh sách phòng -->
-        <n-card size="small" :bordered="false">
-          <template #header>
-            <div class="flex justify-between items-center">
-              <span>Danh sách phòng</span>
-              <n-tag type="info" size="large">
-                Đã chọn: {{ selectedPhongIds.length }}/{{ danhSachPhong.length }} phòng
-              </n-tag>
+        <div class="col-span-6 space-y-4">
+          <n-card v-if="bookingData" size="small" title="Thông tin đặt phòng" :bordered="false" class="bg-blue-50">
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div class="text-gray-600 mb-1"><nova-icon icon="carbon:calendar" class="mr-1" />Nhận phòng</div>
+                <div class="font-semibold">{{ formatDate(bookingData.ngayNhan) }}</div>
+              </div>
+              <div>
+                <div class="text-gray-600 mb-1"><nova-icon icon="carbon:calendar" class="mr-1" />Trả phòng</div>
+                <div class="font-semibold">{{ formatDate(bookingData.ngayTra) }}</div>
+              </div>
+              <div>
+                <div class="text-gray-600 mb-1"><nova-icon icon="carbon:user-multiple" class="mr-1" />Số khách</div>
+                <div class="font-semibold">{{ bookingData.soLuongKhach }} người</div>
+              </div>
+              <div>
+                <div class="text-gray-600 mb-1"><nova-icon icon="carbon:time" class="mr-1" />Lưu trú</div>
+                <div class="font-semibold text-blue-600">{{ soNgayO }} đêm</div>
+              </div>
             </div>
-          </template>
+          </n-card>
 
-          <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-            <div
-              v-for="phong in danhSachPhong"
-              :key="phong.idPhong"
-              class="border rounded-lg p-4 cursor-pointer transition-all"
-              :class="[
-                selectedPhongIds.includes(phong.idPhong)
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 hover:border-blue-300 hover:shadow-sm',
-              ]"
-              @click="togglePhong(phong.idPhong)"
-            >
-              <div class="flex justify-between items-start">
-                <div class="flex items-start gap-3 flex-1">
-                  <n-checkbox
-                    :checked="selectedPhongIds.includes(phong.idPhong)"
-                    @click.stop
-                    @update:checked="() => togglePhong(phong.idPhong)"
-                  />
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                      <h4 class="font-bold text-lg">
-                        {{ phong.maPhong }} - {{ phong.tenPhong }}
-                      </h4>
-                      <n-tag size="small" type="success">
-                        {{ phong.tenLoaiPhong }}
-                      </n-tag>
-                    </div>
-                    <div class="text-base text-gray-600 space-y-1">
-                      <div class="flex items-center gap-4">
-                        <span class="flex items-center gap-1">
-                          <nova-icon icon="carbon:building" :size="16" />
-                          Tầng {{ phong.tang }}
-                        </span>
-                        <span class="flex items-center gap-1">
-                          <nova-icon icon="carbon:user-multiple" :size="16" />
-                          Sức chứa: {{ phong.sucChua }} người
-                        </span>
-                      </div>
-                      <div v-if="phong.tags && phong.tags.length > 0" class="flex gap-2 flex-wrap mt-2">
-                        <n-tag
-                          v-for="tag in phong.tags"
-                          :key="tag.id"
-                          size="small"
-                          round
-                          :color="{ color: getTagColor(tag), textColor: '#fff', borderColor: getTagColor(tag) }"
-                        >
-                          {{ tag.ten }}
-                        </n-tag>
-                      </div>
-                    </div>
-                  </div>
+          <n-card size="small" title="Thông tin khách hàng" :bordered="false">
+            <n-form-item label="Tìm kiếm khách hàng">
+              <n-select
+                v-model:value="selectedKhachHang"
+                filterable
+                placeholder="Nhập tên, SĐT, CCCD hoặc Email..."
+                :options="khachHangOptions.map(kh => ({
+                  label: `${kh.hoTen} - ${kh.soDienThoai || kh.email}`,
+                  value: kh.id,
+                }))"
+                :loading="isSearchingKH"
+                clearable
+                remote
+                :clear-filter-after-select="false"
+                @search="(val: string) => keywordKhachHang = val"
+              />
+            </n-form-item>
+
+            <n-card v-if="selectedKhachHangInfo" size="small" class="mt-3 bg-gray-50 text-sm">
+              <div class="grid grid-cols-2 gap-3">
+                <div><div class="text-gray-600">Họ tên</div><div class="font-semibold">{{ selectedKhachHangInfo.hoTen }}</div></div>
+                <div><div class="text-gray-600">Mã KH</div><div class="font-semibold">{{ selectedKhachHangInfo.maNguoiDung }}</div></div>
+                <div><div class="text-gray-600">SĐT</div><div class="font-semibold">{{ selectedKhachHangInfo.soDienThoai }}</div></div>
+                <div v-if="selectedKhachHangInfo.email"><div class="text-gray-600">Email</div><div class="font-semibold">{{ selectedKhachHangInfo.email }}</div></div>
+                <div v-if="selectedKhachHangInfo.soCCCD"><div class="text-gray-600">CCCD</div><div class="font-semibold">{{ selectedKhachHangInfo.soCCCD }}</div></div>
+                <div v-if="selectedKhachHangInfo.quocTich"><div class="text-gray-600">Quốc tịch</div><div class="font-semibold">{{ selectedKhachHangInfo.quocTich }}</div></div>
+              </div>
+            </n-card>
+          </n-card>
+
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Tiền phòng ({{ selectedPhongIds.length }} phòng × 1 đêm):</span>
+                  <span class="font-semibold">{{ tongTienPhong.toLocaleString('vi-VN') }} VNĐ</span>
                 </div>
-                <div class="text-right ml-4">
-                  <div class="text-xl font-bold text-blue-600 mb-1">
-                    {{ phong.gia.toLocaleString('vi-VN') }}
-                  </div>
-                  <div class="text-sm text-gray-500">
-                    VNĐ / đêm
-                  </div>
+                <div class="flex justify-between">
+                  <span>Số đêm:</span>
+                  <span class="font-semibold">{{ soNgayO }} đêm</span>
+                </div>
+                <n-divider class="my-2" />
+                <div class="flex justify-between items-center">
+                  <span class="text-base font-semibold">Tổng cộng:</span>
+                  <span class="text-2xl font-bold text-green-600">
+                    {{ tongTien.toLocaleString('vi-VN') }} VNĐ
+                  </span>
                 </div>
               </div>
             </div>
+
+            <n-card size="small" title="Thông tin bổ sung" :bordered="false">
+              <n-form-item label="Ghi chú">
+                <n-input
+                  v-model:value="formData.ghiChu"
+                  type="textarea"
+                  placeholder="Nhập ghi chú (tùy chọn)..."
+                  :rows="3"
+                  :maxlength="500"
+                  show-count
+                />
+              </n-form-item>
+
+              <n-form-item>
+                <n-checkbox v-model:checked="formData.nhanNgay" :disabled="!canNhanNgay()">
+                  <span class="text-base">
+                    <nova-icon icon="carbon:license-draft" class="mr-1" />
+                    Nhận phòng ngay (Check-in)
+                  </span>
+                </n-checkbox>
+                <template #feedback>
+                  <n-text v-if="!canNhanNgay()" type="warning" class="text-sm">
+                    Chỉ áp dụng khi còn tối đa 1 giờ trước check-in
+                  </n-text>
+                </template>
+              </n-form-item>
+            </n-card>
           </div>
-
-          <n-divider />
-
-          <!-- Tổng tiền -->
-          <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-            <div class="space-y-2">
-              <div class="flex justify-between text-base">
-                <span>Tổng tiền phòng ({{ selectedPhongIds.length }} phòng × 1 đêm):</span>
-                <span class="font-semibold">{{ tongTienPhong.toLocaleString('vi-VN') }} VNĐ</span>
-              </div>
-              <div class="flex justify-between text-base">
-                <span>Số đêm:</span>
-                <span class="font-semibold">{{ soNgayO }} đêm</span>
-              </div>
-              <n-divider class="my-2" />
-              <div class="flex justify-between items-center">
-                <span class="text-lg font-semibold">Tổng cộng:</span>
-                <span class="text-3xl font-bold text-green-600">
-                  {{ tongTien.toLocaleString('vi-VN') }} VNĐ
-                </span>
-              </div>
-            </div>
-          </div>
-        </n-card>
-
-        <!-- Ghi chú và tùy chọn -->
-        <n-card size="small" title="Thông tin bổ sung" :bordered="false">
-          <n-form-item label="Ghi chú">
-            <n-input
-              v-model:value="formData.ghiChu"
-              type="textarea"
-              placeholder="Nhập ghi chú (tùy chọn)..."
-              :rows="3"
-              :maxlength="500"
-              show-count
-            />
-          </n-form-item>
-
-          <n-form-item>
-            <n-checkbox v-model:checked="formData.nhanNgay" :disabled="!canNhanNgay()">
-              <span class="text-base">
-                <nova-icon icon="carbon:license-draft" class="mr-1" />
-                Nhận phòng ngay (Check-in)
-              </span>
-            </n-checkbox>
-            <template #feedback>
-              <n-text v-if="!canNhanNgay()" type="warning" class="text-sm">
-                Chỉ áp dụng khi còn tối đa 1 giờ trước thời gian check-in
-              </n-text>
-            </template>
-          </n-form-item>
-        </n-card>
+        </div>
       </div>
     </n-spin>
 
@@ -481,9 +410,7 @@ function getTagColor(tag: any): string {
           <strong>{{ selectedPhongIds.length }}</strong> phòng đã chọn
         </n-text>
         <n-space>
-          <n-button size="large" @click="closeModal">
-            Hủy
-          </n-button>
+          <n-button size="large" @click="closeModal">Hủy</n-button>
           <n-button
             type="primary"
             size="large"
@@ -502,13 +429,13 @@ function getTagColor(tag: any): string {
 </template>
 
 <style scoped>
-.w-1100px {
-  width: 1100px;
+.w-1000px {
+  width: 1000px;
   max-width: 95vw;
 }
 
 .modal-custom-font :deep(.n-card-header) {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
 }
 
@@ -516,16 +443,7 @@ function getTagColor(tag: any): string {
 .modal-custom-font :deep(.n-input__input-el),
 .modal-custom-font :deep(.n-input__textarea-el),
 .modal-custom-font :deep(.n-button__content),
-.modal-custom-font :deep(.n-base-selection-label),
-.modal-custom-font :deep(p),
-.modal-custom-font :deep(span),
-.modal-custom-font :deep(div),
-.modal-custom-font :deep(.n-text) {
-  font-size: 17px;
-}
-
-/* Custom scrollbar */
-:deep(.n-scrollbar-rail) {
-  right: 0 !important;
+.modal-custom-font :deep(.n-base-selection-label) {
+  font-size: 16px;
 }
 </style>

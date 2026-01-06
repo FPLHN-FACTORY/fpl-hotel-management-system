@@ -19,9 +19,7 @@ import java.io.Serializable;
 @Setter
 @Table(name = "lich_su_dat_phong")
 public class LichSuDatPhong extends PrimaryEntity implements Serializable{
-    @ManyToOne
-    @JoinColumn(name = "id_dat_phong")
-    private DatPhong datPhong;
+
 
     @ManyToOne
     @JoinColumn(name = "id_nhan_vien")
