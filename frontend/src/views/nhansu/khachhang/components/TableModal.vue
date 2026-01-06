@@ -475,7 +475,7 @@ async function onScanResult (data: any) {
               </n-icon>
             </template>
           </n-button>
-</n-form-item-grid-item> 
+</n-form-item-grid-item>
           <n-form-item-grid-item :span="12" label="Số giấy tờ" path="soGiayTo">
             <NInput v-model:value="formModel.soGiayTo" placeholder="Nhập số giấy tờ" clearable />
           </n-form-item-grid-item>
