@@ -79,12 +79,6 @@ async function handleSearch() {
     loaiPhongList.value = data
     hasSearched.value = true
 
-    // Tự động chọn phòng đầu tiên với số lượng 1
-    if (data.length > 0) {
-      selectedLoaiPhong.value.clear()
-      selectedLoaiPhong.value.set(data[0].idLoaiPhong, 1)
-    }
-
     if (data.length === 0) {
       window.$message.warning('Không có phòng trống trong khoảng thời gian này')
     }
@@ -167,145 +161,65 @@ function formatDate(timestamp: number) {
       <div class="grid grid-cols-12 gap-6">
         <!-- Cột trái: Danh sách loại phòng -->
         <div class="col-span-7">
-          <div v-if="hasSearched && loaiPhongList.length > 0" class="space-y-4">
-            <!-- Gợi ý phòng đầu tiên -->
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <nova-icon icon="carbon:star-filled" class="text-yellow-500" :size="18" />
-                <h3 class="text-base font-semibold">
-                  Gợi ý cho {{ formData.soLuongKhach }} khách
-                </h3>
+          <div v-if="hasSearched && loaiPhongList.length > 0" class="space-y-3">
+            <n-card
+              v-for="loaiPhong in loaiPhongList"
+              :key="loaiPhong.idLoaiPhong"
+              :bordered="true"
+              class="hover:shadow-md transition-shadow"
+              size="small"
+            >
+              <div class="space-y-2">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <h4 class="font-bold text-base mb-1">
+                      {{ loaiPhong.tenLoaiPhong }}
+                    </h4>
+                    <p class="text-gray-600 text-sm">
+                      {{ loaiPhong.moTa }}
+                    </p>
+                  </div>
+                  <div class="text-right ml-4">
+                    <div class="text-xl font-bold text-gray-800">
+                      {{ loaiPhong.giaCaNgay.toLocaleString('vi-VN') }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      VNĐ / đêm
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+                  <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
+                    <nova-icon icon="carbon:hotel" :size="14" />
+                    {{ loaiPhong.soGiuongDon }} đơn · {{ loaiPhong.soGiuongDOi }} đôi
+                  </span>
+                  <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
+                    <nova-icon icon="carbon:user-multiple" :size="14" />
+                    Tối đa {{ loaiPhong.soNguoiToiDa }} người
+                  </span>
+                  <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
+                    <nova-icon icon="carbon:building" :size="14" />
+                    Còn {{ loaiPhong.soPhongTrong }} phòng
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2 border-t">
+                  <span class="font-semibold text-sm">Số lượng:</span>
+                  <n-input-number
+                    :value="selectedLoaiPhong.get(loaiPhong.idLoaiPhong) || 0"
+                    :min="0"
+                    :max="loaiPhong.soPhongTrong"
+                    style="width: 110px"
+                    size="small"
+                    @update:value="(val) => handleQuantityChange(loaiPhong.idLoaiPhong, val)"
+                  />
+                  <span class="text-xs text-gray-500">
+                    (tối đa {{ loaiPhong.soPhongTrong }})
+                  </span>
+                </div>
               </div>
-
-              <n-card
-                v-if="loaiPhongList[0]"
-                :bordered="true"
-                class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 shadow-md hover:shadow-lg transition-shadow"
-              >
-                <div class="space-y-2">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                      <n-tag type="success" size="small" round class="mb-1">
-                        <template #icon>
-                          <nova-icon icon="carbon:checkmark-filled" />
-                        </template>
-                        Phù hợp nhất
-                      </n-tag>
-                      <h4 class="text-lg font-bold mb-1">
-                        {{ loaiPhongList[0].tenLoaiPhong }}
-                      </h4>
-                      <p class="text-gray-600 text-sm">
-                        {{ loaiPhongList[0].moTa }}
-                      </p>
-                    </div>
-                    <div class="text-right ml-4">
-                      <div class="text-2xl font-bold text-blue-600">
-                        {{ loaiPhongList[0].giaCaNgay.toLocaleString('vi-VN') }}
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        VNĐ / đêm
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex flex-wrap gap-2 text-sm">
-                    <span class="flex items-center gap-1 bg-white px-2 py-1 rounded-full">
-                      <nova-icon icon="carbon:hotel" :size="16" />
-                      {{ loaiPhongList[0].soGiuongDon }} đơn · {{ loaiPhongList[0].soGiuongDOi }} đôi
-                    </span>
-                    <span class="flex items-center gap-1 bg-white px-2 py-1 rounded-full">
-                      <nova-icon icon="carbon:user-multiple" :size="16" />
-                      Tối đa {{ loaiPhongList[0].soNguoiToiDa }} người
-                    </span>
-                    <span class="flex items-center gap-1 bg-white px-2 py-1 rounded-full text-green-600 font-medium">
-                      <nova-icon icon="carbon:checkmark-filled" :size="16" />
-                      Còn {{ loaiPhongList[0].soPhongTrong }} phòng
-                    </span>
-                  </div>
-
-                  <div class="flex items-center gap-2 pt-2 border-t border-blue-200">
-                    <span class="font-semibold text-sm">Số lượng:</span>
-                    <n-input-number
-                      :value="selectedLoaiPhong.get(loaiPhongList[0].idLoaiPhong) || 0"
-                      :min="0"
-                      :max="loaiPhongList[0].soPhongTrong"
-                      style="width: 110px"
-                      size="small"
-                      @update:value="(val) => handleQuantityChange(loaiPhongList[0].idLoaiPhong, val)"
-                    />
-                    <span class="text-xs text-gray-500">
-                      (tối đa {{ loaiPhongList[0].soPhongTrong }})
-                    </span>
-                  </div>
-                </div>
-              </n-card>
-            </div>
-
-            <n-divider>
-              <span class="text-gray-500">Tất cả lựa chọn</span>
-            </n-divider>
-
-            <!-- Danh sách tất cả loại phòng -->
-            <div class="space-y-2">
-              <n-card
-                v-for="loaiPhong in loaiPhongList"
-                :key="loaiPhong.idLoaiPhong"
-                :bordered="true"
-                class="hover:shadow-md transition-shadow"
-                size="small"
-              >
-                <div class="space-y-2">
-                  <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                      <h4 class="font-bold text-base mb-1">
-                        {{ loaiPhong.tenLoaiPhong }}
-                      </h4>
-                      <p class="text-gray-600 text-sm">
-                        {{ loaiPhong.moTa }}
-                      </p>
-                    </div>
-                    <div class="text-right ml-4">
-                      <div class="text-xl font-bold text-gray-800">
-                        {{ loaiPhong.giaCaNgay.toLocaleString('vi-VN') }}
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        VNĐ / đêm
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
-                    <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
-                      <nova-icon icon="carbon:hotel" :size="14" />
-                      {{ loaiPhong.soGiuongDon }} đơn · {{ loaiPhong.soGiuongDOi }} đôi
-                    </span>
-                    <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
-                      <nova-icon icon="carbon:user-multiple" :size="14" />
-                      Tối đa {{ loaiPhong.soNguoiToiDa }} người
-                    </span>
-                    <span class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
-                      <nova-icon icon="carbon:building" :size="14" />
-                      Còn {{ loaiPhong.soPhongTrong }} phòng
-                    </span>
-                  </div>
-
-                  <div class="flex items-center gap-2 pt-2 border-t">
-                    <span class="font-semibold text-sm">Số lượng:</span>
-                    <n-input-number
-                      :value="selectedLoaiPhong.get(loaiPhong.idLoaiPhong) || 0"
-                      :min="0"
-                      :max="loaiPhong.soPhongTrong"
-                      style="width: 110px"
-                      size="small"
-                      @update:value="(val) => handleQuantityChange(loaiPhong.idLoaiPhong, val)"
-                    />
-                    <span class="text-xs text-gray-500">
-                      (tối đa {{ loaiPhong.soPhongTrong }})
-                    </span>
-                  </div>
-                </div>
-              </n-card>
-            </div>
+            </n-card>
           </div>
 
           <n-empty
@@ -438,13 +352,13 @@ function formatDate(timestamp: number) {
 </template>
 
 <style scoped>
-.w-1100px {
-  width: 1100px;
+.w-1300px {
+  width: 1300px;
   max-width: 95vw;
   max-height: 85vh;
 }
 
-.w-1100px :deep(.n-card__content) {
+.w-1300px :deep(.n-card__content) {
   max-height: calc(85vh - 140px);
   overflow-y: auto;
 }
@@ -468,12 +382,10 @@ function formatDate(timestamp: number) {
   font-size: 14px;
 }
 
-/* Giảm khoảng cách giữa các form item */
 .modal-custom-font :deep(.n-form-item) {
   margin-bottom: 12px;
 }
 
-/* Giảm padding của các card */
 .modal-custom-font :deep(.n-card) {
   padding: 12px;
 }
@@ -482,7 +394,6 @@ function formatDate(timestamp: number) {
   padding: 10px 16px;
 }
 
-/* Giảm khoảng cách space-y */
 .space-y-4 > * + * {
   margin-top: 12px !important;
 }
@@ -491,12 +402,10 @@ function formatDate(timestamp: number) {
   margin-top: 10px !important;
 }
 
-/* Giảm gap của grid */
 .grid {
   gap: 16px;
 }
 
-/* Tăng kích thước date picker để hiển thị đủ text */
 .modal-custom-font :deep(.n-date-picker) {
   min-width: 100%;
 }
@@ -510,41 +419,26 @@ function formatDate(timestamp: number) {
   min-height: 36px;
 }
 
-/* Giảm kích thước button */
 .modal-custom-font :deep(.n-button--large) {
   padding: 8px 16px;
   font-size: 14px;
 }
 
-/* Giảm padding divider */
 .modal-custom-font :deep(.n-divider) {
   margin: 8px 0;
 }
 
-/* Giảm kích thước tag */
 .modal-custom-font :deep(.n-tag) {
   padding: 2px 8px;
   font-size: 13px;
 }
 
-/* Sticky positioning for search card */
 .sticky {
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-/* Giảm khoảng cách trong card gợi ý */
-.modal-custom-font :deep(.bg-gradient-to-br) {
-  padding: 14px;
-}
-
-/* Giảm kích thước icon */
-.modal-custom-font :deep(.nova-icon) {
-  font-size: 16px;
-}
-
-/* Compact hơn cho phần action footer */
 .modal-custom-font :deep(.n-card__action) {
   padding: 12px 20px;
 }
