@@ -1,39 +1,33 @@
 import { API_LE_TAN_KHACH_HANG} from '@/constants/url'
 import type { AxiosResponse } from 'axios'
-import type { ResponseList, PaginationParams, DefaultResponse,DataCombobox } from '@/typings/api/api.common'
+import type { ResponseList, PaginationParams, DefaultResponse, DataCombobox } from '@/typings/api/api.common'
 import request from '@/service/request'
 
 export interface ParamsGetCustomers extends PaginationParams {
   ten?: string
-
   sdtEmail?: string
-loaiGiayTo?: number
-soGiayTo?: string
+  loaiGiayTo?: number
+  soGiayTo?: string
   soCCCDSoHoChieu?: string
   status?: number
-
-
- idLoaiKhachHang?:string
+  idLoaiKhachHang?: string
 }
 
 export interface KhachHangResponse extends ResponseList {
-orderNumber: number
+  orderNumber: number
   id: string
   ma: string
   hoTen: string
   ngaySinh: string
-  gioiTinh:number
+  gioiTinh: number
   loaiGiayTo: number
   soGiayTo: string
   soDienThoai: string
-    email: string
-  
-    diaChi: string
-    status: number
-    tenLoaiKhachHang: string
-idLoaiKhachHang: string
-
-    
+  email: string
+  diaChi: string
+  status: number
+  tenLoaiKhachHang: string
+  idLoaiKhachHang: string
 }
 
 export interface AddAndUpdateKhachHangRequest {
@@ -41,36 +35,47 @@ export interface AddAndUpdateKhachHangRequest {
   soDienThoai: string
   email: string
   ngaySinh: string
-  gioiTinh:number
+  gioiTinh: number
   loaiGiayTo: number
   soGiayTo: string
   diaChi: string
   idLoaiKhachHang: string
 }
 
+// ✨ THÊM MỚI
+export interface QuickAddKhachHangRequest {
+  hoTen: string
+  soDienThoai: string
+  email?: string
+  loaiGiayTo?: number | null
+  soGiayTo?: string
+  diaChi?: string
+  gioiTinh?: number | null
+}
+
 export interface TinhReponse {
   province_code: string
   name: string
- 
 }
+
 export interface SearchDiaChiCuReponse {
   ward_name: string
   ward_code: string
- province_code:string
- province_name:string
- matched_old_unit:string
- merger_details:string
- province_merged_with:string[]
+  province_code: string
+  province_name: string
+  matched_old_unit: string
+  merger_details: string
+  province_merged_with: string[]
 }
+
 export interface QuanHuyenPhuongXaReponse {
   ward_name: string
   ward_code: string
- province_code:string
- province_name:string
-
+  province_code: string
+  province_name: string
 }
 
-export async function getAllCustomers(params: ParamsGetCustomers){
+export async function getAllCustomers(params: ParamsGetCustomers) {
   try {
     const res = (await request({
       url: API_LE_TAN_KHACH_HANG,
@@ -141,8 +146,6 @@ export async function updateKhachHang(id: string, data: AddAndUpdateKhachHangReq
   }
 }
 
-
-
 export const fetchLoaiKhachHang = async () => {
   const res = (await request({
     url: `${API_LE_TAN_KHACH_HANG}/loai-khach-hang`,
@@ -152,49 +155,58 @@ export const fetchLoaiKhachHang = async () => {
   return res.data.data
 }
 
-export async function fetchTinhThanhPho(){
+export async function fetchTinhThanhPho() {
   try {
     const res = (await request({
       url: `https://34tinhthanh.com/api/provinces`,
       method: 'GET',
-   
     })) as AxiosResponse<DefaultResponse<TinhReponse>>
-console.log(res.data)
-    return  res.data|| []
-  
+    console.log(res.data)
+    return res.data || []
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách tinh thanh pho')
   }
 }
 
-export async function fetchPhuongXaQuanHuyen(params:string){
+export async function fetchPhuongXaQuanHuyen(params: string) {
   try {
     const res = (await request({
       url: `https://34tinhthanh.com/api/wards?province_code=${params}`,
       method: 'GET',
-   
     })) as AxiosResponse<DefaultResponse<QuanHuyenPhuongXaReponse[]>>
-console.log(res.data)
-    return  res.data|| []
-  
+    console.log(res.data)
+    return res.data || []
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách phuong xa')
   }
 }
-export async function fetchSearch(params:string){
+
+export async function fetchSearch(params: string) {
   try {
     const res = (await request({
       url: `https://34tinhthanh.com/api/search?q=${params}`,
       method: 'GET',
-   
     })) as AxiosResponse<DefaultResponse<SearchDiaChiCuReponse[]>>
-console.log(res.data)
-    return  res.data|| []
-  
+    console.log(res.data)
+    return res.data || []
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tim thay')
+  }
+}
+
+
+export async function quickAddKhachHang(data: QuickAddKhachHangRequest): Promise<string> {
+  try {
+    const res = (await request({
+      url: `${API_LE_TAN_KHACH_HANG}/quick-add`,
+      method: 'POST',
+      data,
+    })) as AxiosResponse<DefaultResponse<string>>
+    return res.data.data || ''
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể thêm khách hàng')
   }
 }

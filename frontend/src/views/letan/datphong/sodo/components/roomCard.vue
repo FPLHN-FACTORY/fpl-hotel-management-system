@@ -4,8 +4,13 @@ import { useMessage } from 'naive-ui'
 import type { SoDoPhongResponse, TrangThaiVeSinh } from '@/service/api/letan/sodophong'
 import { updateTrangThaiVeSinh } from '@/service/api/letan/sodophong'
 
-const props = defineProps<{ room: SoDoPhongResponse }>()
-const emit = defineEmits(['click', 'updateCleanStatus'])
+const props = defineProps<{
+  room: SoDoPhongResponse
+  multiSelectMode: boolean
+  isSelected: boolean
+}>()
+
+const emit = defineEmits(['click', 'updateCleanStatus', 'toggleSelect'])
 
 const message = useMessage()
 const loading = ref(false)
@@ -43,7 +48,18 @@ async function handleMenuSelect(status: TrangThaiVeSinh) {
   }
 }
 
+function handleClick() {
+  if (props.multiSelectMode) {
+    emit('toggleSelect', props.room)
+  } else {
+    emit('click', props.room)
+  }
+}
+
 const bgColor = computed(() => {
+  if (props.isSelected && props.multiSelectMode) {
+    return 'bg-blue-200 border-blue-400 text-gray-900'
+  }
   switch (props.room.trangThaiPhong) {
     case 'TRONG': return 'bg-white border-gray-200 text-gray-900'
     case 'SAP_NHAN': return 'bg-blue-100 border-blue-200 text-gray-900'
@@ -79,32 +95,40 @@ const hoverBorderColor = computed(() => {
     :class="bgColor"
     size="small"
     style="min-width: 142px; margin-top: 0px;"
-    :style="{ '--hover-border': hoverBorderColor, 'borderColor': hoverBorderColor }"
-    @click="$emit('click', room)"
+    :style="{ '--hover-border': hoverBorderColor, 'borderColor': isSelected && multiSelectMode ? hoverBorderColor : undefined }"
+    @click="handleClick"
   >
     <div class="flex justify-between items-center mb-2">
-      <n-tag
-        size="small"
-        round
-        :style="{ ...cleanTagStyle, fontWeight: '600', padding: '0.15rem 0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }"
-      >
-        <n-icon-wrapper :size="16" :color="cleanTagStyle.color" :border-radius="999">
-          <nova-icon
-            :size="14"
-            :icon="props.room.trangThaiVeSinh === 'SACH' ? 'carbon:magic-wand' : 'icon-park-outline:cosmetic-brush'"
-          />
-        </n-icon-wrapper>
-        {{
-          props.room.trangThaiVeSinh === 'SACH'
-            ? 'Sạch'
-            : props.room.trangThaiVeSinh === 'DANG_DON'
-              ? 'Đang dọn'
-              : 'Chưa dọn'
-        }}
-      </n-tag>
+      <div class="flex items-center gap-2">
+        <n-checkbox
+          v-if="multiSelectMode"
+          :checked="isSelected"
+          @click.stop
+          @update:checked="() => $emit('toggleSelect', room)"
+        />
+        <n-tag
+          size="small"
+          round
+          :style="{ ...cleanTagStyle, fontWeight: '600', padding: '0.15rem 0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }"
+        >
+          <n-icon-wrapper :size="16" :color="cleanTagStyle.color" :border-radius="999">
+            <nova-icon
+              :size="14"
+              :icon="props.room.trangThaiVeSinh === 'SACH' ? 'carbon:magic-wand' : 'icon-park-outline:cosmetic-brush'"
+            />
+          </n-icon-wrapper>
+          {{
+            props.room.trangThaiVeSinh === 'SACH'
+              ? 'Sạch'
+              : props.room.trangThaiVeSinh === 'DANG_DON'
+                ? 'Đang dọn'
+                : 'Chưa dọn'
+          }}
+        </n-tag>
+      </div>
 
       <n-dropdown :options="menuOptions" trigger="click" @select="handleMenuSelect">
-        <n-button quaternary circle size="tiny" :loading="loading">
+        <n-button quaternary circle size="tiny" :loading="loading" @click.stop>
           <n-icon-wrapper :size="20">
             <nova-icon icon="icon-park-outline:more-one" color="#ffffff" />
           </n-icon-wrapper>
@@ -148,18 +172,15 @@ const hoverBorderColor = computed(() => {
   box-shadow: 16px 16px var(--hover-border);
 }
 
-/* Tăng font size cho số/tên phòng */
 :deep(.text-base) {
   font-size: 20px !important;
   font-weight: 700 !important;
 }
 
-/* Giữ nguyên font size cho giá */
 :deep(.text-sm) {
   font-size: 0.875rem !important;
 }
 
-/* Tag trạng thái vệ sinh */
 :deep(.n-tag) {
   font-size: 14px;
 }

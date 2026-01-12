@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick } from 'vue'
 import type { SoDoPhongResponse } from '@/service/api/letan/sodophong'
 import { getSoDoPhong } from '@/service/api/letan/sodophong'
 import { useDataCombobox } from '@/store/dataCombox'
@@ -7,6 +8,10 @@ import SoDo from './sodo/soDo.vue'
 import Timeline from './timeline/timeline.vue'
 import ChonLoaiPhongModal from './booking/ChonLoaiPhongModal.vue'
 import DatPhongChiTietModal from './booking/DatPhongChiTiet.vue'
+import DatPhongTrucTiepModal from './booking/DatPhongTrucTiepModal.vue'
+import XacNhanDatPhongModal from './booking/XacNhanDatPhongModal.vue'
+import PhieuDatTamList from './booking/PhieuDatTamList.vue'
+import CustomerPaymentModal from './booking/CustomerPaymentModal.vue'
 import type { ChonLoaiPhong } from '@/service/api/letan/booking'
 
 const currentView = ref<string>('map')
@@ -30,7 +35,7 @@ const stateSearch = reactive({
 const floors = ref<{ floor: number, rooms: SoDoPhongResponse[] }[]>([])
 const notification = useNotification()
 
-// Modal đặt phòng
+// Modal đặt phòng theo loại
 const showChonLoaiPhongModal = ref(false)
 const showDatPhongModal = ref(false)
 const bookingData = ref<{
@@ -39,6 +44,25 @@ const bookingData = ref<{
   soLuongKhach: number
   danhSachLoaiPhong: ChonLoaiPhong[]
 } | null>(null)
+const sessionIdDatTheoLoai = ref<string | null>(null)
+
+// Modal đặt phòng trực tiếp (từ click phòng hoặc chọn nhiều)
+const showDatPhongTrucTiepModal = ref(false)
+const showXacNhanModal = ref(false)
+const selectedRoomsForBooking = ref<Array<{
+  idPhong: string
+  maPhong: string
+  tenPhong: string
+  tenLoaiPhong: string
+  tang: number
+  gia: number
+}>>([])
+const currentSessionId = ref<string | null>(null)
+
+const showPhieuDatTamList = ref(false)
+
+const showCustomerPaymentModal = ref(false)
+const customerPaymentStep = ref<'CUSTOMER_INFO' | 'PAYMENT_INFO'>('CUSTOMER_INFO')
 
 async function fetchDataSoDoPhong() {
   try {
@@ -136,6 +160,7 @@ function resetFilter() {
   fetchDataSoDoPhong()
 }
 
+// ========== Flow 1: Đặt phòng theo loại ==========
 function handleOpenDatPhong() {
   showChonLoaiPhongModal.value = true
 }
@@ -150,11 +175,112 @@ function handleChonLoaiPhongSubmit(data: {
   showDatPhongModal.value = true
 }
 
+function handleDatPhongChiTietNext(data: {
+  sessionId: string
+  danhSachIdPhong: string[]
+  tongTien: number
+}) {
+  sessionIdDatTheoLoai.value = data.sessionId
+  currentSessionId.value = data.sessionId
+
+  // Mở CustomerPaymentModal để nhập thông tin khách hàng
+  customerPaymentStep.value = 'CUSTOMER_INFO'
+
+  nextTick(() => {
+    showCustomerPaymentModal.value = true
+  })
+}
+
 function handleDatPhongSuccess() {
   fetchDataSoDoPhong()
   notification.success({
     content: 'Đặt phòng thành công!',
     duration: 3000,
+  })
+}
+
+// ========== Flow 2: Đặt phòng trực tiếp (từ click phòng hoặc chọn nhiều) ==========
+function handleRoomClick(room: SoDoPhongResponse) {
+  // Chỉ cho phép đặt phòng trống
+  if (room.trangThaiPhong !== 'TRONG') {
+    notification.warning({
+      content: 'Chỉ có thể đặt phòng trống',
+      duration: 2000,
+    })
+    return
+  }
+
+  selectedRoomsForBooking.value = [{
+    idPhong: room.id,
+    maPhong: room.ma,
+    tenPhong: room.ten,
+    tenLoaiPhong: room.loaiPhong,
+    tang: room.tang,
+    gia: room.price || 0,
+  }]
+
+  currentSessionId.value = null
+  showDatPhongTrucTiepModal.value = true
+}
+
+function handleMultiRoomSelect(rooms: Array<{
+  idPhong: string
+  maPhong: string
+  tenPhong: string
+  tenLoaiPhong: string
+  tang: number
+  gia: number
+}>) {
+  selectedRoomsForBooking.value = rooms
+  currentSessionId.value = null
+  showDatPhongTrucTiepModal.value = true
+}
+
+function handleContinueFromDatTrucTiep(sessionId: string) {
+  currentSessionId.value = sessionId
+
+  // Use nextTick to ensure sessionId is set before opening modal
+  nextTick(() => {
+    showXacNhanModal.value = true
+  })
+}
+
+function handleConfirmSuccess() {
+  fetchDataSoDoPhong()
+  notification.success({
+    content: 'Đặt phòng thành công!',
+    duration: 3000,
+  })
+}
+
+// ========== Flow 3: Tiếp tục từ phiếu đặt tạm ==========
+function handleOpenPhieuDatTamList() {
+  showPhieuDatTamList.value = true
+}
+
+function handleContinueFromPhieuTam(data: {
+  sessionId: string
+  step: 'CUSTOMER_INFO' | 'PAYMENT_INFO' | 'CONFIRM'
+}) {
+  currentSessionId.value = data.sessionId
+
+  nextTick(() => {
+    if (data.step === 'CONFIRM') {
+      // Đã đủ thông tin, mở modal xác nhận
+      showXacNhanModal.value = true
+    } else {
+      // Chưa đủ thông tin, mở modal nhập khách hàng/thanh toán
+      customerPaymentStep.value = data.step
+      showCustomerPaymentModal.value = true
+    }
+  })
+}
+
+function handleCustomerPaymentContinue(sessionId: string) {
+  currentSessionId.value = sessionId
+
+  nextTick(() => {
+    showXacNhanModal.value = true
   })
 }
 </script>
@@ -200,12 +326,19 @@ function handleDatPhongSuccess() {
     </div>
 
     <div class="flex justify-between mt-2 gap-x-12px">
-      <div>
+      <div class="flex gap-2">
         <n-button type="primary" size="large" @click="handleOpenDatPhong">
           <template #icon>
             <nova-icon icon="carbon:calendar-add" />
           </template>
           Đặt phòng
+        </n-button>
+
+        <n-button type="info" size="large" @click="handleOpenPhieuDatTamList">
+          <template #icon>
+            <nova-icon icon="carbon:document" />
+          </template>
+          Phiếu đặt tạm
         </n-button>
       </div>
       <n-button @click="resetFilter">
@@ -214,10 +347,15 @@ function handleDatPhongSuccess() {
     </div>
 
     <div class="mt-4">
-      <component :is="currentComponent" :floors="floors" />
+      <component
+        :is="currentComponent"
+        :floors="floors"
+        @room-click="handleRoomClick"
+        @multi-room-select="handleMultiRoomSelect"
+      />
     </div>
 
-    <!-- Modals -->
+    <!-- Modals đặt phòng theo loại -->
     <ChonLoaiPhongModal
       v-model:visible="showChonLoaiPhongModal"
       @submit="handleChonLoaiPhongSubmit"
@@ -226,6 +364,37 @@ function handleDatPhongSuccess() {
     <DatPhongChiTietModal
       v-model:visible="showDatPhongModal"
       :booking-data="bookingData"
+      @next="handleDatPhongChiTietNext"
+    />
+
+    <!-- Modals đặt phòng trực tiếp -->
+    <DatPhongTrucTiepModal
+      v-model:visible="showDatPhongTrucTiepModal"
+      :selected-rooms="selectedRoomsForBooking"
+      :session-id="currentSessionId"
+      @continue="handleContinueFromDatTrucTiep"
+      @success="handleDatPhongSuccess"
+    />
+
+    <!-- Modal xác nhận (dùng chung cho cả 2 flow) -->
+    <XacNhanDatPhongModal
+      v-model:visible="showXacNhanModal"
+      :session-id="currentSessionId"
+      @success="handleConfirmSuccess"
+    />
+
+    <!-- Modal danh sách phiếu đặt tạm -->
+    <PhieuDatTamList
+      v-model:visible="showPhieuDatTamList"
+      @continue-from-step="handleContinueFromPhieuTam"
+    />
+
+    <!-- Modal nhập khách hàng/thanh toán (cho flow tiếp tục từ phiếu đặt tạm) -->
+    <CustomerPaymentModal
+      v-model:visible="showCustomerPaymentModal"
+      :session-id="currentSessionId"
+      :initial-step="customerPaymentStep"
+      @continue="handleCustomerPaymentContinue"
       @success="handleDatPhongSuccess"
     />
   </div>
