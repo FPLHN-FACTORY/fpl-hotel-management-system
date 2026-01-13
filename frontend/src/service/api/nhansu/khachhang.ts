@@ -1,18 +1,15 @@
 import { API_LE_TAN_KHACH_HANG} from '@/constants/url'
 import type { AxiosResponse } from 'axios'
-import type { ResponseList, PaginationParams, DefaultResponse,DataCombobox } from '@/typings/api/api.common'
+import type { ResponseList, PaginationParams, DefaultResponse, DataCombobox } from '@/typings/api/api.common'
 import request from '@/service/request'
 
 export interface ParamsGetCustomers extends PaginationParams {
   ten?: string
-
   sdtEmail?: string
-loaiGiayTo?: number
-soGiayTo?: string
+  loaiGiayTo?: number
+  soGiayTo?: string
   soCCCDSoHoChieu?: string
   status?: number
-
-
  idLoaiKhachHang?:string
 }
 
@@ -26,14 +23,11 @@ orderNumber: number
   loaiGiayTo: number
   soGiayTo: string
   soDienThoai: string
-    email: string
-  
-    diaChi: string
-    status: number
-    tenLoaiKhachHang: string
-idLoaiKhachHang: string
-
-    
+  email: string
+  diaChi: string
+  status: number
+  tenLoaiKhachHang: string
+  idLoaiKhachHang: string
 }
 
 export interface AddAndUpdateKhachHangRequest {
@@ -53,12 +47,11 @@ export interface UpdateKhachHangLuuTruRequest {
   gioiTinh:number
   loaiGiayTo: number
   soGiayTo: string
-  
+
 }
 export interface TinhReponse {
   province_code: string
   name: string
- 
 }
 export interface SearchDiaChiCuReponse {
   ward_name: string
@@ -181,11 +174,11 @@ export async function fetchTinhThanhPho(){
     const res = (await request({
       url: `https://34tinhthanh.com/api/provinces`,
       method: 'GET',
-   
+
     })) as AxiosResponse<DefaultResponse<TinhReponse>>
 console.log(res.data)
     return  res.data|| []
-  
+
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách tinh thanh pho')
@@ -197,26 +190,27 @@ export async function fetchPhuongXaQuanHuyen(params:string){
     const res = (await request({
       url: `https://34tinhthanh.com/api/wards?province_code=${params}`,
       method: 'GET',
-   
+
     })) as AxiosResponse<DefaultResponse<QuanHuyenPhuongXaReponse[]>>
 console.log(res.data)
     return  res.data|| []
-  
+
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách phuong xa')
   }
 }
-export async function fetchSearch(params:string){
+
+export async function fetchSearch(params: string) {
   try {
     const res = (await request({
       url: `https://34tinhthanh.com/api/search?q=${params}`,
       method: 'GET',
-   
+
     })) as AxiosResponse<DefaultResponse<SearchDiaChiCuReponse[]>>
 console.log(res.data)
     return  res.data|| []
-  
+
   }
   catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tim thay')

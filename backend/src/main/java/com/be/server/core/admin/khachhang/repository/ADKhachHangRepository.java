@@ -67,4 +67,5 @@ public interface ADKhachHangRepository extends KhachHangRepository {
     boolean existsByLoaiGiayToAndSoGiayTo(LoaiGiayTo loaiGiayTo, String soGiayTo);
     boolean existsByLoaiGiayToAndSoGiayToAndIdNot(LoaiGiayTo loaiGiayTo, String soGiayTo,String id);
    Optional<KhachHang> findByLoaiGiayToAndSoGiayTo(LoaiGiayTo loaiGiayTo, String soGiayTo);
+
 }

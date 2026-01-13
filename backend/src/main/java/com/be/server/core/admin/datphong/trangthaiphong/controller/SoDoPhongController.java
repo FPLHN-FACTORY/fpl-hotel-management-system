@@ -33,5 +33,4 @@ public class SoDoPhongController {
     ) {
         return ResponseEntity.ok(soDoPhongService.updateTrangThaiVeSinh(id, status));
     }
-
 }

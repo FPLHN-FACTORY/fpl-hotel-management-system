@@ -1,6 +1,5 @@
 package com.be.server.core.common.base;
 
-import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 

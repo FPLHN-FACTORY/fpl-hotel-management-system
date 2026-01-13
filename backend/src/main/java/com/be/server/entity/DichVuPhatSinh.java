@@ -32,11 +32,8 @@ public class DichVuPhatSinh extends PrimaryEntity implements Serializable {
     @Column(name = "thanh_tien")
     private BigDecimal thanhTien;
 
-    @ManyToOne
-    @JoinColumn(name = "id_dat_phong")
-    private DatPhong idDatPhong;
 
     @ManyToOne
-    @JoinColumn(name = "id_le_tan")
-    private LeTan idLeTan;
+    @JoinColumn(name = "id_nhan_vien")
+    private NhanVien nhanVien;
 }

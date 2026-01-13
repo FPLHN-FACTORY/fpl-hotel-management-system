@@ -9,7 +9,7 @@ import java.util.List;
 public interface ADDPLoaiPhongRepository extends LoaiPhongRepository {
 
     @Query(value = """
-    SELECT 
+    SELECT
         lp.id as value,
         lp.ten as label
     FROM LoaiPhong lp
