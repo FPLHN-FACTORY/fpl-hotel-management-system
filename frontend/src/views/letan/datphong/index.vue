@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import type { SoDoPhongResponse } from '@/service/api/letan/sodophong'
 import { getSoDoPhong } from '@/service/api/letan/sodophong'
 import { useDataCombobox } from '@/store/dataCombox'
@@ -13,6 +14,8 @@ import XacNhanDatPhongModal from './booking/XacNhanDatPhongModal.vue'
 import PhieuDatTamList from './booking/PhieuDatTamList.vue'
 import CustomerPaymentModal from './booking/CustomerPaymentModal.vue'
 import type { ChonLoaiPhong } from '@/service/api/letan/booking'
+
+const router = useRouter()
 
 const currentView = ref<string>('map')
 const { dataCombobox, fetchDataLoaiPhong } = useDataCombobox()
@@ -299,13 +302,8 @@ function handleCustomerPaymentContinue(sessionId: string) {
 
         <div class="mt-[20px] flex gap-x-2">
           <div class="basis-2/5">
-            <n-date-picker
-              v-model:value="stateSearch.stayDate"
-              type="datetimerange"
-              clearable
-              start-placeholder="Ngày đến"
-              end-placeholder="Ngày đi"
-            />
+            <n-date-picker v-model:value="stateSearch.stayDate" type="datetimerange" clearable
+              start-placeholder="Ngày đến" end-placeholder="Ngày đi" />
           </div>
           <div class="basis-1/5">
             <n-input-number v-model:value="stateSearch.minPrice" placeholder="Giá nhỏ nhất" clearable />
@@ -314,12 +312,8 @@ function handleCustomerPaymentContinue(sessionId: string) {
             <n-input-number v-model:value="stateSearch.maxPrice" placeholder="Giá lớn nhất" clearable />
           </div>
           <div class="basis-1/5">
-            <n-select
-              v-model:value="stateSearch.idLoaiPhong"
-              placeholder="Chọn loại phòng"
-              clearable
-              :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]"
-            />
+            <n-select v-model:value="stateSearch.idLoaiPhong" placeholder="Chọn loại phòng" clearable
+              :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]" />
           </div>
         </div>
       </div>
@@ -340,6 +334,13 @@ function handleCustomerPaymentContinue(sessionId: string) {
           </template>
           Phiếu đặt tạm
         </n-button>
+
+        <n-button type="success" size="large" @click="router.push({ name: 'phieuDatPhong' })">
+          <template #icon>
+            <nova-icon icon="mdi:file-document-multiple-outline" />
+          </template>
+          Quản lý phiếu đặt
+        </n-button>
       </div>
       <n-button @click="resetFilter">
         Làm mới bộ lọc
@@ -347,56 +348,30 @@ function handleCustomerPaymentContinue(sessionId: string) {
     </div>
 
     <div class="mt-4">
-      <component
-        :is="currentComponent"
-        :floors="floors"
-        @room-click="handleRoomClick"
-        @multi-room-select="handleMultiRoomSelect"
-      />
+      <component :is="currentComponent" :floors="floors" @room-click="handleRoomClick"
+        @multi-room-select="handleMultiRoomSelect" />
     </div>
 
     <!-- Modals đặt phòng theo loại -->
-    <ChonLoaiPhongModal
-      v-model:visible="showChonLoaiPhongModal"
-      @submit="handleChonLoaiPhongSubmit"
-    />
+    <ChonLoaiPhongModal v-model:visible="showChonLoaiPhongModal" @submit="handleChonLoaiPhongSubmit" />
 
-    <DatPhongChiTietModal
-      v-model:visible="showDatPhongModal"
-      :booking-data="bookingData"
-      @next="handleDatPhongChiTietNext"
-    />
+    <DatPhongChiTietModal v-model:visible="showDatPhongModal" :booking-data="bookingData"
+      @next="handleDatPhongChiTietNext" />
 
     <!-- Modals đặt phòng trực tiếp -->
-    <DatPhongTrucTiepModal
-      v-model:visible="showDatPhongTrucTiepModal"
-      :selected-rooms="selectedRoomsForBooking"
-      :session-id="currentSessionId"
-      @continue="handleContinueFromDatTrucTiep"
-      @success="handleDatPhongSuccess"
-    />
+    <DatPhongTrucTiepModal v-model:visible="showDatPhongTrucTiepModal" :selected-rooms="selectedRoomsForBooking"
+      :session-id="currentSessionId" @continue="handleContinueFromDatTrucTiep" @success="handleDatPhongSuccess" />
 
     <!-- Modal xác nhận (dùng chung cho cả 2 flow) -->
-    <XacNhanDatPhongModal
-      v-model:visible="showXacNhanModal"
-      :session-id="currentSessionId"
-      @success="handleConfirmSuccess"
-    />
+    <XacNhanDatPhongModal v-model:visible="showXacNhanModal" :session-id="currentSessionId"
+      @success="handleConfirmSuccess" />
 
     <!-- Modal danh sách phiếu đặt tạm -->
-    <PhieuDatTamList
-      v-model:visible="showPhieuDatTamList"
-      @continue-from-step="handleContinueFromPhieuTam"
-    />
+    <PhieuDatTamList v-model:visible="showPhieuDatTamList" @continue-from-step="handleContinueFromPhieuTam" />
 
     <!-- Modal nhập khách hàng/thanh toán (cho flow tiếp tục từ phiếu đặt tạm) -->
-    <CustomerPaymentModal
-      v-model:visible="showCustomerPaymentModal"
-      :session-id="currentSessionId"
-      :initial-step="customerPaymentStep"
-      @continue="handleCustomerPaymentContinue"
-      @success="handleDatPhongSuccess"
-    />
+    <CustomerPaymentModal v-model:visible="showCustomerPaymentModal" :session-id="currentSessionId"
+      :initial-step="customerPaymentStep" @continue="handleCustomerPaymentContinue" @success="handleDatPhongSuccess" />
   </div>
 </template>
 

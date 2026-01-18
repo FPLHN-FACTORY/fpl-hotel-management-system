@@ -135,7 +135,10 @@
     "dict": "Ví dụ từ điển",
     "personnel": "Quản lí nhân sự",
     "employee": "Quản lí nhân viên",
-    "customer": "Quản lí khách hàng"
+    "customer": "Quản lí khách hàng",
+    "phieuDatPhong": "Quản lý phiếu đặt",
+    "taoPhieuDat": "Tạo phiếu đặt",
+    "chiTietPhieuDat": "Chi tiết phiếu đặt"
   },
   "http": {
     "400": "Lỗi cú pháp trong yêu cầu",
@@ -167,4 +170,3 @@
     }
   }
 }
-

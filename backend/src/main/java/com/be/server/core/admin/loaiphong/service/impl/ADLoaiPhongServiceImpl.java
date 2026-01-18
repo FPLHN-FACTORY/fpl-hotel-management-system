@@ -3,7 +3,6 @@ package com.be.server.core.admin.loaiphong.service.impl;
 import com.be.server.core.admin.loaiphong.model.request.ADSaveLoaiPhongRequest;
 import com.be.server.core.admin.loaiphong.repository.LTLoaiPhongReposiotry;
 import com.be.server.core.admin.loaiphong.service.ADLoaiPhongService;
-import com.be.server.core.admin.phong.repository.ADLoaiPhongRepository;
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.LoaiPhong;
 import com.be.server.infrastructure.constant.EntityStatus;
@@ -14,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,18 +27,13 @@ public class ADLoaiPhongServiceImpl implements ADLoaiPhongService {
         Specification<LoaiPhong> spec = Specification.where(null);
 
         if (StringUtils.hasText(tuKhoa)) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.or(
-                            criteriaBuilder.like(root.get("ma"), "%" + tuKhoa + "%"),
-                            criteriaBuilder.like(root.get("ten"), "%" + tuKhoa + "%")
-                    )
-            );
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.or(
+                    criteriaBuilder.like(root.get("ma"), "%" + tuKhoa + "%"),
+                    criteriaBuilder.like(root.get("ten"), "%" + tuKhoa + "%")));
         }
 
         if (trangThai != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("status"), trangThai)
-            );
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), trangThai));
         }
 
         List<LoaiPhong> list = repository.findAll(spec);

@@ -1,7 +1,5 @@
 package com.be.server.core.admin.khachhang.model.request;
 
-import com.be.server.infrastructure.constant.GioiTinh;
-import com.be.server.infrastructure.constant.LoaiGiayTo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

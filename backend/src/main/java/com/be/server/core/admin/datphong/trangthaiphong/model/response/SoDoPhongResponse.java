@@ -6,16 +6,26 @@ import java.math.BigDecimal;
 
 public interface SoDoPhongResponse {
     String getId();
+
     String getMa();
+
     String getTen();
+
     String getLoaiPhong();
+
+    String getLoaiPhongId();
+
     Integer getTang();
+
     String getTrangThaiHoatDong();
+
     Integer getSucChua();
+
     BigDecimal getPrice();
+
     default TrangThaiPhongDat getTrangThaiPhong() {
         return null;
     }
+
     String getTrangThaiVeSinh();
 }
-

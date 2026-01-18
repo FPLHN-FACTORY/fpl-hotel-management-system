@@ -33,79 +33,82 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
 
     private final UpdateTrangThaiVeSinhRepo updateTrangThaiVeSinhRepo;
 
-
     @Override
     public ResponseObject<?> getAllSoDoPhong(SoDoSearch request) {
         Long timestamp = Instant.now().toEpochMilli();
         List<String> idsRoomUnavailable = new ArrayList<>();
         if (request.getNgayDen() != null && request.getNgayDi() != null) {
-            idsRoomUnavailable = soDoPhongRepository.findRoomsByNgayDenAndNgayDi(request.getNgayDen(), request.getNgayDi());
+            idsRoomUnavailable = soDoPhongRepository.findRoomsByNgayDenAndNgayDi(request.getNgayDen(),
+                    request.getNgayDi());
         }
         List<SoDoPhongResponse> rooms = soDoPhongRepository.getRoomOverview(
                 request.getIdLoaiPhong(),
                 timestamp,
                 request,
-                idsRoomUnavailable
-        ).stream().map(p -> {
-            // Map trạng thái phòng
-            TrangThaiPhongDat trangThai = chiTietDatPhongRepository
-                    .findActiveBookingsByRoomId(p.getId(), timestamp)
-                    .orElse(TrangThaiPhongDat.TRONG);
+                idsRoomUnavailable).stream().map(p -> {
+                    // Map trạng thái phòng
+                    TrangThaiPhongDat trangThai = chiTietDatPhongRepository
+                            .findActiveBookingsByRoomId(p.getId(), timestamp)
+                            .orElse(TrangThaiPhongDat.TRONG);
 
+                    // Tạo đối tượng DTO với trạng thái map sau
+                    return new SoDoPhongResponse() {
+                        @Override
+                        public String getId() {
+                            return p.getId();
+                        }
 
-            // Tạo đối tượng DTO với trạng thái map sau
-            return new SoDoPhongResponse() {
-                @Override
-                public String getId() {
-                    return p.getId();
-                }
+                        @Override
+                        public String getMa() {
+                            return p.getMa();
+                        }
 
-                @Override
-                public String getMa() {
-                    return p.getMa();
-                }
+                        @Override
+                        public String getTen() {
+                            return p.getTen();
+                        }
 
-                @Override
-                public String getTen() {
-                    return p.getTen();
-                }
+                        @Override
+                        public String getLoaiPhong() {
+                            return p.getLoaiPhong();
+                        }
 
-                @Override
-                public String getLoaiPhong() {
-                    return p.getLoaiPhong();
-                }
+                        @Override
+                        public String getLoaiPhongId() {
+                            return p.getLoaiPhongId();
+                        }
 
-                @Override
-                public Integer getTang() {
-                    return p.getTang();
-                }
+                        @Override
+                        public Integer getTang() {
+                            return p.getTang();
+                        }
 
-                @Override
-                public String getTrangThaiHoatDong() {
-                    return p.getTrangThaiHoatDong();
-                }
+                        @Override
+                        public String getTrangThaiHoatDong() {
+                            return p.getTrangThaiHoatDong();
+                        }
 
-                @Override
-                public Integer getSucChua() {
-                    return p.getSucChua();
-                }
+                        @Override
+                        public Integer getSucChua() {
+                            return p.getSucChua();
+                        }
 
-                @Override
-                public java.math.BigDecimal getPrice() {
-                    return p.getPrice();
-                }
+                        @Override
+                        public java.math.BigDecimal getPrice() {
+                            return p.getPrice();
+                        }
 
-                @Override
-                public TrangThaiPhongDat getTrangThaiPhong() {
-                    return trangThai;
-                }
+                        @Override
+                        public TrangThaiPhongDat getTrangThaiPhong() {
+                            return trangThai;
+                        }
 
-                @Override
-                public String getTrangThaiVeSinh() {
-                    return p.getTrangThaiVeSinh();
-                }
-            };
-        }).collect(Collectors.toList());
+                        @Override
+                        public String getTrangThaiVeSinh() {
+                            return p.getTrangThaiVeSinh();
+                        }
+                    };
+                }).collect(Collectors.toList());
 
         return ResponseObject.successForward(rooms, "Lấy danh sách thành công");
     }
@@ -114,8 +117,7 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
     public ResponseObject<?> getDataLoaiPhong() {
         return ResponseObject.successForward(
                 loaiPhongRepository.getDataCombobox(),
-                "SUCCESS"
-        );
+                "SUCCESS");
     }
 
     @Override

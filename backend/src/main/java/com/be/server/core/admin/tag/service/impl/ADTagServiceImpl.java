@@ -9,7 +9,6 @@ import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.Tag;
 import com.be.server.infrastructure.constant.EntityStatus;
 import com.be.server.utils.Helper;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,10 +32,8 @@ public class ADTagServiceImpl implements ADTagService {
         return new ResponseObject<>(
                 PageableObject.of(adTagRepository.getAllTags(request, pageable)),
                 HttpStatus.OK,
-                "Lấy thành công danh sach Tag"
-        );
+                "Lấy thành công danh sach Tag");
     }
-
 
     @Override
     public ResponseObject<?> changeStatusTag(String id) {
@@ -45,9 +42,10 @@ public class ADTagServiceImpl implements ADTagService {
             Tag tag = existingTag.get();
             if (tag.getStatus().equals(EntityStatus.ACTIVE)) {
                 tag.setStatus(EntityStatus.INACTIVE);
-            } else tag.setStatus(EntityStatus.ACTIVE);
+            } else
+                tag.setStatus(EntityStatus.ACTIVE);
             adTagRepository.save(tag);
-            return new ResponseObject<>(tag,HttpStatus.OK,"Thay đổi trạng thái tag thành công");
+            return new ResponseObject<>(tag, HttpStatus.OK, "Thay đổi trạng thái tag thành công");
         } else {
             return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy Tag");
         }
@@ -55,7 +53,7 @@ public class ADTagServiceImpl implements ADTagService {
     }
 
     @Override
-    public ResponseObject<?> addTag( ADAddAndUpdateTagRequest request) {
+    public ResponseObject<?> addTag(ADAddAndUpdateTagRequest request) {
         if (request.getTen() == null || request.getTen().isBlank()) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Tên tag không được để trống");
         }
@@ -75,7 +73,7 @@ public class ADTagServiceImpl implements ADTagService {
     }
 
     @Override
-    public ResponseObject<?> updateTag( ADAddAndUpdateTagRequest request, String id) {
+    public ResponseObject<?> updateTag(ADAddAndUpdateTagRequest request, String id) {
         Optional<Tag> optionalTag = adTagRepository.findById(id);
         if (optionalTag.isEmpty()) {
             return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Tag không tồn tại");
@@ -96,6 +94,5 @@ public class ADTagServiceImpl implements ADTagService {
         adTagRepository.save(tag);
         return new ResponseObject<>(tag, HttpStatus.OK, "Cập nhật Tag thành công");
     }
-
 
 }

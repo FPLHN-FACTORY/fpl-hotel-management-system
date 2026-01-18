@@ -1,12 +1,8 @@
 package com.be.server.core.admin.khachhang.model.response;
 
 import com.be.server.core.common.base.IsIdentify;
-import com.be.server.infrastructure.constant.EntityStatus;
-import com.be.server.infrastructure.constant.GioiTinh;
-import com.be.server.infrastructure.constant.LoaiGiayTo;
 
 import java.time.LocalDate;
-
 
 public interface ADKhachHangResponse extends IsIdentify {
     Integer getOrderNumber();
@@ -17,9 +13,9 @@ public interface ADKhachHangResponse extends IsIdentify {
 
     LocalDate getNgaySinh();
 
-   Integer getGioiTinh();
+    Integer getGioiTinh();
 
-   Integer getLoaiGiayTo();
+    Integer getLoaiGiayTo();
 
     String getSoGiayTo();
 
@@ -28,7 +24,6 @@ public interface ADKhachHangResponse extends IsIdentify {
     String getEmail();
 
     String getDiaChi();
-
 
     Integer getStatus();
 

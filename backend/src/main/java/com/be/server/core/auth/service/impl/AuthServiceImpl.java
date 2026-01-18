@@ -4,21 +4,18 @@ import com.be.server.core.auth.dto.request.ChangePasswordRequest;
 import com.be.server.core.auth.dto.request.RegisterRequest;
 import com.be.server.core.auth.service.AuthService;
 import com.be.server.core.common.base.ResponseObject;
-import com.be.server.infrastructure.constant.EntityStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Optional;
-
 @Service
 @Validated
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-//    private final AuthUserRepository authUserRepository;
+    // private final AuthUserRepository authUserRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -40,11 +37,12 @@ public class AuthServiceImpl implements AuthService {
         if (!request.getEmail().matches(emailRegex)) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Email không hợp lệ");
         }
-//        // Check trùng email
-//        Optional<KhachHang> existingUser = authUserRepository.findByEmail(request.getEmail());
-//        if (existingUser.isPresent()) {
-//            return new ResponseObject<>(null, HttpStatus.CONFLICT, "Email đã tồn tại");
-//        }
+        // // Check trùng email
+        // Optional<KhachHang> existingUser =
+        // authUserRepository.findByEmail(request.getEmail());
+        // if (existingUser.isPresent()) {
+        // return new ResponseObject<>(null, HttpStatus.CONFLICT, "Email đã tồn tại");
+        // }
 
         // Validate số điện thoại
         if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
@@ -54,35 +52,38 @@ public class AuthServiceImpl implements AuthService {
         if (!request.getPhone().matches(phoneRegex)) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Số điện thoại không hợp lệ");
         }
-//        // Check trùng số điện thoại
-//        Optional<KhachHang> existingPhone = authUserRepository.findBySdt(request.getPhone());
-//        if (existingPhone.isPresent()) {
-//            return new ResponseObject<>(null, HttpStatus.CONFLICT, "Số điện thoại đã tồn tại");
-//        }
+        // // Check trùng số điện thoại
+        // Optional<KhachHang> existingPhone =
+        // authUserRepository.findBySdt(request.getPhone());
+        // if (existingPhone.isPresent()) {
+        // return new ResponseObject<>(null, HttpStatus.CONFLICT, "Số điện thoại đã tồn
+        // tại");
+        // }
 
         // Validate mật khẩu
         if (request.getPassword() == null || request.getPassword().isEmpty()) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu không được để trống");
         }
         if (request.getPassword().length() < 6 || request.getPassword().length() > 100) {
-            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu phải tối thiểu 6 ký tự và không quá 100 ký tự");
+            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST,
+                    "Mật khẩu phải tối thiểu 6 ký tự và không quá 100 ký tự");
         }
         // Mật khẩu phải có cả chữ và số (chấp nhận ký tự đặc biệt)
         String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d).{6,}$";
         if (!request.getPassword().matches(passwordRegex)) {
             return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu phải chứa cả chữ và số");
         }
-//
-//        // Tạo user mới khi mọi thứ hợp lệ
-//        String encodedPassword = passwordEncoder.encode(request.getPassword());
-//        KhachHang newUser = new KhachHang();
-//        newUser.setTen(request.getUserName());
-//        newUser.setSdt(request.getPhone());
-//        newUser.setEmail(request.getEmail());
-//        newUser.setMat_khau(encodedPassword);
-//        newUser.setStatus(EntityStatus.ACTIVE);
-//
-//        authUserRepository.save(newUser);
+        //
+        // // Tạo user mới khi mọi thứ hợp lệ
+        // String encodedPassword = passwordEncoder.encode(request.getPassword());
+        // KhachHang newUser = new KhachHang();
+        // newUser.setTen(request.getUserName());
+        // newUser.setSdt(request.getPhone());
+        // newUser.setEmail(request.getEmail());
+        // newUser.setMat_khau(encodedPassword);
+        // newUser.setStatus(EntityStatus.ACTIVE);
+        //
+        // authUserRepository.save(newUser);
 
         return new ResponseObject<>().success("Đăng ký thành công");
 
@@ -90,24 +91,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseObject<?> changePassword(String email, ChangePasswordRequest request) {
-//        Optional<KhachHang> optionalUser = authUserRepository.findByEmail(email);
-//        if (optionalUser.isEmpty()) {
-//            return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy người dùng");
-//        }
-//
-//        KhachHang user = optionalUser.get();
-//
-//        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getMat_khau())) {
-//            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại không đúng");
-//        }
-//
-//        String newPassword = request.getNewPassword();
-//        if (newPassword.length() < 6 || !newPassword.matches("^(?=.*[A-Za-z])(?=.*\\d).{6,}$")) {
-//            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu mới phải chứa cả chữ và số, tối thiểu 6 ký tự");
-//        }
-//
-//        user.setMat_khau(passwordEncoder.encode(newPassword));
-//        authUserRepository.save(user);
+        // Optional<KhachHang> optionalUser = authUserRepository.findByEmail(email);
+        // if (optionalUser.isEmpty()) {
+        // return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy người
+        // dùng");
+        // }
+        //
+        // KhachHang user = optionalUser.get();
+        //
+        // if (!passwordEncoder.matches(request.getCurrentPassword(),
+        // user.getMat_khau())) {
+        // return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại
+        // không đúng");
+        // }
+        //
+        // String newPassword = request.getNewPassword();
+        // if (newPassword.length() < 6 ||
+        // !newPassword.matches("^(?=.*[A-Za-z])(?=.*\\d).{6,}$")) {
+        // return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Mật khẩu mới phải
+        // chứa cả chữ và số, tối thiểu 6 ký tự");
+        // }
+        //
+        // user.setMat_khau(passwordEncoder.encode(newPassword));
+        // authUserRepository.save(user);
 
         return new ResponseObject<>().success("Đổi mật khẩu thành công");
     }

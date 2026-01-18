@@ -538,3 +538,42 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-11-16 15:42:18
+
+--
+-- Migration: Add chi_tiet_loai_phong_dat table and new fields for phieu_dat_phong
+-- Date: 2026-01-17
+-- Purpose: Support new booking flow - book by room type first, assign rooms later
+--
+
+-- Add new columns to phieu_dat_phong
+ALTER TABLE `phieu_dat_phong`
+ADD COLUMN `so_luong_khach` INT DEFAULT NULL COMMENT 'Số lượng khách',
+ADD COLUMN `ghi_chu` TEXT DEFAULT NULL COMMENT 'Ghi chú từ lễ tân',
+ADD COLUMN `nhan_vien_tao_id` VARCHAR(36) DEFAULT NULL COMMENT 'Nhân viên tạo phiếu';
+
+-- Add foreign key constraint for nhan_vien_tao
+ALTER TABLE `phieu_dat_phong`
+ADD KEY `FK_phieu_dat_phong_nhan_vien` (`nhan_vien_tao_id`),
+ADD CONSTRAINT `FK_phieu_dat_phong_nhan_vien` FOREIGN KEY (`nhan_vien_tao_id`) REFERENCES `nhan_vien` (`id`);
+
+-- Create new table chi_tiet_loai_phong_dat
+DROP TABLE IF EXISTS `chi_tiet_loai_phong_dat`;
+CREATE TABLE `chi_tiet_loai_phong_dat` (
+  `id` varchar(36) NOT NULL,
+  `created_date` bigint DEFAULT NULL,
+  `last_modified_date` bigint DEFAULT NULL,
+  `ma` varchar(255) DEFAULT NULL,
+  `status` tinyint DEFAULT NULL,
+  `ten` varchar(255) DEFAULT NULL,
+  `phieu_dat_phong_id` varchar(36) NOT NULL COMMENT 'FK to phieu_dat_phong',
+  `loai_phong_id` varchar(36) NOT NULL COMMENT 'FK to loai_phong',
+  `so_luong` int NOT NULL COMMENT 'Số lượng phòng theo loại',
+  `gia_dat_truoc` decimal(19,2) DEFAULT NULL COMMENT 'Giá tại thời điểm đặt',
+  PRIMARY KEY (`id`),
+  KEY `FK_chi_tiet_loai_phieu_dat` (`phieu_dat_phong_id`),
+  KEY `FK_chi_tiet_loai_loai_phong` (`loai_phong_id`),
+  CONSTRAINT `FK_chi_tiet_loai_phieu_dat` FOREIGN KEY (`phieu_dat_phong_id`) REFERENCES `phieu_dat_phong` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_chi_tiet_loai_loai_phong` FOREIGN KEY (`loai_phong_id`) REFERENCES `loai_phong` (`id`),
+  CONSTRAINT `chi_tiet_loai_phong_dat_chk_1` CHECK ((`status` between 0 and 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Chi tiết loại phòng đặt cho phiếu PENDING';
+

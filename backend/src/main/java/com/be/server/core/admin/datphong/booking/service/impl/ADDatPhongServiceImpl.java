@@ -37,30 +37,29 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
 
     @Override
     public ResponseObject<?> checkPhongTrong(CheckPhongTrongRequest request) {
-        if(request.getNgayNhan() == null || request.getNgayTra() == null) {
+        if (request.getNgayNhan() == null || request.getNgayTra() == null) {
             return ResponseObject.errorForward("Vui long chon ngay nhan va tra phong", HttpStatus.BAD_REQUEST);
         }
 
-        if(request.getNgayTra() <= request.getNgayNhan()) {
+        if (request.getNgayTra() <= request.getNgayNhan()) {
             return ResponseObject.errorForward("Ngay nhan phai truoc ngay tra", HttpStatus.BAD_REQUEST);
         }
 
-        if(request.getSoLuongKhach() == null || request.getSoLuongKhach() <= 0) {
+        if (request.getSoLuongKhach() == null || request.getSoLuongKhach() <= 0) {
             return ResponseObject.errorForward("So luong khach phai lon hon 0", HttpStatus.BAD_REQUEST);
         }
 
         List<LoaiPhong> allLoaiPhong = adLoaiPhongRepository.findAll();
         List<LoaiPhongAvailableResponse> responses = new ArrayList<>();
 
-        for(LoaiPhong lp : allLoaiPhong) {
+        for (LoaiPhong lp : allLoaiPhong) {
             Long soPhongTrong = adDatPhongRepository.countPhongTrongByLoaiPhong(
                     lp.getId(),
                     request.getNgayNhan(),
                     request.getNgayTra(),
-                    TrangThaiHoatDong.DANG_HOAT_DONG
-            );
+                    TrangThaiHoatDong.DANG_HOAT_DONG);
 
-            if(soPhongTrong > 0) {
+            if (soPhongTrong > 0) {
                 LoaiPhongAvailableResponse response = new LoaiPhongAvailableResponse();
                 response.setIdLoaiPhong(lp.getId());
                 response.setTenLoaiPhong(lp.getTen());
@@ -74,7 +73,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             }
         }
 
-        if(responses.isEmpty()) {
+        if (responses.isEmpty()) {
             return ResponseObject.errorForward("Khong co phong trong trong khoang thoi gian nay", HttpStatus.NOT_FOUND);
         }
 
@@ -87,19 +86,18 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             return ResponseObject.errorForward("Vui long chon ngay nhan va ngay tra phong", HttpStatus.BAD_REQUEST);
         }
 
-        if(request.getNgayTra() <= request.getNgayNhan()) {
+        if (request.getNgayTra() <= request.getNgayNhan()) {
             return ResponseObject.errorForward("Ngay nhan phai truoc ngay tra", HttpStatus.BAD_REQUEST);
         }
 
         List<PhongDatResponse> allPhongDat = new ArrayList<>();
 
-        for(DatPhongTheoLoaiRequest.ChonLoaiPhong chonLoaiPhong : request.getDanhSachLoaiPhong()) {
+        for (DatPhongTheoLoaiRequest.ChonLoaiPhong chonLoaiPhong : request.getDanhSachLoaiPhong()) {
             List<Phong> phongTrong = adDatPhongRepository.findPhongTrongByLoaiPhong(
                     chonLoaiPhong.getIdLoaiPhong(),
                     request.getNgayNhan(),
                     request.getNgayTra(),
-                    TrangThaiHoatDong.DANG_HOAT_DONG
-            );
+                    TrangThaiHoatDong.DANG_HOAT_DONG);
 
             int soLuongCanLay = Math.min(chonLoaiPhong.getSoLuong(), phongTrong.size());
 
@@ -122,8 +120,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                                 phongTag.getTag().getId(),
                                 phongTag.getTag().getMa(),
                                 phongTag.getTag().getTen(),
-                                phongTag.getTag().getMau()
-                        ))
+                                phongTag.getTag().getMau()))
                         .collect(Collectors.toList());
                 phongDatResponse.setTags(tagInfos);
 
@@ -136,10 +133,32 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
 
     @Override
     public ResponseObject<?> searchKhachHang(String keyword) {
+        if (keyword == null) {
+            keyword = "";
+        } else {
+            keyword = keyword.trim();
+        }
+        log.info("=== Search Khach Hang ===");
+        log.info("Keyword received: '{}'", keyword);
+
+        List<KhachHang> khachHangs = khachDatPhongRepository.findByKeyword(keyword);
+        log.info("Found {} customers", khachHangs.size());
+
+        List<TimKhachHangResponse> results = khachHangs.stream()
+                .map(kh -> new TimKhachHangResponse(
+                        kh.getId(),
+                        kh.getMaNguoiDung(),
+                        kh.getHoTen(),
+                        kh.getEmail(),
+                        kh.getSoGiayTo(),
+                        kh.getSoDienThoai(),
+                        kh.getDiaChi(),
+                        kh.getQuocTich()))
+                .collect(Collectors.toList());
+
         return ResponseObject.successForward(
-                khachDatPhongRepository.findByKeyword(keyword),
-                "Tim kiem khach hang thanh cong"
-        );
+                results,
+                "Tim kiem khach hang thanh cong");
     }
 
     @Override
@@ -174,14 +193,12 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                 boolean isBooked = adDatPhongRepository.isRoomBookedInPeriod(
                         idPhong,
                         request.getNgayNhan(),
-                        request.getNgayTra()
-                );
+                        request.getNgayTra());
 
                 if (isBooked) {
                     return ResponseObject.errorForward(
                             "Phong " + phong.getMa() + " da duoc dat trong khoang thoi gian nay",
-                            HttpStatus.CONFLICT
-                    );
+                            HttpStatus.CONFLICT);
                 }
 
                 danhSachPhong.add(phong);
@@ -243,8 +260,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                             ct.getRoom().getMa(),
                             ct.getRoom().getTen(),
                             ct.getPrice(),
-                            ct.getStatus_chi_tiet().name()
-                    ))
+                            ct.getStatus_chi_tiet().name()))
                     .collect(Collectors.toList());
 
             response.setDanhSachPhong(chiTietInfoList);
@@ -259,8 +275,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             log.error("Error confirming booking: ", e);
             return ResponseObject.errorForward(
                     "Loi khi dat phong: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
