@@ -3,7 +3,6 @@ package com.be.server.core.admin.datphong.booking.repository;
 import com.be.server.entity.Phong;
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
 import com.be.server.repository.PhieuDatPhongRepository;
-import com.be.server.repository.PhongRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -77,4 +76,8 @@ public interface ADDatPhongRepository extends PhieuDatPhongRepository {
             @Param("ngayNhan") Long ngayNhan,
             @Param("ngayTra") Long ngayTra
     );
+
+
+    boolean existsById(String Id);
 }
+

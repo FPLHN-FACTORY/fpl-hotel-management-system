@@ -1,7 +1,6 @@
 package com.be.server.core.admin.datphong.trangthaiphong.repository;
 
 import com.be.server.core.admin.datphong.trangthaiphong.model.request.SoDoSearch;
-import com.be.server.core.admin.datphong.trangthaiphong.model.response.DSPhongDaDatCombox;
 import com.be.server.core.admin.datphong.trangthaiphong.model.response.SoDoPhongResponse;
 import com.be.server.repository.PhongRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,7 +36,6 @@ public interface SoDoPhongRepository extends PhongRepository {
             
         FROM phong p
         LEFT JOIN loai_phong lp ON lp.id = p.loai_phong_id
-        LEFT JOIN dat_phong dp on p.id = dp.id_phong 
         WHERE((:#{#request.q} IS NULL OR p.ma LIKE CONCAT('%', :#{#request.q}, '%'))
             OR (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%')))
             AND (:idLoaiPhong IS NULL OR lp.id = :idLoaiPhong)

@@ -28,6 +28,10 @@ public class ChiTietDatPhong extends PrimaryEntity implements Serializable {
     @Column(name = "gia")
     private BigDecimal price;
 
+    @Column(name = "so_luong_khach")
+    private Integer soLuongKhach;
+
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status_chi_tiet")
     private StatusChiTietDatPhong status_chi_tiet = StatusChiTietDatPhong.BOOKED;

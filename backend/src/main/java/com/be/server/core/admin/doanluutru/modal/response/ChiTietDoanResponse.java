@@ -14,10 +14,14 @@ public interface ChiTietDoanResponse extends IsIdentified {
 //    kh.so_giay_to,
 //    ctd.vai_tro
     Integer getOrderNumber();
+    String getKhachHangId();
+    String getPhongId();
+    String getTenPhong();
     String getHoTen();
     Integer getGioiTinh();
     LocalDate getNgaySinh();
     Integer getLoaiGiayTo();
     String getSoGiayTo();
     Integer getVaiTro();
+    String getTrangThaiChiTietDoan();
 }

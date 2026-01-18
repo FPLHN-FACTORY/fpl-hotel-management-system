@@ -42,16 +42,7 @@ const gioiTinhToOptions = ref([
     { label: 'Nữ', value: 1 },
     { label: 'Khác', value: 2 }
 ])
-onMounted(() => {
-    loadDataDatPhongCombobox()
-});
 
-async function loadDataDatPhongCombobox() {
-    const res = await getAllBooked();
-    dataDaDatPhong.value = [
-        ...res.data
-    ];
-}
 
 watch(() => props.show, (val) => {
     if (val) {

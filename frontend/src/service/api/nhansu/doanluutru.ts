@@ -25,14 +25,15 @@ export interface ChiTietDoan {
   orderNumber:number,
   id: string;
   vaiTro: number;
-  khachHang: {
-    id: string;
+  khachHangId: string;
+phongId:string;
+tenPhong:string;
     hoTen: string;
     gioiTinh:number;
     ngaySinh:string;
     loaiGiayTo:number;
     soGiayTo: string;
-  };
+  trangThaiChiTietDoan: string;
 }
 export interface ParamsGetGroups extends PaginationParams {
 tuKhoa?: string
@@ -133,10 +134,69 @@ export async function addMember(data: {
   return res.data;
 }
 
-export async function getAllBooked() {
+export interface DSPhongDaDatTheoDoanCombox extends ResponseList {
+id:string
+ten:string
+tang:number
+soGiuongDon:number
+soGiuongDoi:number
+soNguoiQuyDinh:number
+soNguoiToiDa:number
+soNguoiHienTai:number 
+}
+export async function getAllBookedTheoDoan(id:string) {
   const res = await request({
-    url: `${API_DOAN_LUU_TRU}/booked`,
+    url: `${API_DOAN_LUU_TRU}/${id}/booked`,
+    method: "GET"
+  
+  })as AxiosResponse<DefaultResponse<DSPhongDaDatTheoDoanCombox[]>>
+  return res.data.data;
+}
+
+export interface AssignRoomRequest {
+  idPhong: string;
+}
+export async function assignRoom(id: string, data: AssignRoomRequest) {
+  try {
+    const res = (await request({
+      url: `${API_DOAN_LUU_TRU}/assign-room/${id}`,
+      method: 'PUT',
+      data,
+    })) as AxiosResponse<DefaultResponse<ChiTietDoan>>
+
+    return res.data
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể gán phòng')
+  }
+}
+
+export interface CheckSoLuongToiDaResponse {
+  tongSoNguoiHienTai: number
+   tongSoNguoiToiDa: number
+}
+export async function checkSoLuongToiDa(idDoan:string) {
+  const res = await request({
+    url: `${API_DOAN_LUU_TRU}/check-room/${idDoan}`,
     method: "GET",
-  })as AxiosResponse<DefaultResponse<DataCombobox>>
-  return res.data;
+   
+  })as  AxiosResponse<
+      DefaultResponse<CheckSoLuongToiDaResponse>>
+    return res.data;
+}
+
+
+export async function  checkInDoan(id: string) {
+  try {
+    const res = (await request({
+      url: `${API_DOAN_LUU_TRU}/${id}/check-in`,
+      method: 'PUT',
+ 
+    })) as AxiosResponse<DefaultResponse<ChiTietDoan>>
+
+    return res.data
+  }
+  catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể checkin')
+  }
 }

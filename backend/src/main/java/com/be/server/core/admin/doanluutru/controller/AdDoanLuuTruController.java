@@ -1,6 +1,7 @@
 package com.be.server.core.admin.doanluutru.controller;
 
 import com.be.server.core.admin.doanluutru.modal.request.AddMemberRequest;
+import com.be.server.core.admin.doanluutru.modal.request.AssignRoomRequest;
 import com.be.server.core.admin.doanluutru.modal.request.CreateDoanRequest;
 import com.be.server.core.admin.doanluutru.modal.request.FindDoanRequest;
 import com.be.server.core.admin.doanluutru.modal.request.SearchMemberRequest;
@@ -51,8 +52,24 @@ public class AdDoanLuuTruController {
         return Helper.createResponseEntity(service.getAllDoan(request));
     }
 
-    @GetMapping("/booked")
-    public ResponseEntity<?> getAllBooked() {
-        return Helper.createResponseEntity(service.getAllBooked());
+    @GetMapping("{idDoan}/booked")
+    public ResponseEntity<?> getAllBookedTheoDoan(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.getAllBookedTheoDoan(idDoan));
     }
+
+    @PutMapping("/assign-room/{id}")
+    public ResponseEntity<?>assignRoom(@PathVariable String id,@RequestBody AssignRoomRequest request) {
+        return Helper.createResponseEntity(service.assignRoom(id,request));
+    }
+
+    @GetMapping("/check-room/{idDoan}")
+    public ResponseEntity<?> checkSoLuongToiDa(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.checkSoluongToiDaBooking(idDoan));
+    }
+
+    @PutMapping("/{idDoan}/check-in")
+    public ResponseEntity<?>checkInDoan(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.checkInDoanLuuTru(idDoan));
+    }
+
 }

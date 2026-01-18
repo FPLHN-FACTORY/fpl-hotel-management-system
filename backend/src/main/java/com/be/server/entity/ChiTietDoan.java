@@ -1,6 +1,7 @@
 package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
+import com.be.server.infrastructure.constant.EntityTrangThaiChiTietDoan;
 import com.be.server.infrastructure.constant.EntityVaiTroDoan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,15 @@ public class ChiTietDoan extends PrimaryEntity implements Serializable {
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
 
+    @ManyToOne
+    @JoinColumn(name = "id_phong")
+    private Phong phong; //
+
     @Column(name = "vai_tro")
     @Enumerated(EnumType.ORDINAL)
     private EntityVaiTroDoan vaiTro;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trang_thai_chi_tiet_doan")
+    private EntityTrangThaiChiTietDoan trangThaiChiTietDoan;
 }

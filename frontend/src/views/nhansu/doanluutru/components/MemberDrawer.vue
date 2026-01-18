@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
 import { NDrawer, NDrawerContent, NDataTable, NButton, NDivider, NForm, NInput, NSelect, NGrid, NFormItemGi, NIcon } from 'naive-ui'
-import { getGroupMembers, addMember, type ChiTietDoan, ParamsGetMembers } from '@/service/api/nhansu/doanluutru'
+import { getGroupMembers, addMember, type ChiTietDoan, type ParamsGetMembers, getAllBookedTheoDoan,checkSoLuongToiDa, Check } from '@/service/api/nhansu/doanluutru'
 import { QrCode } from '@vicons/carbon'
 import ScanQrModal from '@/components/common/ScanQrModal.vue'
 import { CameraOutline, QrCodeOutline } from '@vicons/ionicons5'
@@ -9,6 +9,8 @@ import dayjs from 'dayjs'
 import CccdOCR from '@/components/custom/CccdOCR.vue'
 import CccdScannner from '@/components/custom/CccdScanner.vue'
 import { useDialog } from 'naive-ui'
+import type { DataCombobox } from '@/typings/api/api.common'
+import AssignRoomModal from './AssignRoomModal.vue'
 import { getCustomerByGiayTo, GiayToRequest, updateKhachHang, updateKhachHangLuuTru } from '@/service/api/nhansu/khachhang'
 const dialog = useDialog()
 
@@ -22,7 +24,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const showScanner = ref(false)
 const showOCRModal = ref(false)
-
+const showAssignRoomModal = ref(false)
+const selectedMember = ref<any>(null)
 const giayToRequest = ref<GiayToRequest>({
     loaiGiayTo: null,
     soGiayTo: ''
@@ -144,84 +147,59 @@ function showConfirmModal() {
             ])
     })
 }
-// function showConfirmModal() {
-//   dialog.warning({
-//     title: 'Xác nhận sử dụng lại khách hàng',
-//     content: 'Khách hàng đã tồn tại trong hệ thống. Bạn có muốn sử dụng lại thông tin không?',
-//     positiveText: 'Đồng ý',
-//     negativeText: 'Hủy',
-//     onPositiveClick: () => {
-//         handleAddMember(true) // 🔥 gọi lại với confirm
-//     },
+function validateGuest(form: any) {
+  const errors: Record<string, string> = {}
 
-//   })
-// }
+  // Họ tên
+  if (!form.hoTen || form.hoTen.trim().length < 2) {
+    errors.hoTen = 'Họ tên phải có ít nhất 2 ký tự'
+  }
 
-// async function handleAddMember() {
-//     if (!form.hoTen) {
-//         window.$message.error('Vui lòng nhập họ tên')
-//         return;
-//     }
-//     try {
-//         await addMember({
-//             idDoanLuuTru: props.groupId,
-//             ...form,
-//             ngaySinh: form.ngaySinh
-//                 ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
-//                 : null
-//         })
-//         window.$message.success('Thêm thành viên thành công')
-//         fetchMembers()
-//        resetForm()
-//     } catch (e: any) {
-//         window.$message.error(e.message || 'Lỗi thêm thành viên')
-//     }
-// }
-// async function handleAddMember(confirm = false) {
-//   if (!form.hoTen) {
-//     window.$message.error('Vui lòng nhập họ tên')
-//     return
-//   }
+  // Giới tính (0 | 1 | 2)
+  if (form.gioiTinh === null || form.gioiTinh === undefined) {
+    errors.gioiTinh = 'Vui lòng chọn giới tính'
+  }
 
-// //   const payload = {
-// //     idDoanLuuTru: props.groupId,
-// //     ...form,
-// //     confirmUseOld: confirm,
-// //     ngaySinh: form.ngaySinh
-// //       ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
-// //       : null
-// //   }
-// const payload = {
-//   idDoanLuuTru: props.groupId,
-//   hoTen: form.hoTen,
-//   gioiTinh: form.gioiTinh,
-//   ngaySinh: form.ngaySinh
-//     ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
-//     : null,
-//   loaiGiayTo: form.loaiGiayTo,
-//   soGiayTo: form.soGiayTo,
-//   vaiTro: form.vaiTro,
-//   confirmUseOld: confirm // ✅ boolean thật
-// }
+// Ngày sinh (BẮT BUỘC)
+if (!form.ngaySinh) {
+  errors.ngaySinh = 'Vui lòng chọn ngày sinh'
+} else {
+  const birthDate = dayjs(form.ngaySinh)
+  if (!birthDate.isValid()) {
+    errors.ngaySinh = 'Ngày sinh không hợp lệ'
+  } else if (birthDate.isAfter(dayjs(), 'day')) {
+    errors.ngaySinh = 'Ngày sinh không được lớn hơn ngày hiện tại'
+  }
+}
 
-//   try {
-//     await addMember(payload)
-//     window.$message.success('Thêm thành viên thành công')
-//     fetchMembers()
-//     resetForm()
-//     confirmUseOld.value = false
 
-//   } catch (e: any) {
-//     // ⚠️ Backend trả 409 → hỏi xác nhận
-//     if (e.response?.status === 409) {
-//       showConfirmModal()
-//     } else {
-//       window.$message.error(e.message || 'Lỗi thêm thành viên')
-//     }
-//   }
-// }
+  // Loại giấy tờ
+  if (form.loaiGiayTo === null || form.loaiGiayTo === undefined) {
+    errors.loaiGiayTo = 'Vui lòng chọn loại giấy tờ'
+  }
+
+  // Số giấy tờ
+  if (!form.soGiayTo || !form.soGiayTo.trim()) {
+    errors.soGiayTo = 'Số giấy tờ không được để trống'
+  } else {
+    // CCCD
+    if (form.loaiGiayTo === 0 && !/^\d{12}$/.test(form.soGiayTo)) {
+      errors.soGiayTo = 'CCCD phải gồm 12 chữ số'
+    }
+
+    // Hộ chiếu
+    if (form.loaiGiayTo === 1 && !/^[A-Z0-9]{6,9}$/i.test(form.soGiayTo)) {
+      errors.soGiayTo = 'Hộ chiếu không hợp lệ'
+    }
+  }
+
+  return errors
+}
 
 async function handleAddMember(confirm: boolean = false) {
+      const errors = validateGuest(form)
+
+  
     const payload = {
         idDoanLuuTru: props.groupId,
         hoTen: form.hoTen,
@@ -238,10 +216,19 @@ async function handleAddMember(confirm: boolean = false) {
     console.log('SEND PAYLOAD:', JSON.stringify(payload))
 
     try {
+            await checkSoLuongToiDa(props.groupId);
+            if (Object.keys(errors).length > 0) {
+    // Hiển thị lỗi đầu tiên
+    window.$message.error(Object.values(errors)[0])
+    return
+  }
+             console.log('id doan',props.groupId)
         const res = await addMember(payload)
         window.$message.success(res?.message || 'Thêm khách hàng thành công!')
         console.log("resMember", res)
+            await fetchMembers(1)
         resetForm()
+        
     } catch (e: any) {
         if (e.response?.status === 409) {
             showConfirmModal()
@@ -252,7 +239,7 @@ async function handleAddMember(confirm: boolean = false) {
             window.$message.error(msg)
         }
     }
-    await fetchMembers(1)
+
 
 }
 
@@ -366,6 +353,18 @@ function handleOCRCCCD() {
 
     showOCRModal.value = true
 }
+
+function openAssignRoomModal(member: any) {
+    if (member.bookingStatus === 'CHECKED_IN') {
+        window.$message.warning('Không thể thay đổi phòng sau khi đã check-in')
+        return
+    }
+console.log("member", member)
+    selectedMember.value = member
+    showAssignRoomModal.value = true
+}
+
+
 const columns = [
     { title: 'STT', key: 'orderNumber' },
     { title: 'Họ và tên', key: 'hoTen' },
@@ -380,15 +379,74 @@ const columns = [
                     : '-'
     },
     { title: 'Số giấy tờ', key: 'soGiayTo', render: (row: any) => row.soGiayTo || '-' },
-    { title: 'Vai trò', key: 'vaiTro', render: (row: any) => row.vaiTro ===0 ?"Trưởng đoàn": "Thành viên"}
+    { title: 'Vai trò', key: 'vaiTro', render: (row: any) => row.vaiTro === 0 ? "Trưởng đoàn" : "Thành viên" },
+    {
+        title: 'Phòng',
+        key: 'phong',
+        render: (row: any) => {
+            if (!row.phongId) {
+                return h(
+                    'span',
+                    { style: 'color:#f56c6c' },
+                    'Chưa gán'
+                )
+            }
+            return `Phòng ${row.tenPhong}`
+        }
+    }, {
+        title: 'Hành động',
+        key: 'action',
+        render: (row: any) => {
+            const isCheckedIn = row.trangThaiChiTietDoan === 'CHECKED_IN'
+            const label = row.phongId ? 'Đổi phòng' : 'Gán phòng'
+
+            return h(
+                NButton,
+                {
+                    size: 'small',
+                    type: row.phongId ? 'warning' : 'primary',
+                    disabled: isCheckedIn, // ✅ chặn đổi sau check-in
+                    onClick: () => openAssignRoomModal(row)
+                },
+                { default: () => label }
+            )
+        }
+    }
 ]
+
+// async function handleAssignRoom(roomId: string) {
+//   if (selectedMember.value.phong?.id === roomId) {
+//     window.$message.info('Khách đã ở phòng này')
+//     return
+//   }
+
+//   try {
+//     await assignRoom({
+//       memberId: selectedMember.value.id,
+//       roomId
+//     })
+
+//     window.$message.success('Gán phòng thành công')
+//     showAssignRoomModal.value = false
+//     fetchMembers(currentPage.value)
+//   } catch (e: any) {
+//     window.$message.error(e?.response?.data?.message)
+//   }
+// }
+
 </script>
 
 <template>
     <CccdOCR v-model="showOCRModal" @result="onOCRResult" @close="showOCRModal = false" />
-
     <CccdScanner v-model="showScanner" @scan-result="onScanResult" />
-    <NDrawer :show="show" @update:show="$emit('update:show', $event)" width="800">
+    <AssignRoomModal
+  v-model:show="showAssignRoomModal"
+  :member="selectedMember"
+  :booking-id="props.groupId"
+  @success="fetchMembers(currentPage)"
+/>
+
+    <NDrawer :show="show" @update:show="$emit('update:show', $event)" width="1200">
         <NDrawerContent title="Quản lý thành viên đoàn" closable>
             <n-card>
                 <NForm ref="formRef" label-placement="top" label-align="left" :show-feedback="false">
@@ -449,9 +507,9 @@ const columns = [
                             <n-date-picker v-model:value="form.ngaySinh" type="date" placeholder="Chọn ngày sinh"
                                 style="width: 100%;" clearable />
                         </n-form-item-grid-item>
-                    
 
-                        <NFormItemGi  :span="24" label="Loại giấy tờ" path="loaiGiayTo">
+
+                        <NFormItemGi :span="24" label="Loại giấy tờ" path="loaiGiayTo">
                             <div class="flex gap-2 w-full">
                                 <NSelect v-model:value="form.loaiGiayTo" :options="loaiGiayToOptions"
                                     placeholder="Loại giấy tờ ..." clearable />
@@ -476,7 +534,7 @@ const columns = [
                         <NFormItemGi :span="12" label="Số giấy tờ">
                             <NInput v-model:value="form.soGiayTo" placeholder="Số giấy tờ ..." clearable />
                         </NFormItemGi>
-                           <n-form-item-grid-item :span="12" label="Giới tính" path="gioiTinh">
+                        <n-form-item-grid-item :span="12" label="Giới tính" path="gioiTinh">
                             <n-radio-group v-model:value="form.gioiTinh">
                                 <n-radio v-for="item in gioiTinhToOptions" :key="item.value" :value="item.value">
                                     {{ item.label }}

@@ -2,7 +2,7 @@ package com.be.server.infrastructure.constant;
 
 public enum DoanLuuTruStatus {
     CHUA_CHECK_IN(0, "Chưa check-in"),
-    DANG_O(1, "Đang ở"),
+    DANG_LUU_TRU(1, "Đang lưu trú"),
     DA_CHECK_OUT(2, "Đã check-out");
 
     private final int value;

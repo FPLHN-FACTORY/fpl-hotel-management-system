@@ -128,5 +128,19 @@ public interface ADPhongRepository extends PhongRepository {
     @Transactional
     void deleteById(@Param("id") String id);
 
+
+
+
+    @Modifying
+    @Transactional
+    @Query("""
+    UPDATE Phong p
+    SET p.trangThaiHoatDong = :trangThai
+    WHERE p.id IN :phongIds
+""")
+    Integer updateTrangThaiPhongKhiCheckIn(
+            @Param("phongIds") List<String> phongIds,
+            @Param("trangThai") TrangThaiHoatDong trangThai
+    );
 }
 

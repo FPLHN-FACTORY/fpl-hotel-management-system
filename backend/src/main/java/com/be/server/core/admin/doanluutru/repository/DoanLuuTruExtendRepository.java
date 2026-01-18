@@ -1,6 +1,7 @@
 package com.be.server.core.admin.doanluutru.repository;
 
 import com.be.server.core.admin.doanluutru.modal.request.FindDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.response.DSPhongDaDatTheoDoanCombox;
 import com.be.server.core.admin.doanluutru.modal.response.DoanLuuTruResponse;
 import com.be.server.entity.DoanLuuTru;
 import com.be.server.repository.DoanLuuTruRepository;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
-    Optional<DoanLuuTru> findByDatPhong_Id(String idDatPhong);
+    Optional<DoanLuuTru> findByPhieuDatPhong_Id(String idDatPhong);
 
     @Query(value = """
               SELECT \s
@@ -34,7 +35,7 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
                     d.trang_thai
 
                 FROM doan_luu_tru d
-                JOIN dat_phong dp ON dp.id = d.id_dat_phong
+                JOIN phieu_dat_phong dp ON dp.id = d.id_phieu_dat_phong
 
                 LEFT JOIN (
                     SELECT ctd.id_doan_luu_tru,
@@ -63,7 +64,7 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
             countQuery = """
                        SELECT COUNT(*)
                                                FROM doan_luu_tru d
-                                                JOIN dat_phong dp ON dp.id = d.id_dat_phong
+                                              JOIN phieu_dat_phong dp ON dp.id = d.id_phieu_dat_phong
                                            
                                                LEFT JOIN (
                                                    SELECT ctd.id_doan_luu_tru,
@@ -96,5 +97,39 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
             @Param("req") FindDoanRequest req,
             Pageable pageable
     );
-    boolean existsByDatPhong_Id(String Id);
+    @Query(value = """
+
+                        SELECT\s
+                p.id,
+                p.ten,
+                p.tang,
+                lp.so_giuong_doi,
+                lp.so_giuong_don,
+                lp.so_nguoi_quy_dinh,
+                lp.so_nguoi_toi_da,
+                COUNT(ctd.id) AS soNguoiHienTai
+            FROM phong p
+            JOIN loai_phong lp\s
+                ON lp.id = p.loai_phong_id
+            LEFT JOIN chi_tiet_doan ctd\s
+                ON ctd.id_phong = p.id
+            LEFT JOIN doan_luu_tru dtl\s
+                ON dtl.id = ctd.id_doan_luu_tru
+            LEFT JOIN phieu_dat_phong dp\s
+                ON dp.id = dtl.id_phieu_dat_phong
+                AND dp.status_phieu_dat_phong = 1
+            GROUP BY\s
+                p.id,
+                p.ten,
+                p.tang,
+                lp.so_giuong_doi,
+                lp.so_giuong_don,
+                lp.so_nguoi_quy_dinh,
+                lp.so_nguoi_toi_da
+            ORDER BY p.tang
+            """, nativeQuery = true)
+    List<DSPhongDaDatTheoDoanCombox> getDataComboboxDatPhongTheoDoan(@Param("idDoan") String idDoan);
+
+
+    boolean existsByPhieuDatPhong_Id(String Id);
 }

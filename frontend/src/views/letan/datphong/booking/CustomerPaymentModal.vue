@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import type { PhieuDatTamResponse, SavePhieuDatTamRequest, TimKhachHangResponse } from '@/service/api/letan/booking'
 import { savePhieuDatTam, searchKhachHang, getPhieuDatTam } from '@/service/api/letan/booking'
 import { useDebounceFn } from '@vueuse/core'
-
+import { CameraOutline, QrCodeOutline, SearchOutline, PersonAddOutline, PersonOutline, CallOutline } from '@vicons/ionicons5'
 interface Props {
   visible: boolean
   sessionId: string | null
@@ -56,7 +56,35 @@ const congNo = computed(() => {
   const no = tongTien.value - formData.value.tienKhachTra
   return no > 0 ? no : 0
 })
+const formModelKhachHang = reactive({
+  tenDoan: '',
+  ghiChu: '',
+  hoTenTruongDoan: '',
+  soDienThoaiTruongDoan: '',
+  ngaySinhTruongDoan: null,
+  gioiTinhTruongDoan: null,
+  loaiGiayToTruongDoan: null,
+  soGiayToTruongDoan: '',
+  idDatPhong: null
 
+})
+const loaiNguoi = computed(() =>
+  phieuData.value?.soLuongKhach > 1 ? "trưởng đoàn" : "khách hàng"
+);
+const isSearchMode = ref(false);
+const resetFormKhachHang = () => {
+  Object.assign(formModelKhachHang, {
+    tenDoan: '',
+    ghiChu: '',
+    hoTenTruongDoan: '',
+    soDienThoaiTruongDoan: '',
+    ngaySinhTruongDoan: null,
+    gioiTinhTruongDoan: null,
+    loaiGiayToTruongDoan: null,
+    soGiayToTruongDoan: '',
+    idDatPhong: null
+  })
+}
 function closeModal() {
   modalVisible.value = false
   resetForm()
@@ -73,6 +101,7 @@ function resetForm() {
   selectedKhachHang.value = null
   phieuData.value = null
   currentStep.value = 'CUSTOMER_INFO'
+  resetFormKhachHang()
 }
 
 const debouncedSearchKH = useDebounceFn(async () => {
@@ -152,9 +181,26 @@ async function handleTiepTuc() {
   if (!phieuData.value) return
 
   if (currentStep.value === 'CUSTOMER_INFO') {
-    if (!selectedKhachHang.value) {
-      window.$message.warning('Vui lòng chọn khách hàng')
-      return
+    if (isSearchMode.value) {
+      if (!selectedKhachHang.value) {
+        window.$message.warning('Vui lòng chọn khách hàng')
+        return
+      }
+    }
+
+    // ✍️ MODE: NHẬP TAY
+    else {
+      if (
+        !formModelKhachHang.hoTenTruongDoan ||
+        !formModelKhachHang.soDienThoaiTruongDoan ||
+        formModelKhachHang.loaiGiayToTruongDoan === null ||
+        !formModelKhachHang.soGiayToTruongDoan ||
+        !formModelKhachHang.ngaySinhTruongDoan ||
+        formModelKhachHang.gioiTinhTruongDoan === null
+      ) {
+        window.$message.warning('Vui lòng nhập đầy đủ thông tin khách hàng')
+        return
+      }
     }
 
     try {
@@ -306,17 +352,79 @@ function formatDate(timestamp: number) {
     minute: '2-digit',
   })
 }
+
+const loaiGiayToOptions = ref([
+  { label: 'CCCD', value: 0 },
+  { label: 'Hộ chiếu', value: 1 }
+])
+
+const gioiTinhToOptions = ref([
+  { label: 'Nam', value: 0 },
+  { label: 'Nữ', value: 1 },
+  { label: 'Khác', value: 2 }
+])
+const showScanner = ref(false)
+const showOCRModal = ref(false)
+function handleQuetCCCD() {
+
+  if (formModelKhachHang.loaiGiayToTruongDoan !== 0) {
+    window.$message.warning('Vui lòng chọn loại giấy tờ là CCCD để quét!')
+    return
+  }
+  showScanner.value = true
+}
+function handleOCRCCCD() {
+
+  showOCRModal.value = true
+}
+const onlyAllowNumber = (value: string) => !value || /^\d+$/.test(value)
+
+
+watch(isSearchMode, (val) => {
+  if (val) {
+    resetFormKhachHang()
+  } else {
+    selectedKhachHang.value = null
+  }
+})
+
+const isValidKhachHang = computed(() => {
+  // Search mode
+  if (isSearchMode.value) {
+    return !!selectedKhachHang.value
+  }
+
+  // Nhập tay
+  return (
+    !!formModelKhachHang.hoTenTruongDoan &&
+    !!formModelKhachHang.soDienThoaiTruongDoan &&
+    formModelKhachHang.loaiGiayToTruongDoan !== null &&
+    formModelKhachHang.loaiGiayToTruongDoan !== undefined &&
+    !!formModelKhachHang.soGiayToTruongDoan &&
+    !!formModelKhachHang.ngaySinhTruongDoan &&
+    formModelKhachHang.gioiTinhTruongDoan !== null
+  )
+})
+
+const isDisableButton = computed(() => {
+  if (currentStep.value === 'CUSTOMER_INFO') {
+    return !isValidKhachHang.value
+  }
+
+  if (currentStep.value === 'PAYMENT_INFO') {
+    return formData.value.tienKhachTra == null
+  }
+
+  return false
+})
+
+
 </script>
 
 <template>
-  <n-modal
-    v-model:show="modalVisible"
-    :mask-closable="false"
-    preset="card"
-    :title="currentStep === 'CUSTOMER_INFO' ? 'Thông tin khách hàng' : 'Thông tin thanh toán'"
-    class="w-800px modal-custom-font"
-    :segmented="{ content: true, action: true }"
-  >
+  <n-modal v-model:show="modalVisible" :mask-closable="false" preset="card"
+    :title="currentStep === 'CUSTOMER_INFO' ? 'Thông tin phiếu đặt' : 'Thông tin thanh toán'"
+    class="w-800px modal-custom-font" :segmented="{ content: true, action: true }">
     <n-spin :show="isLoading">
       <div v-if="phieuData" class="space-y-4">
 
@@ -328,7 +436,8 @@ function formatDate(timestamp: number) {
             </div>
             <div>
               <div class="text-gray-600 mb-1">Thời gian lưu trú</div>
-              <div class="font-semibold">{{ Math.ceil((phieuData.checkOutDate - phieuData.checkInDate) / (1000 * 60 * 60 * 24)) }} đêm</div>
+              <div class="font-semibold">{{ Math.ceil((phieuData.checkOutDate - phieuData.checkInDate) / (1000 * 60 * 60
+                * 24)) }} đêm</div>
             </div>
             <div>
               <div class="text-gray-600 mb-1">Tổng tiền</div>
@@ -337,35 +446,133 @@ function formatDate(timestamp: number) {
           </div>
         </n-card>
 
-        <n-card v-if="currentStep === 'CUSTOMER_INFO'" size="small" title="Chọn khách hàng" :bordered="false">
-          <n-form label-placement="top">
+        <n-card v-if="currentStep === 'CUSTOMER_INFO'" size="small" :title="`Thông tin ${loaiNguoi}`" :bordered="false">
+          <div class="flex justify-end mb-3">
+            <n-button type="primary" style="border-radius: 6px" @click="isSearchMode = !isSearchMode">
+              <template #icon>
+                <n-icon v-if="isSearchMode">
+                  <PersonAddOutline />
+                </n-icon>
+                <n-icon v-else>
+                  <SearchOutline />
+                </n-icon>
+              </template>
+
+              {{ isSearchMode ? 'Nhập khách mới' : 'Tìm khách có sẵn' }}
+            </n-button>
+
+          </div>
+
+          <!-- 🔍 SEARCH MODE -->
+          <n-form v-if="isSearchMode" label-placement="top">
             <n-form-item label="Tìm khách hàng">
-              <n-select
-                v-model:value="selectedKhachHang"
-                filterable
-                placeholder="Nhập tên, SĐT, CCCD hoặc Email..."
-                :options="khachHangOptions.map(kh => ({
+              <n-select v-model:value="selectedKhachHang" filterable remote clearable
+                placeholder="Nhập tên, SĐT, CCCD hoặc Email..." :options="khachHangOptions.map(kh => ({
                   label: `${kh.hoTen} - ${kh.soDienThoai || kh.email}`,
                   value: kh.id,
-                }))"
-                :loading="isSearchingKH"
-                clearable
-                remote
-                :clear-filter-after-select="false"
-                @search="(val: string) => keywordKhachHang = val"
-              />
+                }))" :loading="isSearchingKH" :clear-filter-after-select="false"
+                @search="(val) => keywordKhachHang = val" />
             </n-form-item>
 
-            <n-card v-if="selectedKhachHangInfo" size="small" class="mt-3 bg-gray-50 text-sm">
-              <div class="grid grid-cols-2 gap-2">
-                <div><div class="text-gray-600">Họ tên</div><div class="font-semibold">{{ selectedKhachHangInfo.hoTen }}</div></div>
-                <div><div class="text-gray-600">SĐT</div><div class="font-semibold">{{ selectedKhachHangInfo.soDienThoai }}</div></div>
+            <n-card v-if="selectedKhachHangInfo" size="small">
+              <div class="mt-3 rounded-lg bg-gray-50 text-sm border border-gray-200 px-4 py-3shadow-sm">
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Họ tên -->
+                  <div class="flex items-start gap-3">
+                    <n-icon size="15" class="text-blue-500 my-1.5">
+                      <PersonOutline />
+                    </n-icon>
+
+                    <div>
+                      <div class="text-gray-500 text-xs my-1">Họ tên</div>
+                      <div class="font-semibold text-gray-800 mb-2">
+                        {{ selectedKhachHangInfo.hoTen }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Số điện thoại -->
+                  <div class="flex items-start gap-3">
+                    <n-icon size="15" class="text-green-500 my-1.5">
+                      <CallOutline />
+                    </n-icon>
+
+                    <div>
+                      <div class="text-gray-500 text-xs my-1">Số điện thoại</div>
+                      <div class="font-semibold text-gray-800 mb-2">
+                        {{ selectedKhachHangInfo.soDienThoai }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </n-card>
+
+          </n-form>
+
+          <!-- ✍️ INPUT MODE -->
+          <n-form v-else label-placement="top">
+            <NGrid :cols="2" :x-gap="12">
+              <NFormItemGi v-if="phieuData?.soLuongKhach > 1" :span="2" label="Tên đoàn (Tùy chọn)">
+                <NInput v-model:value="formModelKhachHang.tenDoan"
+                  placeholder="Để trống sẽ tự sinh theo tên trưởng đoàn..." />
+              </NFormItemGi>
+
+
+
+
+
+              <NFormItemGi label="Họ tên">
+                <NInput v-model:value="formModelKhachHang.hoTenTruongDoan" placeholder="Họ và tên..." />
+              </NFormItemGi>
+
+              <n-form-item-grid-item label="Ngày sinh" path="ngaySinh">
+                <n-date-picker v-model:value="formModelKhachHang.ngaySinhTruongDoan" type="date"
+                  placeholder="Chọn ngày sinh" style="width: 100%;" clearable />
+              </n-form-item-grid-item>
+              <n-form-item-grid-item label="Giới tính" path="gioiTinh">
+                <n-radio-group v-model:value="formModelKhachHang.gioiTinhTruongDoan">
+                  <n-radio v-for="item in gioiTinhToOptions" :key="item.value" :value="item.value">
+                    {{ item.label }}
+                  </n-radio>
+                </n-radio-group>
+              </n-form-item-grid-item>
+
+              <NFormItemGi label="Loại giấy tờ" path="loaiGiayTo">
+                <div class="flex gap-2 w-full">
+                  <n-select v-model:value="formModelKhachHang.loaiGiayToTruongDoan" :options="loaiGiayToOptions"
+                    placeholder="Chọn loại giấy tờ" clearable />
+
+                  <NButton type="primary" style="border-radius: 6px" @click="handleQuetCCCD">
+                    <template #icon>
+                      <NIcon>
+                        <QrCodeOutline />
+                      </NIcon>
+                    </template>
+                  </NButton>
+                  <NButton type="primary" style="border-radius: 6px" @click="handleOCRCCCD">
+                    <template #icon>
+                      <NIcon>
+                        <CameraOutline />
+                      </NIcon>
+                    </template>
+                  </NButton>
+
+                </div>
+              </NFormItemGi>
+              <NFormItemGi label="Số giấy tờ">
+                <NInput v-model:value="formModelKhachHang.soGiayToTruongDoan" placeholder="Số giấy tờ ..." clearable />
+              </NFormItemGi>
+              <NFormItemGi label="Số điện thoại">
+                <NInput v-model:value="formModelKhachHang.soDienThoaiTruongDoan" placeholder="Số điện thoại..."
+                  :allow-input="onlyAllowNumber" :maxlength="10" show-count />
+              </NFormItemGi>
+            </NGrid>
           </n-form>
         </n-card>
 
-        <n-card v-if="currentStep === 'PAYMENT_INFO'" size="small" title="Thông tin khách hàng" :bordered="false" class="bg-blue-50">
+        <n-card v-if="currentStep === 'PAYMENT_INFO'" size="small" title="Thông tin khách hàng" :bordered="false"
+          class="bg-blue-50">
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
               <div class="text-gray-600 mb-1">Họ tên</div>
@@ -378,7 +585,8 @@ function formatDate(timestamp: number) {
           </div>
         </n-card>
 
-        <n-card v-if="currentStep === 'PAYMENT_INFO'" size="small" title="Thanh toán" :bordered="false" class="bg-gradient-to-r from-green-50 to-emerald-50">
+        <n-card v-if="currentStep === 'PAYMENT_INFO'" size="small" title="Thanh toán" :bordered="false"
+          class="bg-gradient-to-r from-green-50 to-emerald-50">
           <div class="space-y-3">
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
@@ -388,13 +596,8 @@ function formatDate(timestamp: number) {
 
               <n-form label-placement="top">
                 <n-form-item label="Tiền khách trả">
-                  <n-input-number
-                    v-model:value="formData.tienKhachTra"
-                    :min="0"
-                    placeholder="Nhập số tiền"
-                    style="width: 100%"
-                    :format-value="(value: number) => value?.toLocaleString('vi-VN')"
-                  />
+                  <n-input-number v-model:value="formData.tienKhachTra" :min="0" placeholder="Nhập số tiền"
+                    style="width: 100%" :format-value="(value: number) => value?.toLocaleString('vi-VN')" />
                 </n-form-item>
               </n-form>
 
@@ -421,17 +624,11 @@ function formatDate(timestamp: number) {
           </div>
         </n-card>
 
-        <n-card size="small" title="Thông tin bổ sung" :bordered="false">
+        <n-card size="small" title="Thông tin bổ sung" :bordered="false" style="margin-top: 0px;">
           <n-form label-placement="top">
             <n-form-item label="Ghi chú">
-              <n-input
-                v-model:value="formData.ghiChu"
-                type="textarea"
-                placeholder="Nhập ghi chú (tùy chọn)..."
-                :rows="2"
-                :maxlength="500"
-                show-count
-              />
+              <n-input v-model:value="formData.ghiChu" type="textarea" placeholder="Nhập ghi chú (tùy chọn)..."
+                :rows="1" :maxlength="500" show-count />
             </n-form-item>
 
             <n-form-item>
@@ -462,18 +659,16 @@ function formatDate(timestamp: number) {
             </template>
             Lưu tạm
           </n-button>
-          <n-button
-            type="primary"
-            size="large"
-            :disabled="(currentStep === 'CUSTOMER_INFO' && !selectedKhachHang) ||
-                       (currentStep === 'PAYMENT_INFO' && (formData.tienKhachTra === null || formData.tienKhachTra === undefined))"
-            @click="handleTiepTuc"
-          >
+          <n-button type="primary" size="large" :disabled="isDisableButton" @click="handleTiepTuc">
             <template #icon>
               <nova-icon :icon="currentStep === 'CUSTOMER_INFO' ? 'carbon:arrow-right' : 'carbon:checkmark'" />
             </template>
-            {{ currentStep === 'CUSTOMER_INFO' ? 'Tiếp tục nhập thanh toán' : 'Xác nhận' }}
+
+            {{ currentStep === 'CUSTOMER_INFO'
+              ? 'Tiếp tục nhập thanh toán'
+              : 'Xác nhận' }}
           </n-button>
+
         </n-space>
       </n-space>
     </template>

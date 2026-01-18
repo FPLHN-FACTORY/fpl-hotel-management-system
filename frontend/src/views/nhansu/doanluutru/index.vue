@@ -2,10 +2,11 @@
 import { h, onMounted, ref, reactive } from 'vue'
 import { NButton, NSpace, NTag, NIcon, NDataTable, NCard, NForm, NGrid, NFormItemGi, NInput, DataTableColumns, FormInst, NDatePicker } from 'naive-ui'
 import { Tag as TagIcon, Identification, Home, Building, Category, Currency, UserMultiple, ChartLineData, Hotel, GroupPresentation, Row, Add, Rotate } from '@vicons/carbon'
-import { getAllGroups, ParamsGetGroups, type DoanLuuTru } from '@/service/api/nhansu/doanluutru'
+import { getAllGroups, ParamsGetGroups, type DoanLuuTru,checkInDoan } from '@/service/api/nhansu/doanluutru'
 import MemberDrawer from './components/MemberDrawer.vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
-
+import { useDialog } from 'naive-ui'
+const dialog = useDialog()
 const data = ref<DoanLuuTru[]>([])
 const loading = ref(false)
 const showMemberDrawer = ref(false)
@@ -77,62 +78,7 @@ function handleManageMembers(row: DoanLuuTru) {
   showMemberDrawer.value = true
 }
 
-// const columns: any = [
-//   { title: 'STT', key: 'orderNumber', align: 'center' },
-//   { title: 'Mã đoàn', key: 'maDoan', align: 'center' },
-//   { title: 'Tên đoàn', key: 'tenDoan', align: 'center' },
-//   { title: 'Trưởng đoàn', key: 'hoTen', align: 'center', render: (row: any) => row.hoTen || '-' },
-//   { title: 'Booking', key: 'maDatPhong', align: 'center', render: (row: any) => row.maDatPhong ? 'Booking #' + row.maDatPhong.substring(0, 8) : '-' },
-//   { title: 'Ghi chú', key: 'ghiChu', align: 'center' },
-//   {
-//     title: 'Trạng thái', key: 'trangThai', align: 'center',
-//     render(row: any) {
-//       const map: any = {
-//         0: { label: 'Chưa check-in', type: 'info' },
-//         1: { label: 'Đang ở', type: 'success' },
-//         2: { label: 'Đã check-out', type: 'default' }
-//       }
-//       const st = map[row.trangThai ?? 0]
-//       return h(NTag, { type: st.type }, { default: () => st.label })
-//     }
-//   },
-// {
-//   title: 'Thời gian lưu trú',
-//   align: 'center',
-//   render(row: any) {
-//     const checkIn = row.thoiGianCheckIn
-//     const checkOut = row.thoiGianCheckOut
 
-//     if (!checkIn || !checkOut) return '-'
-
-//     const format = (value: string) =>
-//       new Date(value).toLocaleString('vi-VN', {
-//         day: '2-digit',
-//         month: '2-digit',
-//         year: 'numeric',
-//         hour: '2-digit',
-//         minute: '2-digit',
-//         second: '2-digit'
-//       })
-
-//     return `${format(checkIn)} - ${format(checkOut)}`
-//   }
-// }
-
-// ,
-//   {
-//     title: 'Thao tác',
-//     key: 'actions',
-//     align: 'center',
-//     render(row: DoanLuuTru) {
-//       return h(NButton, {
-//         size: 'small',
-//         type: 'info',
-//         onClick: () => handleManageMembers(row)
-//       }, { default: () => 'Chi tiết thành viên' })
-//     }
-//   }
-// ]
 async function changePage(page: number) {
   fetchData(page)
 }
@@ -239,7 +185,7 @@ const columns: DataTableColumns<DoanLuuTru> = [
     render(row: any) {
       const map: any = {
         0: { label: 'Chưa check-in', type: 'info' },
-        1: { label: 'Đang ở', type: 'success' },
+        1: { label: 'Đang lưu trú', type: 'success' },
         2: { label: 'Đã check-out', type: 'default' }
       }
       const st = map[row.trangThai ?? 0]
@@ -253,8 +199,6 @@ const columns: DataTableColumns<DoanLuuTru> = [
       const checkIn = row.thoiGianCheckIn
       const checkOut = row.thoiGianCheckOut
 
-      if (!checkIn || !checkOut) return '-'
-
       const format = (value: string) =>
         new Date(value).toLocaleString('vi-VN', {
           day: '2-digit',
@@ -265,31 +209,68 @@ const columns: DataTableColumns<DoanLuuTru> = [
           second: '2-digit'
         })
 
-      return `${format(checkIn)} - ${format(checkOut)}`
-    }
-  }
+      // 1. Chưa check-in & chưa check-out
+      if (!checkIn && !checkOut) {
+        return 'Chưa check-in - Chưa check-out'
+      }
 
-  ,
+      // 2. Đã check-in, chưa check-out
+      if (checkIn && !checkOut) {
+        return `${format(checkIn)} - Chưa check-out`
+      }
+
+      // 3. Đã check-in & đã check-out
+      if (checkIn && checkOut) {
+        return `${format(checkIn)} - ${format(checkOut)}`
+      }
+
+      // fallback (an toàn)
+      return '-'
+
+    }
+  },
   {
     title: 'Thao tác',
     key: 'actions',
     align: 'center',
     render(row: DoanLuuTru) {
       return h(
-        NButton,
-        {
-          size: 'small',
-          type: 'info',
-          onClick: (e: MouseEvent) => {
-            e.stopPropagation() // ⭐ RẤT QUAN TRỌNG
-            handleManageMembers(row)
-          }
-        },
-        { default: () => 'Chi tiết thành viên' }
+        'div',
+        { style: 'display:flex; gap:8px; justify-content:center' },
+        [
+          // 👉 Nút Thành viên
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'info',
+              onClick: (e: MouseEvent) => {
+                e.stopPropagation()
+                handleManageMembers(row)
+              }
+            },
+            { default: () => 'Thành viên' }
+          ),
+
+          // 👉 Nút Check-in
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'success',
+              disabled: row.trangThai=== 1, // ✅ đã check-in thì disable
+              onClick: (e: MouseEvent) => {
+                e.stopPropagation()
+                handleCheckIn(row)
+              }
+            },
+            { default: () => 'Check-in' }
+          )
+        ]
       )
     }
-
   }
+
 ]
 
 const expandedRowKeys = ref<string[]>([])
@@ -306,6 +287,31 @@ function handleRowClick(row: any, event: MouseEvent) {
     expandedRowKeys.value.splice(index, 1)
   }
 }
+function handleCheckIn(row: DoanLuuTru) {
+  dialog.warning({
+    title: 'Xác nhận check-in',
+    content: 'Bạn có chắc chắn muốn check-in đoàn lưu trú này?',
+    positiveText: 'Xác nhận',
+    negativeText: 'Hủy',
+    onPositiveClick: async () => {
+      try {
+        await checkInDoan(row.id)
+        window.$message.success(`Đoàn ${row.tenDoan} Check-in thành công`)
+        fetchData(1) // reload table
+      } catch (e: any) {
+        // 🔥 Bắt lỗi từ backend
+        const msg =
+          e?.response?.data?.message ||
+          e?.message ||
+          'Check-in thất bại, vui lòng thử lại'
+
+        window.$message.error(msg)
+      }
+    }
+  })
+}
+
+
 </script>
 
 <template>
@@ -318,8 +324,8 @@ function handleRowClick(row: any, event: MouseEvent) {
               @keyup.enter="fetchData(1)" />
           </NFormItemGi>
           <NFormItemGi :span="12" label="Thời gian lưu trú">
-            <NDatePicker style="width: 100%;" v-model:value="timeRange" type="datetimerange" clearable start-placeholder="Ngày đến"
-              end-placeholder="Ngày đi" />
+            <NDatePicker style="width: 100%;" v-model:value="timeRange" type="datetimerange" clearable
+              start-placeholder="Ngày đến" end-placeholder="Ngày đi" />
 
           </NFormItemGi>
           <NFormItemGi :span="24" class="flex justify-end gap-3">
@@ -332,9 +338,9 @@ function handleRowClick(row: any, event: MouseEvent) {
     </NCard>
 
     <NCard :bordered="false">
-      <div class="flex gap-4 mb-3">
+      <!-- <div class="flex gap-4 mb-3">
         <NButton type="primary" @click="showCreateModal = true">Thêm đoàn lưu trú</NButton>
-      </div>
+      </div> -->
 
       <!-- <NDataTable :columns="columns" :data="data" :loading="loading" /> -->
       <NDataTable :columns="columns" :data="data" :loading="loading" :row-key="(row) => row.id"
