@@ -12,6 +12,8 @@ import DatPhongTrucTiepModal from './booking/DatPhongTrucTiepModal.vue'
 import XacNhanDatPhongModal from './booking/XacNhanDatPhongModal.vue'
 import PhieuDatTamList from './booking/PhieuDatTamList.vue'
 import CustomerPaymentModal from './booking/CustomerPaymentModal.vue'
+import QuanLyDatPhongModal from './booking/QuanLyDatPhongModal.vue'
+import { getActiveBookingByRoom } from '@/service/api/letan/incurredService'
 import type { ChonLoaiPhong } from '@/service/api/letan/booking'
 
 const currentView = ref<string>('map')
@@ -38,6 +40,7 @@ const notification = useNotification()
 // Modal đặt phòng theo loại
 const showChonLoaiPhongModal = ref(false)
 const showDatPhongModal = ref(false)
+
 const bookingData = ref<{
   ngayNhan: number
   ngayTra: number
@@ -45,6 +48,17 @@ const bookingData = ref<{
   danhSachLoaiPhong: ChonLoaiPhong[]
 } | null>(null)
 const sessionIdDatTheoLoai = ref<string | null>(null)
+
+// Modal quản lý đặt phòng
+const showQuanLyModal = ref(false)
+const selectedBookingForManagement = ref<{
+  id: string
+  roomId: string
+  roomName: string
+  customerName?: string
+  status: string
+} | null>(null)
+
 
 // Modal đặt phòng trực tiếp (từ click phòng hoặc chọn nhiều)
 const showDatPhongTrucTiepModal = ref(false)
@@ -200,7 +214,28 @@ function handleDatPhongSuccess() {
 }
 
 // ========== Flow 2: Đặt phòng trực tiếp (từ click phòng hoặc chọn nhiều) ==========
-function handleRoomClick(room: SoDoPhongResponse) {
+async function handleRoomClick(room: SoDoPhongResponse) {
+  // Nếu phòng đang sử dụng, mở modal quản lý
+  if (['DANG_SU_DUNG', 'SAP_TRA', 'QUA_GIO_TRA'].includes(room.trangThaiPhong)) {
+    try {
+      const res = await getActiveBookingByRoom(room.id)
+      if (res.data) {
+        selectedBookingForManagement.value = {
+          id: res.data.id,
+          roomId: room.id,
+          roomName: `${room.ma} - ${room.ten}`,
+          status: room.trangThaiPhong,
+          customerName: res.data.phieuDatPhong?.khachHang?.hoTen,
+          phieuDatPhongId: res.data.phieuDatPhong?.id
+        }
+        showQuanLyModal.value = true
+      }
+    } catch (error: any) {
+      window.$message.error('Không tìm thấy thông tin đặt phòng')
+    }
+    return
+  }
+
   // Chỉ cho phép đặt phòng trống
   if (room.trangThaiPhong !== 'TRONG') {
     notification.warning({
@@ -299,13 +334,8 @@ function handleCustomerPaymentContinue(sessionId: string) {
 
         <div class="mt-[20px] flex gap-x-2">
           <div class="basis-2/5">
-            <n-date-picker
-              v-model:value="stateSearch.stayDate"
-              type="datetimerange"
-              clearable
-              start-placeholder="Ngày đến"
-              end-placeholder="Ngày đi"
-            />
+            <n-date-picker v-model:value="stateSearch.stayDate" type="datetimerange" clearable
+              start-placeholder="Ngày đến" end-placeholder="Ngày đi" />
           </div>
           <div class="basis-1/5">
             <n-input-number v-model:value="stateSearch.minPrice" placeholder="Giá nhỏ nhất" clearable />
@@ -314,12 +344,8 @@ function handleCustomerPaymentContinue(sessionId: string) {
             <n-input-number v-model:value="stateSearch.maxPrice" placeholder="Giá lớn nhất" clearable />
           </div>
           <div class="basis-1/5">
-            <n-select
-              v-model:value="stateSearch.idLoaiPhong"
-              placeholder="Chọn loại phòng"
-              clearable
-              :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]"
-            />
+            <n-select v-model:value="stateSearch.idLoaiPhong" placeholder="Chọn loại phòng" clearable
+              :options="dataCombobox && dataCombobox.loaiPhong as SelectMixedOption[]" />
           </div>
         </div>
       </div>
@@ -347,56 +373,34 @@ function handleCustomerPaymentContinue(sessionId: string) {
     </div>
 
     <div class="mt-4">
-      <component
-        :is="currentComponent"
-        :floors="floors"
-        @room-click="handleRoomClick"
-        @multi-room-select="handleMultiRoomSelect"
-      />
+      <component :is="currentComponent" :floors="floors" @room-click="handleRoomClick"
+        @multi-room-select="handleMultiRoomSelect" />
     </div>
 
     <!-- Modals đặt phòng theo loại -->
-    <ChonLoaiPhongModal
-      v-model:visible="showChonLoaiPhongModal"
-      @submit="handleChonLoaiPhongSubmit"
-    />
+    <ChonLoaiPhongModal v-model:visible="showChonLoaiPhongModal" @submit="handleChonLoaiPhongSubmit" />
 
-    <DatPhongChiTietModal
-      v-model:visible="showDatPhongModal"
-      :booking-data="bookingData"
-      @next="handleDatPhongChiTietNext"
-    />
+    <DatPhongChiTietModal v-model:visible="showDatPhongModal" :booking-data="bookingData"
+      @next="handleDatPhongChiTietNext" />
 
     <!-- Modals đặt phòng trực tiếp -->
-    <DatPhongTrucTiepModal
-      v-model:visible="showDatPhongTrucTiepModal"
-      :selected-rooms="selectedRoomsForBooking"
-      :session-id="currentSessionId"
-      @continue="handleContinueFromDatTrucTiep"
-      @success="handleDatPhongSuccess"
-    />
+    <DatPhongTrucTiepModal v-model:visible="showDatPhongTrucTiepModal" :selected-rooms="selectedRoomsForBooking"
+      :session-id="currentSessionId" @continue="handleContinueFromDatTrucTiep" @success="handleDatPhongSuccess" />
 
     <!-- Modal xác nhận (dùng chung cho cả 2 flow) -->
-    <XacNhanDatPhongModal
-      v-model:visible="showXacNhanModal"
-      :session-id="currentSessionId"
-      @success="handleConfirmSuccess"
-    />
+    <XacNhanDatPhongModal v-model:visible="showXacNhanModal" :session-id="currentSessionId"
+      @success="handleConfirmSuccess" />
 
     <!-- Modal danh sách phiếu đặt tạm -->
-    <PhieuDatTamList
-      v-model:visible="showPhieuDatTamList"
-      @continue-from-step="handleContinueFromPhieuTam"
-    />
+    <PhieuDatTamList v-model:visible="showPhieuDatTamList" @continue-from-step="handleContinueFromPhieuTam" />
 
     <!-- Modal nhập khách hàng/thanh toán (cho flow tiếp tục từ phiếu đặt tạm) -->
-    <CustomerPaymentModal
-      v-model:visible="showCustomerPaymentModal"
-      :session-id="currentSessionId"
-      :initial-step="customerPaymentStep"
-      @continue="handleCustomerPaymentContinue"
-      @success="handleDatPhongSuccess"
-    />
+    <CustomerPaymentModal v-model:visible="showCustomerPaymentModal" :session-id="currentSessionId"
+      :initial-step="customerPaymentStep" @continue="handleCustomerPaymentContinue" @success="handleDatPhongSuccess" />
+
+    <!-- Modal quản lý đặt phòng (dịch vụ) -->
+    <QuanLyDatPhongModal v-model:visible="showQuanLyModal" :booking-details="selectedBookingForManagement"
+      @success="fetchDataSoDoPhong" />
   </div>
 </template>
 

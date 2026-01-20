@@ -36,4 +36,9 @@ public class ADDatPhongController {
     public ResponseEntity<?> confirmBooking(@RequestBody ConfirmBookingRequest request) {
         return Helper.createResponseEntity(adDatPhongService.confirmBooking(request));
     }
+
+    @PostMapping("/checkout/{id}")
+    public ResponseEntity<?> checkout(@PathVariable String id) {
+        return Helper.createResponseEntity(adDatPhongService.checkout(id));
+    }
 }

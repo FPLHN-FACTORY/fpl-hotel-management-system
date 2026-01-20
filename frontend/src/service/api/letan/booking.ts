@@ -379,3 +379,12 @@ export async function searchKhachHang(keyword?: string) {
     throw new Error(error.response?.data?.message || 'Không thể tìm kiếm khách hàng')
   }
 }
+
+export async function checkout(idChiTietDatPhong: string) {
+  try {
+    const res = await request.post(`${API_LE_TAN_BOOKING}/checkout/${idChiTietDatPhong}`)
+    return res.data.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Lỗi trả phòng')
+  }
+}
