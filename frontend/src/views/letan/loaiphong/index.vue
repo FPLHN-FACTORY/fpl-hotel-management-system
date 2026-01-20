@@ -184,10 +184,11 @@ onMounted(() => { fetchRoomTypes(1) })
             <NInput v-model:value="model.tuKhoa" placeholder="Nhập mã hoặc tên" clearable />
           </n-form-item-gi>
           <n-form-item-gi :span="8" label="Trạng thái" path="trangThai">
-            <NSelect v-model:value="model.trangThai" :options="trangThaiLoaiPhongOptions" placeholder="Chọn trạng thái" clearable />
+            <NSelect v-model:value="model.trangThai" :options="trangThaiLoaiPhongOptions" placeholder="Chọn trạng thái"
+              clearable />
           </n-form-item-gi>
           <n-form-item-gi :span="4" class="flex items-center justify-end">
-            <NButton strong secondary @click="handleResetSearch">Reset</NButton>
+            <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
           </n-form-item-gi>
         </n-grid>
       </n-form>
@@ -203,26 +204,16 @@ onMounted(() => { fetchRoomTypes(1) })
       <n-data-table :columns="columns" :data="listData" :loading="loading" />
 
       <div class="mt-4 flex justify-end">
-        <n-pagination
-          v-model:page="currentPage"
-          :page-count="Math.ceil(totalItems / pageSize)"
-          :page-size="pageSize"
-          show-size-picker
-          :page-sizes="[10,20,30,50]"
-          @update:page="changePage"
-          @update:page-size="(size) => { pageSize = size; fetchRoomTypes(1) }"
-        >
+        <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
+          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+          @update:page-size="(size) => { pageSize = size; fetchRoomTypes(1) }">
           <template #prefix>Tổng {{ totalItems }} loại phòng</template>
         </n-pagination>
       </div>
     </n-card>
 
-    <TableModal
-      v-model:visible="visible"
-      :type="modalType"
-      :modal-data="modalData"
-      @refresh="fetchRoomTypes(currentPage)"
-    />
+    <TableModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
+      @refresh="fetchRoomTypes(currentPage)" />
   </NSpace>
 </template>
 

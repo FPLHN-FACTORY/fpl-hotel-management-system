@@ -2,6 +2,8 @@ package com.be.server.core.admin.khachhang.service.impl;
 
 import com.be.server.core.admin.khachhang.model.request.ADAddAndUpdateKhachHangRequest;
 import com.be.server.core.admin.khachhang.model.request.ADSearchKhachHangRequest;
+import com.be.server.core.admin.khachhang.model.request.GiayToRequest;
+import com.be.server.core.admin.khachhang.model.request.UpdateKhachHangLuuTruRequest;
 import com.be.server.core.admin.khachhang.repository.ADKhachHangRepository;
 import com.be.server.core.admin.khachhang.repository.ADLoaiKhachHangRepository;
 import com.be.server.core.admin.khachhang.service.ADKhachHangService;
@@ -129,5 +131,45 @@ public class ADKhachHangServiceImpl implements ADKhachHangService {
     @Override
     public ResponseObject<?> getDataLoaiKhachHang() {
         return ResponseObject.successForward(adLoaiKhachHangRepository.getLoaiKhachHangCombobox(), "Lấy data loại khách hàng thành công");
+    }
+
+    @Override
+    public ResponseObject<?> findKhachHangByGiayTo(GiayToRequest request) {
+        if(request.getLoaiGiayTo()!=null && request.getSoGiayTo()!=null && !request.getSoGiayTo().isBlank()){
+            Optional<KhachHang>optionalKhachHang=adKhachHangRepository.findByLoaiGiayToAndSoGiayTo(request.getLoaiGiayTo()==0? LoaiGiayTo.CCCD:LoaiGiayTo.HO_CHIEU,request.getSoGiayTo());
+            if(optionalKhachHang.isPresent()){
+                KhachHang khachHang = optionalKhachHang.get();
+                return new ResponseObject<>(khachHang,HttpStatus.OK,"Tìm kiếm theo giấy tờ thành công ");
+            }
+            else{
+                return new ResponseObject<>(null,HttpStatus.NOT_FOUND,"Khách hàng không tồn tại theo giấy tờ");
+            }
+        }
+        return new ResponseObject<>(null,HttpStatus.BAD_REQUEST,"Không đc để trống giấy tờ");
+    }
+
+    @Override
+    public ResponseObject<?> updateKhachHangLuuTru(UpdateKhachHangLuuTruRequest request, String id) {
+        Optional<KhachHang> khachHangOptional = adKhachHangRepository.findById(id);
+
+        if (khachHangOptional.isPresent()) {
+            KhachHang khachHang = khachHangOptional.get();
+
+            if (request.getLoaiGiayTo() != null && request.getSoGiayTo() != null && !request.getSoGiayTo().isBlank()) {
+                if (adKhachHangRepository.existsByLoaiGiayToAndSoGiayToAndIdNot(request.getLoaiGiayTo()==0? LoaiGiayTo.CCCD:LoaiGiayTo.HO_CHIEU, request.getSoGiayTo(),id)) {
+                    return new ResponseObject<>(null, HttpStatus.CONFLICT, "Giấy tờ này đã tồn tại trong hệ thống");
+                }
+            }
+
+            khachHang.setHoTen(request.getHoTen());
+            khachHang.setTen(Helper.extractLastName(request.getHoTen()));
+            khachHang.setNgaySinh(request.getNgaySinh());
+            khachHang.setGioiTinh(request.getGioiTinh()==0? GioiTinh.NAM:request.getGioiTinh()==1?GioiTinh.NU:GioiTinh.KHAC);
+            khachHang.setLoaiGiayTo(request.getLoaiGiayTo()==0? LoaiGiayTo.CCCD:LoaiGiayTo.HO_CHIEU);
+            khachHang.setSoGiayTo(request.getSoGiayTo());
+            adKhachHangRepository.save(khachHang);
+            return new ResponseObject<>(null, HttpStatus.OK, "Cập nhật khách hàng thành công");
+        } else return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng");
+
     }
 }

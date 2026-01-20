@@ -25,6 +25,9 @@ public class PhieuDatPhong extends PrimaryEntity implements Serializable {
     @Column(name = "ngay_check_out")
     private Long checkOutDate;
 
+    @Column(name = "so_luong_khach")
+    private Integer soLuongKhach;
+
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "status_phieu_dat_phong")
     private StatusPhieuDatPhong status_phieu_dat_phong;

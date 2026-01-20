@@ -2,6 +2,8 @@ package com.be.server.core.admin.khachhang.controller;
 
 import com.be.server.core.admin.khachhang.model.request.ADAddAndUpdateKhachHangRequest;
 import com.be.server.core.admin.khachhang.model.request.ADSearchKhachHangRequest;
+import com.be.server.core.admin.khachhang.model.request.GiayToRequest;
+import com.be.server.core.admin.khachhang.model.request.UpdateKhachHangLuuTruRequest;
 import com.be.server.core.admin.khachhang.service.ADKhachHangService;
 import com.be.server.infrastructure.constant.MappingConstants;
 import com.be.server.utils.Helper;
@@ -41,5 +43,13 @@ public class ADKhachHangController {
     @GetMapping("/loai-khach-hang")
     public ResponseEntity<?>getDataLoaiKhachHang() {
         return Helper.createResponseEntity(adKhachHangService.getDataLoaiKhachHang());
+    }
+    @GetMapping("/khach-hang-giay-to")
+    public ResponseEntity<?>getKhachHangByGiayTo(@ModelAttribute GiayToRequest request) {
+        return Helper.createResponseEntity(adKhachHangService.findKhachHangByGiayTo(request));
+    }
+    @PutMapping("/update-khach-hang-luu-tru/{id}")
+    public ResponseEntity<?>updateKhachHang(@PathVariable String id,@RequestBody UpdateKhachHangLuuTruRequest request) {
+        return Helper.createResponseEntity(adKhachHangService.updateKhachHangLuuTru(request,id));
     }
 }

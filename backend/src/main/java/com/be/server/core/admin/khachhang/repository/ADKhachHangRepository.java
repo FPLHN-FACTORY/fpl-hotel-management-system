@@ -2,11 +2,14 @@ package com.be.server.core.admin.khachhang.repository;
 
 import com.be.server.core.admin.khachhang.model.request.ADSearchKhachHangRequest;
 import com.be.server.core.admin.khachhang.model.response.ADKhachHangResponse;
+import com.be.server.entity.KhachHang;
 import com.be.server.infrastructure.constant.LoaiGiayTo;
 import com.be.server.repository.KhachHangRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.Optional;
 
 public interface ADKhachHangRepository extends KhachHangRepository {
     @Query(
@@ -63,5 +66,6 @@ public interface ADKhachHangRepository extends KhachHangRepository {
 
     boolean existsByLoaiGiayToAndSoGiayTo(LoaiGiayTo loaiGiayTo, String soGiayTo);
     boolean existsByLoaiGiayToAndSoGiayToAndIdNot(LoaiGiayTo loaiGiayTo, String soGiayTo,String id);
+   Optional<KhachHang> findByLoaiGiayToAndSoGiayTo(LoaiGiayTo loaiGiayTo, String soGiayTo);
 
 }

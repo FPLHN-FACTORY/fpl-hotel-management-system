@@ -1,0 +1,40 @@
+package com.be.server.entity;
+
+import com.be.server.entity.base.PrimaryEntity;
+import com.be.server.infrastructure.constant.EntityTrangThaiChiTietDoan;
+import com.be.server.infrastructure.constant.EntityVaiTroDoan;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.Serializable;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Entity
+@Table(name = "chi_tiet_doan")
+public class ChiTietDoan extends PrimaryEntity implements Serializable {
+    @ManyToOne
+    @JoinColumn(name = "id_doan_luu_tru")
+    private DoanLuuTru doanLuuTru;
+
+    @ManyToOne
+    @JoinColumn(name = "id_khach_hang")
+    private KhachHang khachHang;
+
+    @ManyToOne
+    @JoinColumn(name = "id_phong")
+    private Phong phong; //
+
+    @Column(name = "vai_tro")
+    @Enumerated(EnumType.ORDINAL)
+    private EntityVaiTroDoan vaiTro;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trang_thai_chi_tiet_doan")
+    private EntityTrangThaiChiTietDoan trangThaiChiTietDoan;
+}
