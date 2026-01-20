@@ -30,9 +30,12 @@ public class MappingConstants {
     public static final String API_LE_TAN_SO_DO_PHONG = API_LE_TAN_PREFIX + "/so-do-phong";
 
     public static final String API_LE_TAN_TAG = API_LE_TAN_PREFIX + "/tag";
+
+    public static final String API_LE_TAN_DAT_PHONG = API_LE_TAN_PREFIX + "/booking";
     public static final String API_LE_TAN_KHACH_HANG = API_LE_TAN_PREFIX + "/khach-hang";
     public static final String API_LE_TAN_DOAN_LUU_TRU = API_LE_TAN_PREFIX + "/doan-luu-tru";
 
     public  static final String API_LE_TAN_DAT_PHONG = API_LE_TAN_PREFIX + "/booking";
 
+    public static final String API_LE_TAN_DICH_VU_PHAT_SINH = API_LE_TAN_PREFIX + "/dich-vu-phat-sinh";
 }

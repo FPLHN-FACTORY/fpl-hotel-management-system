@@ -1,9 +1,13 @@
 package com.be.server.repository;
 
 import com.be.server.entity.DichVuPhatSinh;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DichVuPhatSinhRepository extends JpaRepository<DichVuPhatSinh, String> {
+    List<DichVuPhatSinh> findByPhieuDatPhong_Id(String phieuDatPhongId);
+
+    List<DichVuPhatSinh> findByChiTietDatPhong_Id(String chiTietDatPhongId);
 }

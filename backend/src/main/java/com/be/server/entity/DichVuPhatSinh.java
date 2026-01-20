@@ -27,13 +27,20 @@ public class DichVuPhatSinh extends PrimaryEntity implements Serializable {
     private int soLuong;
 
     @Column(name = "don_gia")
-    private String donGia;
+    private BigDecimal donGia;
 
     @Column(name = "thanh_tien")
     private BigDecimal thanhTien;
 
-
     @ManyToOne
     @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
+
+    @ManyToOne
+    @JoinColumn(name = "id_phieu_dat_phong")
+    private PhieuDatPhong phieuDatPhong;
+
+    @ManyToOne
+    @JoinColumn(name = "id_chi_tiet_dat_phong")
+    private ChiTietDatPhong chiTietDatPhong;
 }

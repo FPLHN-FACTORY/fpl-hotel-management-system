@@ -34,6 +34,67 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
     private final ChiTietDatPhongRepository chiTietDatPhongRepository;
     private final KhachHangRepository khachHangRepository;
     private final PhongRepository phongRepository;
+    private final DichVuPhatSinhRepository dichVuPhatSinhRepository;
+
+    @Override
+    @Transactional
+    public ResponseObject<?> checkout(String idChiTietDatPhong) {
+        ChiTietDatPhong chiTiet = chiTietDatPhongRepository.findById(idChiTietDatPhong)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đặt phòng"));
+
+        if (chiTiet.getStatus_chi_tiet() == StatusChiTietDatPhong.CHECKOUT) {
+            return ResponseObject.errorForward("Phòng đã trả", HttpStatus.BAD_REQUEST);
+        }
+
+        // Calculate Room Cost
+        long now = Instant.now().toEpochMilli();
+        long checkIn = chiTiet.getCheckIn() != null ? chiTiet.getCheckIn() : chiTiet.getPhieuDatPhong().getCheckInDate();
+
+        long diff = now - checkIn;
+        long oneDay = 24 * 60 * 60 * 1000L;
+        long days = (long) Math.ceil((double) diff / oneDay);
+        if (days < 1) days = 1;
+
+        BigDecimal roomCost = chiTiet.getPrice().multiply(BigDecimal.valueOf(days));
+
+        // Get Incurred Services
+        List<DichVuPhatSinh> services = dichVuPhatSinhRepository.findByChiTietDatPhong_Id(idChiTietDatPhong);
+        BigDecimal serviceCost = services.stream()
+                .map(dv -> dv.getThanhTien() != null ? dv.getThanhTien() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal total = roomCost.add(serviceCost);
+
+        // Update Status
+        chiTiet.setStatus_chi_tiet(StatusChiTietDatPhong.CHECKOUT);
+        chiTiet.setCheckOut(now);
+        chiTietDatPhongRepository.save(chiTiet);
+
+        // Check if all rooms in group are checkout
+        PhieuDatPhong pdp = chiTiet.getPhieuDatPhong();
+        
+        // Reload details to ensure up-to-date statuses if mappedBy default doesn't refresh automatically in transaction
+        // But here we rely on the object graph. Ideally we should check database or refresh.
+        // Simple approach: Check all loaded details.
+        boolean allCheckout = pdp.getBookingDetails().stream()
+                .allMatch(ct -> ct.getStatus_chi_tiet() == StatusChiTietDatPhong.CHECKOUT);
+
+        if(allCheckout) {
+            pdp.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CHECKOUT);
+            // pdp.setCheckOutDate(now); // Maybe keep original planned checkout or update to actual? 
+            // Usually checkout date in invoice is actual. Let's update it.
+            pdp.setCheckOutDate(now);
+            phieuDatPhongRepository.save(pdp);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("roomCost", roomCost);
+        result.put("serviceCost", serviceCost);
+        result.put("total", total);
+        result.put("days", days);
+
+        return ResponseObject.successForward(result, "Trả phòng thành công");
+    }
 
     @Override
     public ResponseObject<?> checkPhongTrong(CheckPhongTrongRequest request) {

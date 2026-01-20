@@ -13,4 +13,6 @@ public interface ADDatPhongService {
 
     ResponseObject<?> confirmBooking(ConfirmBookingRequest request);
 
+    ResponseObject<?> checkout(String idChiTietDatPhong);
+
 }
