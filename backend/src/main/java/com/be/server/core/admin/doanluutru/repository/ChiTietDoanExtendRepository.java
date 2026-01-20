@@ -5,15 +5,15 @@ import com.be.server.core.admin.doanluutru.modal.response.CheckSoLuongToiDaRespo
 import com.be.server.core.admin.doanluutru.modal.response.ChiTietDoanResponse;
 import com.be.server.entity.ChiTietDoan;
 import com.be.server.infrastructure.constant.LoaiGiayTo;
-import com.be.server.infrastructure.constant.TrangThaiHoatDong;
+
 import com.be.server.repository.ChiTietDoanRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+
 import java.util.Optional;
 
 public interface ChiTietDoanExtendRepository extends ChiTietDoanRepository {

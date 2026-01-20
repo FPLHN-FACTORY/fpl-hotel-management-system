@@ -21,7 +21,7 @@
         @Async
         public String uploadImage(byte[] file, String id) {
             try {
-                Map uploadResult = cloudinary.uploader().upload(file,
+                Map<?, ?> uploadResult = cloudinary.uploader().upload(file,
                         ObjectUtils.asMap("public_id", id ));
                 return (String) uploadResult.get("url");
             } catch (Exception e) {

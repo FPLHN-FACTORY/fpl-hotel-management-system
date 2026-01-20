@@ -5,7 +5,7 @@ import com.be.server.core.admin.khachhang.model.request.ADSearchKhachHangRequest
 import com.be.server.core.admin.khachhang.model.request.GiayToRequest;
 import com.be.server.core.admin.khachhang.model.request.UpdateKhachHangLuuTruRequest;
 import com.be.server.core.common.base.ResponseObject;
-import com.be.server.infrastructure.constant.LoaiGiayTo;
+
 
 public interface ADKhachHangService {
     ResponseObject<?>getAllKhachHang(ADSearchKhachHangRequest request);

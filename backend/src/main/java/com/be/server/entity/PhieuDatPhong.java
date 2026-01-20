@@ -44,12 +44,11 @@ public class PhieuDatPhong extends PrimaryEntity implements Serializable {
     @OneToMany(mappedBy = "phieuDatPhong", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChiTietLoaiPhongDat> chiTietLoaiPhong;
 
-    // Số lượng khách
-    @Column(name = "so_luong_khach")
-    private Integer soLuongKhach;
+
 
     // Ghi chú
-    @Column(name = "ghi_chu", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "ghi_chu")
     private String ghiChu;
 
     // Người tạo phiếu (nhân viên lễ tân)

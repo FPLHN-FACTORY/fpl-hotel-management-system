@@ -1,7 +1,7 @@
 package com.be.server.core.admin.doanluutru.service.impl;
 
 import com.be.server.core.admin.datphong.booking.repository.ADDatPhongRepository;
-import com.be.server.core.admin.datphong.trangthaiphong.repository.SoDoPhongRepository;
+
 import com.be.server.core.admin.doanluutru.modal.request.AddMemberRequest;
 import com.be.server.core.admin.doanluutru.modal.request.AssignRoomRequest;
 import com.be.server.core.admin.doanluutru.modal.request.CreateDoanRequest;
@@ -28,11 +28,11 @@ import com.be.server.infrastructure.constant.EntityVaiTroDoan;
 import com.be.server.infrastructure.constant.GioiTinh;
 import com.be.server.infrastructure.constant.LoaiGiayTo;
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
-import com.be.server.repository.DoanLuuTruRepository;
+
 import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

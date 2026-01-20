@@ -138,7 +138,8 @@
     "customer": "Quản lí khách hàng",
     "phieuDatPhong": "Quản lý phiếu đặt",
     "taoPhieuDat": "Tạo phiếu đặt",
-    "chiTietPhieuDat": "Chi tiết phiếu đặt"
+    "chiTietPhieuDat": "Chi tiết phiếu đặt",
+    "guestGroup": "Quản lý đoàn"
   },
   "http": {
     "400": "Lỗi cú pháp trong yêu cầu",

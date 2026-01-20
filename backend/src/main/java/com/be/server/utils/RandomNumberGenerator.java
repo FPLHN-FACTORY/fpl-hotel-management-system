@@ -37,7 +37,7 @@ public class RandomNumberGenerator {
         return random.nextInt(maxRange - minRange + 1) + minRange;
     }
     public  String randomPassword() {
-        String password =  RandomStringUtils.random(8,true,true);
+        String password =  RandomStringUtils.randomAlphanumeric(8);
 
         return password;
     }

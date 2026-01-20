@@ -1,6 +1,6 @@
 package com.be.server.infrastructure.constant;
 
-import com.be.server.entity.ChiTietDatPhong;
+
 
 public enum TrangThaiPhongDat {
     TRONG,

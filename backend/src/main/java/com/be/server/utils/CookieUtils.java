@@ -97,6 +97,7 @@ public class CookieUtils {
         return Base64.getEncoder().encodeToString(jsonString.getBytes(StandardCharsets.UTF_8));
     }
 
+    @SuppressWarnings("deprecation")
     public static <T> T deserialize(Cookie cookie, Class<T> cls) {
         return cls.cast(SerializationUtils.deserialize(
                 Base64.getUrlDecoder().decode(cookie.getValue())));

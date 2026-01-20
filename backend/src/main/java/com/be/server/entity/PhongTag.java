@@ -2,7 +2,7 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
+
 import lombok.*;
 
 import java.io.Serializable;

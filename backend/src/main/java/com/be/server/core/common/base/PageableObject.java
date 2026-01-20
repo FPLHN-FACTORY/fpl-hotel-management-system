@@ -31,6 +31,7 @@ public class PageableObject<T> {
         this.totalElements = totalElements;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> PageableObject<T> of(Page<?> page) {
         return new PageableObject<>((Page<T>) page);
     }

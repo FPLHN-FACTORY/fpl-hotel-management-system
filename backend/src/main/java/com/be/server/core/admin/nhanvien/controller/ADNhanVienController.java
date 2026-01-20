@@ -50,7 +50,7 @@ public class ADNhanVienController {
 
 
     @PostMapping("/check-duplicate")
-    public ResponseEntity checkDuplicate(@RequestBody CheckDuplicateRequest request) {
+    public ResponseEntity<?> checkDuplicate(@RequestBody CheckDuplicateRequest request) {
         boolean exists = service.checkDuplicateField(
                 request.getField(),
                 request.getValue(),
