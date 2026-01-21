@@ -73,23 +73,26 @@ public interface ChiTietDoanExtendRepository extends ChiTietDoanRepository {
             String khachHangId,
             String doanLuuTruId
     );
-    @Query(value = "    SELECT\n" +
+    @Query(value = "SELECT\n" +
             "    SUM(t.soNguoiHienTai)  AS tongSoNguoiHienTai,\n" +
             "    SUM(t.so_nguoi_toi_da) AS tongSoNguoiToiDa\n" +
             "FROM (\n" +
             "    SELECT\n" +
-            "        p.id,\n" +
+            "        p.id AS phong_id,\n" +
             "        lp.so_nguoi_toi_da,\n" +
-            "        COUNT(ctd.id) AS soNguoiHienTai  \n" +
+            "        COUNT(ctd.id) AS soNguoiHienTai\n" +
             "    FROM phieu_dat_phong dp\n" +
-            "    JOIN doan_luu_tru dtl \n" +
+            "    JOIN doan_luu_tru dtl\n" +
             "        ON dtl.id_phieu_dat_phong = dp.id\n" +
-            "    LEFT JOIN chi_tiet_doan ctd \n" +
-            "        ON ctd.id_doan_luu_tru = dtl.id\n" +
-            "    LEFT JOIN phong p \n" +
-            "        ON p.id = ctd.id_phong\n" +
-            "    LEFT JOIN loai_phong lp \n" +
+            "    JOIN chi_tiet_dat_phong ctdp\n" +
+            "        ON ctdp.phieu_dat_phong_id = dp.id\n" +
+            "    JOIN phong p\n" +
+            "        ON p.id = ctdp.phong_id\n" +
+            "    JOIN loai_phong lp\n" +
             "        ON lp.id = p.loai_phong_id\n" +
+            "    LEFT JOIN chi_tiet_doan ctd\n" +
+            "        ON ctd.id_doan_luu_tru = dtl.id\n" +
+            "       AND ctd.id_phong = p.id   -- ⭐ chỉ đếm khách đã gán phòng\n" +
             "    WHERE dp.status_phieu_dat_phong = 1\n" +
             "      AND dtl.id = :idDoan\n" +
             "    GROUP BY p.id, lp.so_nguoi_toi_da\n" +
