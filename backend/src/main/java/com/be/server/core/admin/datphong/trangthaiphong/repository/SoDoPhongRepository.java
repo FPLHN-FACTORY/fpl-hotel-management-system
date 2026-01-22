@@ -41,7 +41,7 @@ public interface SoDoPhongRepository extends PhongRepository {
                 OR (:#{#request.q} IS NULL OR p.ten LIKE CONCAT('%', :#{#request.q}, '%')))
                 AND (:idLoaiPhong IS NULL OR lp.id = :idLoaiPhong)
                 AND (:#{#request.maxPrice} IS NULL OR :#{#request.minPrice} IS NULL OR (lp.gia_ca_ngay >= :#{#request.minPrice} AND lp.gia_ca_ngay <= :#{#request.maxPrice}))
-                AND (:idsRoomUnavailable IS NULL OR p.id NOT IN :idsRoomUnavailable)
+                AND (p.id NOT IN :idsRoomUnavailable)
             """, nativeQuery = true)
     List<SoDoPhongResponse> getRoomOverview(
             @Param("idLoaiPhong") String idLoaiPhong,

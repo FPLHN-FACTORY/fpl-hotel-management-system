@@ -104,6 +104,16 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     pid: 10,
   },
   {
+    name: 'serviceManagement',
+    path: '/rooms/services',
+    title: 'Quản lý dịch vụ',
+    requiresAuth: true,
+    icon: 'mdi:room-service-outline',
+    componentPath: '/letan/dichvu/index.vue',
+    id: 14,
+    pid: 10,
+  },
+  {
     name: 'personnel',
     path: '/personnel',
     title: 'Quản lí nhân sự',

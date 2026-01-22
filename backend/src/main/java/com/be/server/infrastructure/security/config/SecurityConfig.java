@@ -175,6 +175,11 @@ public class SecurityConfig {
     @Value("${frontend.url:}") // default empty string if not set
     private String allowedOrigin;
 
+    // @Bean - Disabled: Authentication not needed yet
+    // public TokenAuthenticationFilter tokenAuthenticationFilter() {
+    //     return new TokenAuthenticationFilter();
+    // }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -210,11 +215,13 @@ public class SecurityConfig {
         http.sessionManagement(sess -> sess.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS));
         http.formLogin(fl -> fl.disable());
         http.httpBasic(hb -> hb.disable());
+        
+        // Allow all requests without authentication (authentication disabled for now)
         http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
-        // --- OAuth2 and token filters commented out temporarily ---
-        // http.oauth2Login(...);
+        // --- Token authentication and OAuth2 disabled temporarily ---
         // http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        // http.oauth2Login(...);
 
         return http.build();
     }

@@ -99,9 +99,49 @@ public class ADDichVuPhatSinhServiceImpl implements ADDichVuPhatSinhService {
 
     @Override
     public ResponseObject<?> getActiveBookingByRoom(String roomId) {
-        Optional<ChiTietDatPhong> booking = chiTietDatPhongRepository.findCheckInBookingByRoomId(roomId);
-        if (booking.isPresent()) {
-            return ResponseObject.successForward(booking.get(), "Tìm thấy booking");
+        Long now = System.currentTimeMillis();
+        List<ChiTietDatPhong> bookings = chiTietDatPhongRepository.findCheckInBookingByRoomId(
+            roomId, 
+            now, 
+            org.springframework.data.domain.PageRequest.of(0, 1)
+        );
+        if (!bookings.isEmpty()) {
+            ChiTietDatPhong booking = bookings.get(0);
+            
+            // Map to DTO to avoid lazy loading issues
+            com.be.server.core.admin.phong.model.response.ActiveBookingResponse response = 
+                new com.be.server.core.admin.phong.model.response.ActiveBookingResponse();
+            
+            response.setId(booking.getId());
+            response.setCheckIn(booking.getCheckIn());
+            response.setCheckOut(booking.getCheckOut());
+            response.setPrice(booking.getPrice());
+            response.setSoLuongKhach(booking.getSoLuongKhach());
+            response.setStatusChiTiet(booking.getStatus_chi_tiet());
+            
+            // Map PhieuDatPhong info
+            if (booking.getPhieuDatPhong() != null) {
+                PhieuDatPhong phieu = booking.getPhieuDatPhong();
+                response.setPhieuDatPhongId(phieu.getId());
+                response.setPhieuCheckInDate(phieu.getCheckInDate());
+                response.setPhieuCheckOutDate(phieu.getCheckOutDate());
+                response.setPhieuStatus(phieu.getStatus_phieu_dat_phong());
+                
+                // Map customer info
+                if (phieu.getKhachHang() != null) {
+                    response.setCustomerName(phieu.getKhachHang().getHoTen());
+                    response.setCustomerId(phieu.getKhachHang().getId());
+                }
+            }
+            
+            // Map room info
+            if (booking.getRoom() != null) {
+                response.setRoomId(booking.getRoom().getId());
+                response.setRoomCode(booking.getRoom().getMa());
+                response.setRoomName(booking.getRoom().getTen());
+            }
+            
+            return ResponseObject.successForward(response, "Tìm thấy booking");
         }
         return ResponseObject.errorForward("Không tìm thấy booking đang hoạt động cho phòng này", HttpStatus.NOT_FOUND);
     }

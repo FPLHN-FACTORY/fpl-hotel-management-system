@@ -14,7 +14,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,7 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Slf4j
-@Component
+// @Component - Disabled: Authentication not needed yet
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Setter(onMethod_ = @Autowired)
@@ -48,7 +47,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-
+                // This is expected for public endpoints, use DEBUG level
                 log.info("❌ No token found, skipping authentication");
             }
         } catch (Exception ex) {

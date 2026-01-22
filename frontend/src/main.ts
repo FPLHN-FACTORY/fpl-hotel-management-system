@@ -1,4 +1,6 @@
 import type { App } from 'vue'
+import 'uno.css'
+import '@/styles/index.css'
 import { installRouter } from '@/router'
 import { installPinia } from '@/store'
 import AppVue from './App.vue'

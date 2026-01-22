@@ -41,6 +41,10 @@ public class SoDoPhongServiceImpl implements SoDoPhongService {
             idsRoomUnavailable = soDoPhongRepository.findRoomsByNgayDenAndNgayDi(request.getNgayDen(),
                     request.getNgayDi());
         }
+
+        if (idsRoomUnavailable.isEmpty()) {
+            idsRoomUnavailable.add("DUMMY_ID_FOR_EMPTY_LIST_CHECK");
+        }
         List<SoDoPhongResponse> rooms = soDoPhongRepository.getRoomOverview(
                 request.getIdLoaiPhong(),
                 timestamp,

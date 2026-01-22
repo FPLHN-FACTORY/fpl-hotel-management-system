@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,6 +40,10 @@ public class DoanLuuTru extends PrimaryEntity implements Serializable {
     @Column(name = "trang_thai")
     private DoanLuuTruStatus trangThai;
 
+    @Column(name = "tong_tien_thanh_toan", precision = 15, scale = 2)
+    private BigDecimal tongTienThanhToan; // Tổng số tiền đã thanh toán
 
+    @Column(name = "cong_no", precision = 15, scale = 2)
+    private BigDecimal congNo; // Số tiền còn nợ
 
 }

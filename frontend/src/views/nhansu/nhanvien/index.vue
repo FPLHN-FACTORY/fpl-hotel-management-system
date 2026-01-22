@@ -423,6 +423,7 @@ const columns: DataTableColumns<NhanVien> = [
     title: "Tên",
     key: "ten",
     align: "center",
+    width: 150,
     render: (row) => {
       return h('span', { style: 'font-weight: 600; color: #374151;' }, row.ten || "--")
     }
@@ -466,7 +467,7 @@ const columns: DataTableColumns<NhanVien> = [
     render: (row) =>
       h(
         NSpace,
-        { justify: "center" },
+        { justify: "center", inline: true, size: "small" },
         {
           default: () => [
             h(

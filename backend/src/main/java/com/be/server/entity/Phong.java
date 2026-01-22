@@ -3,6 +3,7 @@ package com.be.server.entity;
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.TrangThaiHoatDong;
 import com.be.server.infrastructure.constant.TrangThaiVeSinh;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -26,6 +27,7 @@ public class Phong extends PrimaryEntity implements Serializable {
 
     @JoinColumn(name = "loai_phong_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"phongs", "bangGias"})
     private LoaiPhong loaiPhong;
 
     @Enumerated(EnumType.ORDINAL)
@@ -37,13 +39,16 @@ public class Phong extends PrimaryEntity implements Serializable {
     private TrangThaiVeSinh trangThaiVeSinh;
 
     @OneToMany(mappedBy = "phong", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"phong"})
     private List<PhongTag> tags;
 
     @OneToMany(mappedBy = "phong", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"phong"})
     private List<BangGia> priceHistory;
 
     // Các liên kết tới ChiTietDatPhong (booking details) --- optional, không bắt buộc nhưng hữu ích
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"room", "phieuDatPhong"})
     private List<ChiTietDatPhong> chiTietDatPhongs;
 
 }

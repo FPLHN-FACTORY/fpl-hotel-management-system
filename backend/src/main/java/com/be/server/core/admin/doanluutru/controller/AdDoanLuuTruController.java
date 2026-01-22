@@ -1,9 +1,11 @@
 package com.be.server.core.admin.doanluutru.controller;
 
 import com.be.server.core.admin.doanluutru.modal.request.AddMemberRequest;
+import com.be.server.core.admin.doanluutru.modal.request.AddGuestDuringStayRequest;
 import com.be.server.core.admin.doanluutru.modal.request.AssignRoomRequest;
 import com.be.server.core.admin.doanluutru.modal.request.CreateDoanRequest;
 import com.be.server.core.admin.doanluutru.modal.request.FindDoanRequest;
+import com.be.server.core.admin.doanluutru.modal.request.PaymentRequest;
 import com.be.server.core.admin.doanluutru.modal.request.SearchMemberRequest;
 import com.be.server.core.admin.doanluutru.service.AdDoanLuuTruService;
 import com.be.server.entity.DoanLuuTru;
@@ -70,6 +72,55 @@ public class AdDoanLuuTruController {
     @PutMapping("/{idDoan}/check-in")
     public ResponseEntity<?>checkInDoan(@PathVariable String idDoan) {
         return Helper.createResponseEntity(service.checkInDoanLuuTru(idDoan));
+    }
+
+    /**
+     * Thêm khách mới vào đoàn trong quá trình lưu trú
+     * Chỉ cho phép khi trạng thái = DANG_LUU_TRU (đang lưu trú)
+     */
+    @PostMapping("/{idDoan}/add-guest-during-stay")
+    public ResponseEntity<?> addGuestDuringStay(
+            @PathVariable String idDoan,
+            @RequestBody AddGuestDuringStayRequest request) {
+        request.setIdDoanLuuTru(idDoan);
+        return Helper.createResponseEntity(service.addGuestDuringStay(request));
+    }
+
+    /**
+     * Tính tổng chi phí lưu trú
+     * Bao gồm tiền phòng và dịch vụ phát sinh
+     */
+    @GetMapping("/{idDoan}/cost-breakdown")
+    public ResponseEntity<?> getCostBreakdown(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.calculateTotalCost(idDoan));
+    }
+
+    /**
+     * Tạo hóa đơn tạm tính
+     */
+    @GetMapping("/{idDoan}/temporary-invoice")
+    public ResponseEntity<?> getTemporaryInvoice(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.generateTemporaryInvoice(idDoan));
+    }
+
+    /**
+     * Xử lý thanh toán
+     * Hỗ trợ thanh toán một phần hoặc toàn bộ
+     */
+    @PostMapping("/{idDoan}/payment")
+    public ResponseEntity<?> processPayment(
+            @PathVariable String idDoan,
+            @RequestBody PaymentRequest request) {
+        request.setIdDoanLuuTru(idDoan);
+        return Helper.createResponseEntity(service.processPayment(request));
+    }
+
+    /**
+     * Lấy trạng thái thanh toán
+     */
+    @GetMapping("/{idDoan}/payment-status")
+    public ResponseEntity<?> getPaymentStatus(@PathVariable String idDoan) {
+        return Helper.createResponseEntity(service.getPaymentStatus(idDoan));
     }
 
 }

@@ -37,4 +37,10 @@ public class ChiTietDoan extends PrimaryEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai_chi_tiet_doan")
     private EntityTrangThaiChiTietDoan trangThaiChiTietDoan;
+
+    @Column(name = "thoi_gian_them")
+    private Long thoiGianThem; // Thời gian khách được thêm (đối với khách thêm trong quá trình lưu trú)
+
+    @Column(name = "ghi_chu", length = 500)
+    private String ghiChu; // Ghi chú thêm
 }

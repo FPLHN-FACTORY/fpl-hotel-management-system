@@ -378,7 +378,7 @@ function handleCustomerPaymentContinue(sessionId: string) {
         </n-button>
       </div>
       <n-button @click="resetFilter">
-        Làm mới bộ lọc
+        Làm mới
       </n-button>
     </div>
 

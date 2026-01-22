@@ -48,7 +48,7 @@ function handleContinue(phieu: PhieuDatTamResponse) {
     createdAt: Date.now(),
   })
 
-  emit('continueFromStep', {
+  emit('continue-from-step', {
     sessionId: phieu.sessionId,
     step: nextStep,
   })
@@ -309,13 +309,13 @@ function getTimeAgo(timestamp: number) {
 
 <style scoped>
 .w-1200px {
-  width: 1200px;
-  max-width: 95vw;
-  max-height: 90vh;
+  width: 900px;
+  max-width: 90vw;
+  max-height: 85vh;
 }
 
 .modal-custom-font :deep(.n-card-header) {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
 }
 

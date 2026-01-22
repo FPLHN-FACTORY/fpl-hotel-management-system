@@ -97,7 +97,11 @@ public interface ChiTietDoanExtendRepository extends ChiTietDoanRepository {
     CheckSoLuongToiDaResponse checkSoLuongToiDaBooking(@Param("idDoan") String idDoan);
     boolean existsByDoanLuuTru_IdAndPhong_IdIsNull(String doanLuuTruId);
 
-
+    /**
+     * Count number of guests currently assigned to a specific room in a group
+     * Used for capacity validation when adding guests during stay
+     */
+    Long countByDoanLuuTru_IdAndPhong_Id(String idDoanLuuTru, String idPhong);
 
 
 }

@@ -576,4 +576,3 @@ CREATE TABLE `chi_tiet_loai_phong_dat` (
   CONSTRAINT `FK_chi_tiet_loai_loai_phong` FOREIGN KEY (`loai_phong_id`) REFERENCES `loai_phong` (`id`),
   CONSTRAINT `chi_tiet_loai_phong_dat_chk_1` CHECK ((`status` between 0 and 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Chi tiết loại phòng đặt cho phiếu PENDING';
-

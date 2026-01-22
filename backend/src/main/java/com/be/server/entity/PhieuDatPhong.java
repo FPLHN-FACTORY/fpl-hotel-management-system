@@ -2,6 +2,7 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.StatusPhieuDatPhong;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -34,14 +35,17 @@ public class PhieuDatPhong extends PrimaryEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "khach_hang_id")
+    @JsonIgnoreProperties({"phieuDatPhongs"})
     private KhachHang khachHang;
 
     // Một booking có nhiều phòng
     @OneToMany(mappedBy = "phieuDatPhong", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"phieuDatPhong", "room"})
     private List<ChiTietDatPhong> bookingDetails;
 
     // Relationship với chi tiết loại phòng đặt (cho phiếu PENDING)
     @OneToMany(mappedBy = "phieuDatPhong", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"phieuDatPhong"})
     private List<ChiTietLoaiPhongDat> chiTietLoaiPhong;
 
 
@@ -54,5 +58,6 @@ public class PhieuDatPhong extends PrimaryEntity implements Serializable {
     // Người tạo phiếu (nhân viên lễ tân)
     @ManyToOne
     @JoinColumn(name = "nhan_vien_tao_id")
+    @JsonIgnoreProperties({"phieuDatPhongs"})
     private NhanVien nhanVienTao;
 }

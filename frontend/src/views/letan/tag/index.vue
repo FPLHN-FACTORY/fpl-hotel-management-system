@@ -6,7 +6,6 @@ import {
   NButton,
   NIcon,
   NInput,
-  NInputNumber,
   NPopconfirm,
   NSelect,
   NSpace,
@@ -16,8 +15,7 @@ import {
 import TableModal from './components/TableModal.vue'
 
 import type { TagResponse } from '@/service/api/letan/tag'
-import { getAllTags, changeStatusTag, addTag, updateTag } from '@/service/api/letan/tag'
-import { downloadFile } from '@/utils/dowload'
+import { getAllTags, changeStatusTag } from '@/service/api/letan/tag'
 import { ReloadOutline } from '@vicons/ionicons5'
 
 
@@ -248,19 +246,19 @@ onMounted(() => {
   <NSpace vertical size="large">
     <n-card>
       <n-form ref="formRef" :model="model" label-placement="top" :show-feedback="false">
-        <n-grid :cols="25" :x-gap="12" :y-gap="12">
+        <n-grid :cols="24" :x-gap="12" :y-gap="12">
 
           <!-- Hàng 1: Thông tin cơ bản -->
-          <n-form-item-gi :span="12" label="Mã / Tên tag" path="maOrTen">
+          <n-form-item-gi :span="10" label="Mã / Tên tag" path="maOrTen">
             <NInput v-model:value="model.maOrTen" placeholder="Nhập mã hoặc tên tag" clearable />
           </n-form-item-gi>
 
-          <n-form-item-gi :span="12" label="Trạng thái" path="status">
+          <n-form-item-gi :span="10" label="Trạng thái" path="status">
             <NSelect v-model:value="model.status" placeholder="Chọn trạng thái" clearable :options="statusOptions" />
           </n-form-item-gi>
 
           <!-- Hàng 4: Nút hành động -->
-          <n-form-item-gi :span="1" class="flex items-center justify-end">
+          <n-form-item-gi :span="4" class="flex items-center justify-end">
             <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
           </n-form-item-gi>
 

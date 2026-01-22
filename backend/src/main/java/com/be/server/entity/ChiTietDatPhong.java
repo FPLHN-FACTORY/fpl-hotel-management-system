@@ -2,6 +2,7 @@ package com.be.server.entity;
 
 import com.be.server.entity.base.PrimaryEntity;
 import com.be.server.infrastructure.constant.StatusChiTietDatPhong;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -38,10 +39,12 @@ public class ChiTietDatPhong extends PrimaryEntity implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "phieu_dat_phong_id")
+    @JsonIgnoreProperties({"bookingDetails", "chiTietLoaiPhong"})
     private PhieuDatPhong phieuDatPhong;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "phong_id")
+    @JsonIgnoreProperties({"chiTietDatPhongs", "tags", "priceHistory"})
     private Phong room;
 
 }

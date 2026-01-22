@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, h } from 'vue'
+import { ref, computed, watch, h, onMounted } from 'vue'
 import {
   saveDichVu,
   deleteDichVu,
@@ -7,9 +7,14 @@ import {
   getDichVuByBooking,
   type DichVuPhatSinh
 } from '@/service/api/letan/incurredService'
+import { getAllActiveDichVu, type DichVuResponse } from '@/service/api/letan/dichvu'
 import { useMessage, useDialog, NButton, NTag, NRadioGroup, NRadioButton } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { checkout } from '@/service/api/letan/booking'
+import ThemKhachDangLuuTru from './ThemKhachDangLuuTru.vue'
+import ChiPhiLuuTruModal from './ChiPhiLuuTruModal.vue'
+import ThanhToanModal from './ThanhToanModal.vue'
+import { getDoanByBooking } from '@/service/api/letan/doanluutru'
 
 interface Props {
   visible: boolean
@@ -43,12 +48,35 @@ const serviceScope = ref<'ROOM' | 'GROUP'>('ROOM')
 const servicesList = ref<DichVuPhatSinh[]>([])
 const loading = ref(false)
 
+// Danh sách dịch vụ có sẵn
+const availableServices = ref<DichVuResponse[]>([])
+const serviceOptions = computed(() => {
+  return availableServices.value.map(dv => ({
+    label: `${dv.tenDichVu} - ${dv.donGia.toLocaleString('vi-VN')} VNĐ/${dv.donViTinh}`,
+    value: dv.id,
+    donGia: dv.donGia,
+    tenDichVu: dv.tenDichVu,
+  }))
+})
+
 // Form Add Service
 const showAddServiceModal = ref(false)
 const newService = ref({
+  idDichVu: null as string | null,
   tenDichVu: '',
   soLuong: 1,
   donGia: 0,
+})
+
+// Guest addition during stay
+const showAddGuestModal = ref(false)
+const showCostModal = ref(false)
+const showPaymentModal = ref(false)
+const idDoan = ref<string>('')
+const isActivelystaying = computed(() => {
+  return props.bookingDetails?.status === 'DANG_SU_DUNG' || 
+         props.bookingDetails?.status === 'SAP_TRA' ||
+         props.bookingDetails?.status === 'QUA_GIO_TRA'
 })
 
 const totalServiceCost = computed(() => {
@@ -125,9 +153,33 @@ async function loadServices() {
   }
 }
 
+async function loadAvailableServices() {
+  try {
+    const res = await getAllActiveDichVu()
+    availableServices.value = res.data || []
+  } catch (error: any) {
+    console.error('Failed to load services:', error)
+    message.warning('Không thể tải danh sách dịch vụ')
+  }
+}
+
+// Watch để tự động điền giá khi chọn dịch vụ
+watch(() => newService.value.idDichVu, (selectedId) => {
+  if (selectedId) {
+    const selected = serviceOptions.value.find(opt => opt.value === selectedId)
+    if (selected) {
+      newService.value.tenDichVu = selected.tenDichVu
+      newService.value.donGia = selected.donGia
+    }
+  } else {
+    newService.value.tenDichVu = ''
+    newService.value.donGia = 0
+  }
+})
+
 async function handleAddService() {
-  if (!newService.value.tenDichVu) {
-    message.warning('Vui lòng nhập tên dịch vụ')
+  if (!newService.value.idDichVu && !newService.value.tenDichVu) {
+    message.warning('Vui lòng chọn hoặc nhập tên dịch vụ')
     return
   }
   if (newService.value.soLuong <= 0) {
@@ -142,7 +194,9 @@ async function handleAddService() {
   try {
     loading.value = true
     const payload: any = {
-      ...newService.value
+      tenDichVu: newService.value.tenDichVu,
+      soLuong: newService.value.soLuong,
+      donGia: newService.value.donGia,
     }
 
     if (serviceScope.value === 'ROOM') {
@@ -154,7 +208,7 @@ async function handleAddService() {
     await saveDichVu(payload)
     message.success('Thêm dịch vụ thành công')
     showAddServiceModal.value = false
-    newService.value = { tenDichVu: '', soLuong: 1, donGia: 0 }
+    newService.value = { idDichVu: null, tenDichVu: '', soLuong: 1, donGia: 0 }
     loadServices()
   } catch (error: any) {
     message.error(error.message || 'Lỗi thêm dịch vụ')
@@ -222,14 +276,42 @@ async function handleCheckout() {
   })
 }
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    loadServices()
+watch(() => props.bookingDetails, async (details) => {
+  if (details) {
+    await loadServices()
+    
+    // Extract idDoan from booking details
+    // The backend response includes phieuDatPhongId which links to the DoanLuuTru
+    if (details.phieuDatPhongId) {
+      try {
+        // Fetch the DoanLuuTru info using the phieuDatPhongId
+        const doanInfo = await getDoanByBooking(details.phieuDatPhongId)
+        idDoan.value = doanInfo?.id || ''
+      }
+      catch (error) {
+        console.warn('Could not fetch doan info:', error)
+        idDoan.value = ''
+      }
+    }
   }
 })
 
 watch(serviceScope, () => {
   loadServices()
+})
+
+function handleAddGuestSuccess() {
+  loadServices() // Refresh services list
+  emit('success') // Refresh parent  })
+}
+
+function handlePaymentSuccess() {
+  emit('success') // Refresh parent to update payment status
+  modalVisible.value = false
+}
+
+onMounted(() => {
+  loadAvailableServices()
 })
 </script>
 
@@ -263,31 +345,73 @@ watch(serviceScope, () => {
 
         <n-data-table :columns="columns" :data="servicesList" :loading="loading" :bordered="false" :summary="summary" />
       </n-tab-pane>
+
+      <n-tab-pane name="cost" tab="Tổng hợp chi phí">
+        <n-empty v-if="!idDoan" description="Cần có mã đoàn để xem tổng chi phí" />
+        <div v-else class="text-center py-8">
+          <p class="mb-4">Xem chi tiết tổng hợp chi phí lưu trú bao gồm tiền phòng và dịch vụ</p>
+          <n-button type="info" size="large" @click="showCostModal = true">
+            <template #icon><nova-icon icon="carbon:document" /></template>
+            Xem chi tiết chi phí
+          </n-button>
+        </div>
+      </n-tab-pane>
     </n-tabs>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <n-button @click="modalVisible = false">Đóng</n-button>
-        <n-button type="error" @click="handleCheckout" :loading="loading" :disabled="isPaid" v-if="!isPaid">
-          Trả phòng & Thanh toán
-        </n-button>
+      <div class="flex justify-between">
+        <div>
+          <n-button v-if="isActivelystaying && idDoan" type="success" @click="showAddGuestModal = true">
+            <template #icon><nova-icon icon="carbon:user-add" /></template>
+            Thêm khách
+          </n-button>
+        </div>
+        <div class="flex gap-2">
+          <n-button @click="modalVisible = false">Đóng</n-button>
+          <n-button v-if="idDoan && !isPaid" type="warning" @click="showPaymentModal = true">
+            <template #icon><nova-icon icon="carbon:currency" /></template>
+            Thu tiền
+          </n-button>
+          <n-button type="error" @click="handleCheckout" :loading="loading" :disabled="isPaid" v-if="!isPaid">
+            Trả phòng & Thanh toán
+          </n-button>
+        </div>
       </div>
     </template>
 
 
     <!-- Modal Add Service -->
-    <n-modal v-model:show="showAddServiceModal" preset="dialog" title="Thêm dịch vụ mới">
+    <n-modal v-model:show="showAddServiceModal" preset="dialog" title="Thêm dịch vụ">
       <div class="space-y-4 pt-4">
-        <n-form-item label="Tên dịch vụ">
-          <n-input v-model:value="newService.tenDichVu" placeholder="Ví dụ: Nước ngọt, Giặt là..." />
+        <n-form-item label="Chọn dịch vụ có sẵn">
+          <n-select
+            v-model:value="newService.idDichVu"
+            :options="serviceOptions"
+            placeholder="Chọn dịch vụ có sẵn (hoặc nhập tay bên dưới)"
+            clearable
+            filterable
+          />
+        </n-form-item>
+        <n-form-item label="Hoặc nhập tên dịch vụ">
+          <n-input
+            v-model:value="newService.tenDichVu"
+            placeholder="Nhập tên dịch vụ nếu không có trong danh sách"
+            :disabled="!!newService.idDichVu"
+          />
         </n-form-item>
         <div class="flex gap-4">
           <n-form-item label="Số lượng" class="flex-1">
             <n-input-number v-model:value="newService.soLuong" :min="1" />
           </n-form-item>
           <n-form-item label="Đơn giá (VNĐ)" class="flex-1">
-            <n-input-number v-model:value="newService.donGia" :min="0" :step="1000"
-              :format="(value) => value.toLocaleString('vi-VN')" :parse="(value) => Number(value.replace(/,/g, ''))" />
+            <n-input-number
+              v-model:value="newService.donGia"
+              :min="0"
+              :step="1000"
+              :format="(value: number) => value.toLocaleString('vi-VN')"
+              :parse="(value: string) => Number(value.replace(/,/g, ''))"
+              :disabled="!!newService.idDichVu"
+            />
           </n-form-item>
         </div>
         <div class="text-right font-bold text-lg">
@@ -299,6 +423,26 @@ watch(serviceScope, () => {
         <n-button type="primary" @click="handleAddService" :loading="loading">Thêm</n-button>
       </template>
     </n-modal>
+
+    <!-- Modal Add Guest During Stay -->
+    <ThemKhachDangLuuTru
+      v-model:visible="showAddGuestModal"
+      :id-doan="idDoan"
+      @success="handleAddGuestSuccess"
+    />
+
+    <!-- Modal Chi Phí Lưu Trú -->
+    <ChiPhiLuuTruModal
+      v-model:visible="showCostModal"
+      :id-doan="idDoan"
+    />
+
+    <!-- Modal Thanh Toán -->
+    <ThanhToanModal
+      v-model:visible="showPaymentModal"
+      :id-doan="idDoan"
+      @success="handlePaymentSuccess"
+    />
 
   </n-modal>
 </template>

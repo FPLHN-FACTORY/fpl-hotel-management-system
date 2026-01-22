@@ -87,88 +87,158 @@ const hoverBorderColor = computed(() => {
     default: return '#000000'
   }
 })
+
+// Tên hiển thị trạng thái phòng
+const roomStatusLabel = computed(() => {
+  switch (props.room.trangThaiPhong) {
+    case 'TRONG': return 'Trống'
+    case 'SAP_NHAN': return 'Sắp nhận'
+    case 'DANG_SU_DUNG': return 'Đang sử dụng'
+    case 'SAP_TRA': return 'Sắp trả'
+    case 'QUA_GIO_TRA': return 'Quá giờ trả'
+    default: return 'Không xác định'
+  }
+})
+
+// Tên hiển thị trạng thái vệ sinh
+const cleanStatusLabel = computed(() => {
+  switch (props.room.trangThaiVeSinh) {
+    case 'SACH': return 'Sạch'
+    case 'DANG_DON': return 'Đang dọn'
+    case 'CHUA_DON': return 'Chưa dọn'
+    default: return 'Không xác định'
+  }
+})
 </script>
 
 <template>
-  <n-card
-    class="room-card flex flex-col justify-between p-3 rounded-xl cursor-pointer transition-all border"
-    :class="bgColor"
-    size="small"
-    style="min-width: 142px; margin-top: 0px;"
-    :style="{ '--hover-border': hoverBorderColor, 'borderColor': isSelected && multiSelectMode ? hoverBorderColor : undefined }"
-    @click="handleClick"
-  >
-    <div class="flex justify-between items-center mb-2">
-      <div class="flex items-center gap-2">
-        <n-checkbox
-          v-if="multiSelectMode"
-          :checked="isSelected"
-          @click.stop
-          @update:checked="() => $emit('toggleSelect', room)"
-        />
-        <n-tag
+  <n-popover placement="top" trigger="hover" :show-arrow="true" :keep-alive-on-hover="true">
+    <template #trigger>
+      <div class="room-card-wrapper">
+        <n-card
+          class="room-card flex flex-col justify-between p-3 rounded-xl cursor-pointer transition-all border"
+          :class="bgColor"
           size="small"
-          round
-          :style="{ ...cleanTagStyle, fontWeight: '600', padding: '0.15rem 0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }"
+          style="min-width: 142px; margin-top: 0px;"
+          :style="{ '--hover-border': hoverBorderColor, 'borderColor': isSelected && multiSelectMode ? hoverBorderColor : undefined }"
+          @click="handleClick"
         >
-          <n-icon-wrapper :size="16" :color="cleanTagStyle.color" :border-radius="999">
-            <nova-icon
-              :size="14"
-              :icon="props.room.trangThaiVeSinh === 'SACH' ? 'carbon:magic-wand' : 'icon-park-outline:cosmetic-brush'"
-            />
-          </n-icon-wrapper>
-          {{
-            props.room.trangThaiVeSinh === 'SACH'
-              ? 'Sạch'
-              : props.room.trangThaiVeSinh === 'DANG_DON'
-                ? 'Đang dọn'
-                : 'Chưa dọn'
-          }}
-        </n-tag>
-      </div>
+          <div class="flex justify-between items-center mb-2">
+            <div class="flex items-center gap-2">
+              <n-checkbox
+                v-if="multiSelectMode"
+                :checked="isSelected"
+                @click.stop
+                @update:checked="() => $emit('toggleSelect', room)"
+              />
+              <n-tag
+                size="small"
+                round
+                :style="{ ...cleanTagStyle, fontWeight: '600', padding: '0.15rem 0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }"
+              >
+                <n-icon-wrapper :size="16" :color="cleanTagStyle.color" :border-radius="999">
+                  <nova-icon
+                    :size="14"
+                    :icon="props.room.trangThaiVeSinh === 'SACH' ? 'carbon:magic-wand' : 'icon-park-outline:cosmetic-brush'"
+                  />
+                </n-icon-wrapper>
+                {{
+                  props.room.trangThaiVeSinh === 'SACH'
+                    ? 'Sạch'
+                    : props.room.trangThaiVeSinh === 'DANG_DON'
+                      ? 'Đang dọn'
+                      : 'Chưa dọn'
+                }}
+              </n-tag>
+            </div>
 
-      <n-dropdown :options="menuOptions" trigger="click" @select="handleMenuSelect">
-        <n-button quaternary circle size="tiny" :loading="loading" @click.stop>
-          <n-icon-wrapper :size="20">
-            <nova-icon icon="icon-park-outline:more-one" color="#ffffff" />
-          </n-icon-wrapper>
-        </n-button>
-      </n-dropdown>
-    </div>
+            <n-dropdown :options="menuOptions" trigger="click" @select="handleMenuSelect">
+              <n-button quaternary circle size="tiny" :loading="loading" @click.stop>
+                <n-icon-wrapper :size="20">
+                  <nova-icon icon="icon-park-outline:more-one" color="#ffffff" />
+                </n-icon-wrapper>
+              </n-button>
+            </n-dropdown>
+          </div>
 
-    <div class="flex flex-col gap-1 mb-2 truncate">
-      <div class="text-base font-semibold text-gray-800 truncate">
-        {{ room.ma }}
-      </div>
-      <div v-if="room.trangThaiPhong === 'TRONG'" class="text-sm text-gray-600">
-        {{ room.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price) : '-' }}/đêm
-      </div>
-    </div>
+          <div class="flex flex-col gap-1 mb-2 truncate">
+            <div class="text-base font-semibold text-gray-800 truncate">
+              {{ room.ma }}
+            </div>
+            <div v-if="room.trangThaiPhong === 'TRONG'" class="text-sm text-gray-600">
+              {{ room.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price) : '-' }}/đêm
+            </div>
+          </div>
 
-    <div class="flex justify-end mt-auto">
-      <n-tag
-        v-if="room.trangThaiPhong !== 'TRONG'"
-        size="small"
-        round
-        style="background-color: rgba(255,255,255,0.4); color:#333; font-weight:500; font-size:0.75rem;"
-      >
-        {{ room.stayDays || 0 }} / {{ room.totalDays || 0 }} ngày
-      </n-tag>
-    </div>
-  </n-card>
+          <div class="flex justify-end mt-auto">
+            <n-tag
+              v-if="room.trangThaiPhong !== 'TRONG'"
+              size="small"
+              round
+              style="background-color: rgba(255,255,255,0.4); color:#333; font-weight:500; font-size:0.75rem;"
+            >
+              {{ room.stayDays || 0 }} / {{ room.totalDays || 0 }} ngày
+            </n-tag>
+          </div>
+        </n-card>
+      </div>
+    </template>
+
+    <!-- Nội dung popover -->
+    <template #default>
+      <div class="popover-content">
+        <div class="popover-header">
+          <strong>{{ room.ma }}</strong> - {{ room.ten }}
+        </div>
+        <div class="popover-section">
+          <div class="popover-item">
+            <span class="popover-label">Loại phòng:</span>
+            <span class="popover-value">{{ room.loaiPhong }}</span>
+          </div>
+          <div class="popover-item">
+            <span class="popover-label">Tầng:</span>
+            <span class="popover-value">{{ room.tang }}</span>
+          </div>
+          <div class="popover-item">
+            <span class="popover-label">Trạng thái:</span>
+            <span class="popover-value" :style="{ fontWeight: '600' }">{{ roomStatusLabel }}</span>
+          </div>
+          <div class="popover-item">
+            <span class="popover-label">Vệ sinh:</span>
+            <span class="popover-value" :style="{ fontWeight: '600' }">{{ cleanStatusLabel }}</span>
+          </div>
+          <div v-if="room.price" class="popover-item">
+            <span class="popover-label">Giá:</span>
+            <span class="popover-value">{{ new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price) }}/đêm</span>
+          </div>
+          <div v-if="room.trangThaiPhong !== 'TRONG'" class="popover-item">
+            <span class="popover-label">Số ngày:</span>
+            <span class="popover-value">{{ room.stayDays || 0 }} / {{ room.totalDays || 0 }} ngày</span>
+          </div>
+        </div>
+      </div>
+    </template>
+  </n-popover>
 </template>
 
 <style scoped>
+.room-card-wrapper {
+  transition: all 0.2s ease;
+  transform: translateY(-2px);
+}
+
+.room-card-wrapper:hover {
+  transform: translateY(-4px);
+}
+
 .room-card {
   min-height: 160px;
   transition: all 0.2s ease;
   border-width: 1px;
-  transform: translateY(-2px);
   box-shadow: 12px 12px var(--hover-border);
 }
 
-.room-card:hover {
-  transform: translateY(-4px);
+.room-card-wrapper:hover .room-card {
   box-shadow: 16px 16px var(--hover-border);
 }
 
@@ -183,5 +253,42 @@ const hoverBorderColor = computed(() => {
 
 :deep(.n-tag) {
   font-size: 14px;
+}
+
+/* Popover styles */
+.popover-content {
+  padding: 8px 12px;
+  max-width: 300px;
+}
+
+.popover-header {
+  font-size: 15px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.popover-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popover-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #333;
+}
+
+.popover-label {
+  opacity: 0.75;
+  margin-right: 12px;
+}
+
+.popover-value {
+  font-weight: 500;
 }
 </style>

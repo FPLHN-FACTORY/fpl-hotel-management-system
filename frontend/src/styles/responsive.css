@@ -1,0 +1,10 @@
+/* 
+ * Responsive adjustments
+ * The application now uses an auto-zoom logic in App.vue to standardise the display.
+ * We ensure basic containers are flexible.
+ */
+
+#app {
+  width: 100%;
+  height: 100%;
+}

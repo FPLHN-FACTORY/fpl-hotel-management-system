@@ -343,12 +343,12 @@ const columns: DataTableColumns<KhachHangResponse> = [
     key: 'gioiTinh',
     render: row => row.gioiTinh === 0 ? 'Nam' : (row.gioiTinh === 1 ? 'Nữ' : 'Khác'),
   },
-  {
-    title: 'Ngày sinh',
-    align: 'center',
-    key: 'ngaySinh',
-    render: row => row.ngaySinh || '-',
-  },
+  // {
+  //   title: 'Ngày sinh',
+  //   align: 'center',
+  //   key: 'ngaySinh',
+  //   render: row => row.ngaySinh || '-',
+  // },
   {
     title: 'Loại khách hàng',
     align: 'center',
@@ -475,7 +475,7 @@ onMounted(() => {
           <n-gi :span="24" class="flex justify-end gap-3">
 
             <NButton strong secondary @click="handleResetSearch">
-              Reset
+              Làm mới
             </NButton>
           </n-gi>
         </n-grid>

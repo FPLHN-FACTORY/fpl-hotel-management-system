@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(MappingConstants.API_ADMIN_NHAN_VIEN)
+@RequestMapping(MappingConstants.API_LE_TAN_NHAN_VIEN)
 @Slf4j
 @CrossOrigin(origins = "*")
 public class ADNhanVienController {

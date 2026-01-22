@@ -5,8 +5,10 @@ import com.be.server.infrastructure.constant.TrangThaiPhongDat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -70,6 +72,9 @@ public interface ChiTietDatPhongRepository extends JpaRepository<ChiTietDatPhong
     @Query("SELECT c FROM ChiTietDatPhong c " +
            "LEFT JOIN FETCH c.phieuDatPhong p " +
            "LEFT JOIN FETCH p.khachHang k " +
-           "WHERE c.room.id = :roomId AND p.status_phieu_dat_phong = 2")
-    Optional<ChiTietDatPhong> findCheckInBookingByRoomId(@Param("roomId") String roomId);
+           "WHERE c.room.id = :roomId " +
+           "AND :now >= p.checkInDate " +
+           "AND :now < p.checkOutDate " +
+           "ORDER BY p.checkInDate DESC")
+    List<ChiTietDatPhong> findCheckInBookingByRoomId(@Param("roomId") String roomId, @Param("now") Long now, Pageable pageable);
 }

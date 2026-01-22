@@ -25,6 +25,8 @@ export interface SoDoPhongResponse {
   price: number | null
   trangThaiPhong: TrangThaiPhongDat
   trangThaiVeSinh: TrangThaiVeSinh
+  stayDays?: number // Số ngày đã ở
+  totalDays?: number // Tổng số ngày đặt
 }
 
 // Tham số lọc khi lấy sơ đồ phòng

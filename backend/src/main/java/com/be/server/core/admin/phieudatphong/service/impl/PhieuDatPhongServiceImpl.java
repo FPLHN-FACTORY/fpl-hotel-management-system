@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,7 +94,8 @@ public class PhieuDatPhongServiceImpl implements PhieuDatPhongService {
             phieu.setSoLuongKhach(request.getSoLuongKhach());
             phieu.setGhiChu(request.getGhiChu());
             phieu.setStatus_phieu_dat_phong(StatusPhieuDatPhong.PENDING);
-            // TODO: Set nhanVienTao from SecurityContext when auth is implemented
+            phieu.setCheckInDate(Calendar.getInstance().getTimeInMillis());
+            // Note: nhanVienTao is null - will be set when authentication is implemented
             phieu = phieuDatPhongRepository.save(phieu);
 
             // Tạo ChiTietLoaiPhongDat

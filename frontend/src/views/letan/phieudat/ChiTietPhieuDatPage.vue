@@ -355,7 +355,6 @@ const currentStep = computed(() => {
                 </n-card>
 
                 <!-- Room Types Section -->
-                <n-card title="Loại phòng đã đặt">
                     <n-space vertical>
                         <n-card v-for="loaiPhong in phieuDat.danhSachLoaiPhong" :key="loaiPhong.idLoaiPhong"
                             size="small" :bordered="true">
@@ -378,7 +377,6 @@ const currentStep = computed(() => {
                             </div>
                         </n-card>
                     </n-space>
-                </n-card>
 
                 <!-- Assigned Rooms Section -->
                 <n-card v-if="phieuDat.danhSachPhongDaGan?.length > 0" title="Danh sách phòng đã gắn">

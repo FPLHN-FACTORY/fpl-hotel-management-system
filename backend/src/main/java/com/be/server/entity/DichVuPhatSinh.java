@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -33,14 +34,20 @@ public class DichVuPhatSinh extends PrimaryEntity implements Serializable {
     private BigDecimal thanhTien;
 
     @ManyToOne
+    @JoinColumn(name = "id_dich_vu")
+    private DichVu dichVu;
+
+    @ManyToOne
     @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
 
     @ManyToOne
     @JoinColumn(name = "id_phieu_dat_phong")
+    @JsonIgnore
     private PhieuDatPhong phieuDatPhong;
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_dat_phong")
+    @JsonIgnore
     private ChiTietDatPhong chiTietDatPhong;
 }
