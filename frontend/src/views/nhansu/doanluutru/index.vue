@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, onMounted, ref, reactive } from 'vue'
-import { NButton, NSpace, NTag, NIcon, NDataTable, NCard, NForm, NGrid, NFormItemGi, NInput, DataTableColumns, FormInst, NDatePicker } from 'naive-ui'
-import { Tag as TagIcon, Identification, Home, Building, Category, Currency, UserMultiple, ChartLineData, Hotel, GroupPresentation, Row, Add, Rotate } from '@vicons/carbon'
+import { NButton, NSpace, NTag, NIcon, NDataTable, NCard, NForm, NGrid, NFormItemGi, NInput, type DataTableColumns, NDatePicker, NTooltip, type DataTableRowKey } from 'naive-ui'
+import { Identification, UserMultiple } from '@vicons/carbon'
 import { getAllGroups, ParamsGetGroups, type DoanLuuTru,checkInDoan } from '@/service/api/nhansu/doanluutru'
 import MemberDrawer from './components/MemberDrawer.vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
@@ -56,7 +56,7 @@ async function fetchData(page = 1) {
     const res: any = await getAllGroups(params)
     data.value = res.items
     totalItems.value = res.totalItems
-    currentPage.value = res.currentPage
+    currentPage.value = res.currentPage + 1
     console.log("doanluutru", res.items)
 
   } finally {
@@ -194,6 +194,7 @@ const columns: DataTableColumns<DoanLuuTru> = [
   },
   {
     title: 'Thời gian lưu trú',
+    key: 'thoiGianLuuTru',
     align: 'center',
     render(row: any) {
       const checkIn = row.thoiGianCheckIn
@@ -273,7 +274,7 @@ const columns: DataTableColumns<DoanLuuTru> = [
 
 ]
 
-const expandedRowKeys = ref<string[]>([])
+const expandedRowKeys = ref<DataTableRowKey[]>([])
 
 function handleRowClick(row: any, event: MouseEvent) {
   // Nếu click vào button, popconfirm, input, svg icon,... thì bỏ qua
@@ -329,9 +330,16 @@ function handleCheckIn(row: DoanLuuTru) {
 
           </NFormItemGi>
           <NFormItemGi :span="24" class="flex justify-end gap-3">
-            <NButton strong secondary @click="handleReset">
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleReset">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
+              </template>
               Làm mới
-            </NButton>
+            </n-tooltip>
           </NFormItemGi>
         </NGrid>
       </NForm>
@@ -344,11 +352,11 @@ function handleCheckIn(row: DoanLuuTru) {
 
       <!-- <NDataTable :columns="columns" :data="data" :loading="loading" /> -->
       <NDataTable :columns="columns" :data="data" :loading="loading" :row-key="(row) => row.id"
-        :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys) => expandedRowKeys = keys" :row-props="(row) => ({
+        :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys: DataTableRowKey[]) => expandedRowKeys = keys" :row-props="(row) => ({
           style: 'cursor: pointer;',
           onClick: (event: MouseEvent) => handleRowClick(row, event)
         })" />
-      <div class="mt-4">
+      <div class="mt-4 flex justify-start">
         <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
           show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
           @update:page-size="(size: number) => { pageSize = size; fetchData(1) }">

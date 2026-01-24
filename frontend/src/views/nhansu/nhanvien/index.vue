@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, ref, reactive, onMounted, watch } from "vue";
-import type { DataTableColumns, FormInst, DataTableRowKey } from "naive-ui";
+import type { DataTableColumns, DataTableRowKey } from "naive-ui";
 import {
   NButton,
   NInput,
@@ -17,7 +17,8 @@ import {
   useMessage,
   NIcon,
   NFormItemGi,
-  NGi
+  NGi,
+  NTooltip
 } from "naive-ui";
 import {
 
@@ -35,7 +36,6 @@ import {
 import TableModal from "./components/TableModal.vue";
 import {
   getAllNhanVien,
-  deleteNhanVien,
   changeNhanVienStatus,
   type NhanVien,
 } from "@/service/api/nhansu/nhanvien";
@@ -83,7 +83,6 @@ const initialModel = {
 };
 
 const model = reactive({ ...initialModel });
-const formRef = ref<FormInst | null>(null);
 
 // Modal state
 const modalVisible = ref(false);
@@ -348,7 +347,7 @@ const columns: DataTableColumns<NhanVien> = [
         'div',
         { style: 'padding: 20px 32px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 8px 0;' },
         [
-          h('div', { style: 'display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 32px; justify-content: start;' }, [
+          h('div', { style: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; width: 100%;' }, [
             // Column 1
             h('div', { style: 'display: flex; flex-direction: column; gap: 12px;' }, [
               h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
@@ -549,11 +548,16 @@ onMounted(async () => {
           </n-form-item-gi>
 
           <n-gi :span="5" class="flex items-center">
-            <NButton strong secondary @click="handleResetSearch">
-              <template #icon>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleResetSearch">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
               </template>
               Làm mới
-            </NButton>
+            </n-tooltip>
           </n-gi>
         </n-grid>
       </n-form>
@@ -576,7 +580,7 @@ onMounted(async () => {
           }
         }" />
 
-      <div class="mt-4 flex justify-end">
+      <div class="mt-4 flex justify-start">
         <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
           show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage" @update:page-size="
             (size) => {

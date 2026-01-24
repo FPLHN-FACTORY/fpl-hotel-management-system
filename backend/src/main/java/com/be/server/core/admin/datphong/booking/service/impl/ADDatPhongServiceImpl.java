@@ -35,6 +35,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
     private final KhachHangRepository khachHangRepository;
     private final PhongRepository phongRepository;
     private final DichVuPhatSinhRepository dichVuPhatSinhRepository;
+    private final ChiTietLoaiPhongDatRepository chiTietLoaiPhongDatRepository;
 
     @Override
     @Transactional
@@ -239,8 +240,9 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                 return ResponseObject.errorForward("Ngay tra phai sau ngay nhan", HttpStatus.BAD_REQUEST);
             }
 
-            if (request.getDanhSachIdPhong() == null || request.getDanhSachIdPhong().isEmpty()) {
-                return ResponseObject.errorForward("Vui long chon phong", HttpStatus.BAD_REQUEST);
+            if ((request.getDanhSachIdPhong() == null || request.getDanhSachIdPhong().isEmpty()) &&
+                (request.getDanhSachLoaiPhong() == null || request.getDanhSachLoaiPhong().isEmpty())) {
+                return ResponseObject.errorForward("Vui long chon phong hoac loai phong", HttpStatus.BAD_REQUEST);
             }
 
             KhachHang khachHang = khachHangRepository.findById(request.getIdKhachHang())
@@ -269,68 +271,108 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             phieuDatPhong.setCheckInDate(request.getNgayNhan());
             phieuDatPhong.setCheckOutDate(request.getNgayTra());
             phieuDatPhong.setKhachHang(khachHang);
+            phieuDatPhong.setGhiChu(request.getGhiChu());
 
-            Long now = Instant.now().toEpochMilli();
-            if (request.getNhanNgay() != null && request.getNhanNgay()) {
-                if (now >= request.getNgayNhan() - 3600000L) {
-                    phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CHECKIN);
+            // Case 1: Assigned specific rooms
+            if (request.getDanhSachIdPhong() != null && !request.getDanhSachIdPhong().isEmpty()) {
+                Long now = Instant.now().toEpochMilli();
+                if (request.getNhanNgay() != null && request.getNhanNgay()) {
+                    if (now >= request.getNgayNhan() - 3600000L) {
+                        phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CHECKIN);
+                    } else {
+                        phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CONFIRMED);
+                    }
                 } else {
                     phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CONFIRMED);
                 }
-            } else {
-                phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CONFIRMED);
-            }
 
-            PhieuDatPhong savedPhieu = phieuDatPhongRepository.save(phieuDatPhong);
+                PhieuDatPhong savedPhieu = phieuDatPhongRepository.save(phieuDatPhong);
 
-            List<ChiTietDatPhong> chiTietList = new ArrayList<>();
-            BigDecimal tongTien = BigDecimal.ZERO;
+                List<ChiTietDatPhong> chiTietList = new ArrayList<>();
+                BigDecimal tongTien = BigDecimal.ZERO;
 
-            for (Phong phong : danhSachPhong) {
-                ChiTietDatPhong chiTiet = new ChiTietDatPhong();
-                chiTiet.setPhieuDatPhong(savedPhieu);
-                chiTiet.setRoom(phong);
-                chiTiet.setPrice(phong.getLoaiPhong().getGiaCaNgay());
+                for (Phong phong : danhSachPhong) {
+                    ChiTietDatPhong chiTiet = new ChiTietDatPhong();
+                    chiTiet.setPhieuDatPhong(savedPhieu);
+                    chiTiet.setRoom(phong);
+                    chiTiet.setPrice(phong.getLoaiPhong().getGiaCaNgay());
 
-                if (savedPhieu.getStatus_phieu_dat_phong() == StatusPhieuDatPhong.CHECKIN) {
-                    chiTiet.setStatus_chi_tiet(StatusChiTietDatPhong.CHECKIN);
-                    chiTiet.setCheckIn(now);
-                } else {
-                    chiTiet.setStatus_chi_tiet(StatusChiTietDatPhong.BOOKED);
+                    if (savedPhieu.getStatus_phieu_dat_phong() == StatusPhieuDatPhong.CHECKIN) {
+                        chiTiet.setStatus_chi_tiet(StatusChiTietDatPhong.CHECKIN);
+                        chiTiet.setCheckIn(now);
+                    } else {
+                        chiTiet.setStatus_chi_tiet(StatusChiTietDatPhong.BOOKED);
+                    }
+
+                    chiTietList.add(chiTiet);
+                    tongTien = tongTien.add(phong.getLoaiPhong().getGiaCaNgay());
                 }
 
-                chiTietList.add(chiTiet);
-                tongTien = tongTien.add(phong.getLoaiPhong().getGiaCaNgay());
+                List<ChiTietDatPhong> savedChiTiet = chiTietDatPhongRepository.saveAll(chiTietList);
+
+                CreateBookingResponse response = new CreateBookingResponse();
+                response.setIdPhieuDatPhong(savedPhieu.getId());
+                response.setMaPhieuDatPhong("PDP" + savedPhieu.getId().substring(0, 8));
+                response.setTenKhachHang(khachHang.getHoTen());
+                response.setNgayCheckIn(savedPhieu.getCheckInDate());
+                response.setNgayCheckOut(savedPhieu.getCheckOutDate());
+                response.setTrangThai(savedPhieu.getStatus_phieu_dat_phong().name());
+                response.setTongTien(tongTien);
+
+                List<CreateBookingResponse.ChiTietPhongInfo> chiTietInfoList = savedChiTiet.stream()
+                        .map(ct -> new CreateBookingResponse.ChiTietPhongInfo(
+                                ct.getId(),
+                                ct.getRoom().getId(),
+                                ct.getRoom().getMa(),
+                                ct.getRoom().getTen(),
+                                ct.getPrice(),
+                                ct.getStatus_chi_tiet().name()))
+                        .collect(Collectors.toList());
+
+                response.setDanhSachPhong(chiTietInfoList);
+
+                String message = savedPhieu.getStatus_phieu_dat_phong() == StatusPhieuDatPhong.CHECKIN
+                        ? "Nhan phong thanh cong"
+                        : "Dat phong thanh cong";
+
+                return ResponseObject.successForward(response, message);
             }
+            // Case 2: Booking by type (No rooms assigned yet)
+            else {
+                phieuDatPhong.setStatus_phieu_dat_phong(StatusPhieuDatPhong.PENDING);
+                PhieuDatPhong savedPhieu = phieuDatPhongRepository.save(phieuDatPhong);
 
-            List<ChiTietDatPhong> savedChiTiet = chiTietDatPhongRepository.saveAll(chiTietList);
+                BigDecimal tongTien = BigDecimal.ZERO;
+                List<ChiTietLoaiPhongDat> chiTietLoaiPhongList = new ArrayList<>();
 
-            CreateBookingResponse response = new CreateBookingResponse();
-            response.setIdPhieuDatPhong(savedPhieu.getId());
-            response.setMaPhieuDatPhong("PDP" + savedPhieu.getId().substring(0, 8));
-            response.setTenKhachHang(khachHang.getHoTen());
-            response.setNgayCheckIn(savedPhieu.getCheckInDate());
-            response.setNgayCheckOut(savedPhieu.getCheckOutDate());
-            response.setTrangThai(savedPhieu.getStatus_phieu_dat_phong().name());
-            response.setTongTien(tongTien);
+                for (DatPhongTheoLoaiRequest.ChonLoaiPhong item : request.getDanhSachLoaiPhong()) {
+                    LoaiPhong lp = adLoaiPhongRepository.findById(item.getIdLoaiPhong())
+                            .orElseThrow(() -> new RuntimeException("Loai phong khong ton tai"));
 
-            List<CreateBookingResponse.ChiTietPhongInfo> chiTietInfoList = savedChiTiet.stream()
-                    .map(ct -> new CreateBookingResponse.ChiTietPhongInfo(
-                            ct.getId(),
-                            ct.getRoom().getId(),
-                            ct.getRoom().getMa(),
-                            ct.getRoom().getTen(),
-                            ct.getPrice(),
-                            ct.getStatus_chi_tiet().name()))
-                    .collect(Collectors.toList());
+                    ChiTietLoaiPhongDat ct = new ChiTietLoaiPhongDat();
+                    ct.setPhieuDatPhong(savedPhieu);
+                    ct.setLoaiPhong(lp);
+                    ct.setSoLuong(item.getSoLuong());
+                    ct.setGiaDatTruoc(lp.getGiaCaNgay());
 
-            response.setDanhSachPhong(chiTietInfoList);
+                    chiTietLoaiPhongList.add(ct);
+                    tongTien = tongTien.add(lp.getGiaCaNgay().multiply(BigDecimal.valueOf(item.getSoLuong())));
+                }
 
-            String message = savedPhieu.getStatus_phieu_dat_phong() == StatusPhieuDatPhong.CHECKIN
-                    ? "Nhan phong thanh cong"
-                    : "Dat phong thanh cong";
+                chiTietLoaiPhongDatRepository.saveAll(chiTietLoaiPhongList);
 
-            return ResponseObject.successForward(response, message);
+                CreateBookingResponse response = new CreateBookingResponse();
+                response.setIdPhieuDatPhong(savedPhieu.getId());
+                response.setMaPhieuDatPhong("PDP" + savedPhieu.getId().substring(0, 8));
+                response.setTenKhachHang(khachHang.getHoTen());
+                response.setNgayCheckIn(savedPhieu.getCheckInDate());
+                response.setNgayCheckOut(savedPhieu.getCheckOutDate());
+                response.setTrangThai(savedPhieu.getStatus_phieu_dat_phong().name());
+                response.setTongTien(tongTien);
+                response.setDanhSachPhong(new ArrayList<>());
+
+                return ResponseObject.successForward(response, "Dat phong theo loai thanh cong (Cho xep phong)");
+            }
 
         } catch (Exception e) {
             log.error("Error confirming booking: ", e);

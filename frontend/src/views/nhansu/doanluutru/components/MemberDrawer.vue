@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, reactive } from 'vue'
-import { NDrawer, NDrawerContent, NDataTable, NButton, NDivider, NForm, NInput, NSelect, NGrid, NFormItemGi, NIcon } from 'naive-ui'
-import { getGroupMembers, addMember, type ChiTietDoan, type ParamsGetMembers, getAllBookedTheoDoan,checkSoLuongToiDa, Check } from '@/service/api/nhansu/doanluutru'
-import { QrCode } from '@vicons/carbon'
+import { ref, watch, reactive, h } from 'vue'
+import { NDrawer, NDrawerContent, NDataTable, NButton, NDivider, NForm, NInput, NSelect, NGrid, NFormItemGi, NIcon, NTooltip, NRadioGroup, NRadio } from 'naive-ui'
+import { getGroupMembers, addMember, type ChiTietDoan, type ParamsGetMembers, checkSoLuongToiDa } from '@/service/api/nhansu/doanluutru'
 import ScanQrModal from '@/components/common/ScanQrModal.vue'
 import { CameraOutline, QrCodeOutline } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import CccdOCR from '@/components/custom/CccdOCR.vue'
-import CccdScannner from '@/components/custom/CccdScanner.vue'
+import CccdScanner from '@/components/custom/CccdScanner.vue'
 import { useDialog } from 'naive-ui'
-import type { DataCombobox } from '@/typings/api/api.common'
 import AssignRoomModal from './AssignRoomModal.vue'
-import { getCustomerByGiayTo, GiayToRequest, updateKhachHang, updateKhachHangLuuTru } from '@/service/api/nhansu/khachhang'
+import { getCustomerByGiayTo, type GiayToRequest, updateKhachHangLuuTru } from '@/service/api/nhansu/khachhang'
 const dialog = useDialog()
 
 const props = defineProps<{ show: boolean, groupId: string }>()
@@ -34,10 +32,11 @@ const giayToRequest = ref<GiayToRequest>({
 
 const form = reactive({
     hoTen: '',
-    gioiTinh: null,
-    ngaySinh: null,
-    loaiGiayTo: null,
+    gioiTinh: null as number | null,
+    ngaySinh: null as Date | null,
+    loaiGiayTo: null as number | null,
     soGiayTo: '',
+    vaiTro: 1 as number
 })
 const formSearch = reactive({
     hoTen: '',
@@ -50,16 +49,16 @@ const roleOptions = [
     { label: 'Trưởng đoàn', value: 'Trưởng đoàn' },
     { label: 'Thành viên', value: 'Thành viên' }
 ]
-const loaiGiayToOptions = ref([
+const loaiGiayToOptions = [
     { label: 'CCCD', value: 0 },
     { label: 'Hộ chiếu', value: 1 }
-])
+]
 
-const gioiTinhToOptions = ref([
+const gioiTinhToOptions = [
     { label: 'Nam', value: 0 },
     { label: 'Nữ', value: 1 },
     { label: 'Khác', value: 2 }
-])
+]
 async function fetchMembers(page = 1) {
     if (!props.groupId) return
     loading.value = true
@@ -102,7 +101,7 @@ async function openUpdateCustomerModal() {
         ...form,
         ngaySinh: form.ngaySinh
             ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
-            : null
+            : ''
     }
 
     const res1 = await updateKhachHangLuuTru(res.data.id, payload) // ✅
@@ -206,8 +205,8 @@ async function handleAddMember(confirm: boolean = false) {
         gioiTinh: form.gioiTinh,
         ngaySinh: form.ngaySinh
             ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
-            : null,
-        loaiGiayTo: form.loaiGiayTo,
+            : '',
+        loaiGiayTo: form.loaiGiayTo ?? 0,
         soGiayTo: form.soGiayTo,
         vaiTro: form.vaiTro,
         confirmUseOld: confirm // ✅ boolean thật
@@ -232,7 +231,7 @@ async function handleAddMember(confirm: boolean = false) {
     } catch (e: any) {
         if (e.response?.status === 409) {
             showConfirmModal()
-        } else if (e.response?.status != null) {
+        } else if (e.response?.data != null) {
             const msg =
                 e?.response?.data?.message
 
@@ -270,7 +269,7 @@ function handleResetSearch() {
 }
 
 async function changePage(page: number) {
-    const res = await fetchMembers(page, props.groupId)
+    const res = await fetchMembers(page)
     console.log("changePage", res)
 }
 
@@ -281,7 +280,7 @@ function handleScanSuccess(data: any) {
 }
 
 watch(() => props.show, (val) => {
-    if (val) fetchMembers(1, props.groupId)
+    if (val) fetchMembers(1)
 })
 
 
@@ -468,10 +467,16 @@ const columns = [
                         </NFormItemGi>
 
                         <NFormItemGi :span="3">
-
-                            <NButton strong secondary @click="handleResetSearch">
+                            <n-tooltip trigger="hover">
+                                <template #trigger>
+                                    <n-button quaternary circle @click="handleResetSearch">
+                                        <template #icon>
+                                            <nova-icon icon="carbon:reset" />
+                                        </template>
+                                    </n-button>
+                                </template>
                                 Làm mới
-                            </NButton>
+                            </n-tooltip>
                         </NFormItemGi>
                     </NGrid>
                 </NForm>

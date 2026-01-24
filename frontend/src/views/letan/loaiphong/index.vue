@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, ref, reactive, onMounted, watch } from 'vue'
-import type { DataTableColumns, FormInst } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import {
   NButton,
   NInput,
@@ -13,7 +13,8 @@ import {
   NAlert,
   NForm,
   NGrid,
-  NPopconfirm
+  NPopconfirm,
+  NTooltip
 } from 'naive-ui'
 import TableModal from './components/TableModal.vue'
 import { getAllRoomTypes, deleteRoomType } from '@/service/api/letan/loaiphong'
@@ -42,7 +43,6 @@ const errorMessage = ref('')
 
 const initialModel = { tuKhoa: '', trangThai: null as string | null }
 const model = reactive({ ...initialModel })
-const formRef = ref<FormInst | null>(null)
 
 const visible = ref(false)
 const modalType = ref<'add' | 'edit'>('add')
@@ -101,7 +101,7 @@ async function fetchRoomTypes(page = 1) {
       giaCaNgay: it.giaCaNgay ?? it.giaCaNgay ?? it.price ?? 0
     }))
     totalItems.value = res?.totalItems ?? listData.value.length
-    currentPage.value = res?.currentPage ?? page
+    currentPage.value = (res?.currentPage ?? 0) + 1
   } catch (error: any) {
     errorMessage.value = error.message || 'Không thể tải danh sách loại phòng'
     window.$message.error(errorMessage.value)
@@ -188,7 +188,16 @@ onMounted(() => { fetchRoomTypes(1) })
               clearable />
           </n-form-item-gi>
           <n-form-item-gi :span="4" class="flex items-center justify-end">
-            <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleResetSearch">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
+              </template>
+              Làm mới
+            </n-tooltip>
           </n-form-item-gi>
         </n-grid>
       </n-form>
@@ -203,7 +212,7 @@ onMounted(() => { fetchRoomTypes(1) })
 
       <n-data-table :columns="columns" :data="listData" :loading="loading" />
 
-      <div class="mt-4 flex justify-end">
+      <div class="mt-4 flex justify-start">
         <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
           show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
           @update:page-size="(size) => { pageSize = size; fetchRoomTypes(1) }">

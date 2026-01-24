@@ -12,6 +12,7 @@ import com.be.server.core.admin.phong.repository.ADPhongRepository;
 import com.be.server.core.admin.phong.repository.ADPhongTagRepository;
 import com.be.server.core.admin.phong.repository.ADTagRoomRepository;
 import com.be.server.core.admin.phong.service.ADPhongService;
+import com.be.server.core.common.base.PageableObject;
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.LoaiPhong;
 import com.be.server.entity.Phong;
@@ -109,13 +110,10 @@ public class ADPhongServiceImpl implements ADPhongService {
                 })
                 .toList();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("data", phongResponses);
-        result.put("totalPages", page.getTotalPages());
-        result.put("currentPage", page.getNumber() + 1);
-        result.put("totalElements", page.getTotalElements());
-
-        return ResponseObject.successForward(result, "Lấy danh sách thành công");
+        return ResponseObject.successForward(
+                PageableObject.of(phongResponses, page.getNumber(), page.getTotalPages(), page.getTotalElements()),
+                "Lấy danh sách thành công"
+        );
     }
 
     @Override

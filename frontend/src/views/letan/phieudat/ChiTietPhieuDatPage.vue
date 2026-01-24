@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useNotification, NTag, NButton, NCheckbox, NDataTable } from 'naive-ui'
+import { useNotification, NTag, NButton, NDataTable } from 'naive-ui'
 import {
     apiGetChiTietPhieuDat,
     apiGanKhachHang,
-    apiGetPhongKhaDung,
-    apiGanPhong,
     apiXacNhanPhieuDat,
     apiSearchKhachHang
 } from '@/service/api/letan/phieudat'
@@ -18,18 +16,11 @@ const notification = useNotification()
 const phieuDat = ref<any>(null)
 const loading = ref(false)
 const showKhachHangModal = ref(false)
-const showPhongModal = ref(false)
-const selectedLoaiPhongForAssignment = ref<string | null>(null)
 
 // Customer search
 const searchKhach = ref('')
 const khachHangList = ref<any[]>([])
 const searchingKhach = ref(false)
-
-// Room assignment
-const phongKhaDungList = ref<any[]>([])
-const selectedRooms = ref<string[]>([])
-const loadingPhong = ref(false)
 
 const isConfirming = ref(false)
 
@@ -143,85 +134,7 @@ async function handleGanKhachHang(khachHangId: string) {
     }
 }
 
-// Room Assignment
-async function openGanPhong(loaiPhongInfo: any) {
-    if (loaiPhongInfo.soLuongDaGan >= loaiPhongInfo.soLuong) {
-        notification.warning({
-            content: 'Đã gắn đủ số lượng phòng cho loại này',
-            duration: 2000
-        })
-        return
-    }
-
-    selectedLoaiPhongForAssignment.value = loaiPhongInfo.idLoaiPhong
-    selectedRooms.value = []
-    loadingPhong.value = true
-    showPhongModal.value = true
-
-    try {
-        const response = await apiGetPhongKhaDung(
-            route.params.id as string,
-            loaiPhongInfo.idLoaiPhong
-        )
-        phongKhaDungList.value = response.data.data || response.data || []
-    } catch (error: any) {
-        notification.error({
-            content: error.message || 'Lỗi khi tải danh sách phòng',
-            duration: 3000
-        })
-        showPhongModal.value = false
-    } finally {
-        loadingPhong.value = false
-    }
-}
-
-function getMaxRoomsToSelect() {
-    const loaiPhong = phieuDat.value?.danhSachLoaiPhong?.find(
-        (lp: any) => lp.idLoaiPhong === selectedLoaiPhongForAssignment.value
-    )
-    if (!loaiPhong) return 0
-    return loaiPhong.soLuong - loaiPhong.soLuongDaGan
-}
-
-async function handleGanPhong() {
-    const maxRooms = getMaxRoomsToSelect()
-
-    if (selectedRooms.value.length === 0) {
-        notification.warning({
-            content: 'Vui lòng chọn ít nhất một phòng',
-            duration: 2000
-        })
-        return
-    }
-
-    if (selectedRooms.value.length > maxRooms) {
-        notification.warning({
-            content: `Chỉ được chọn tối đa ${maxRooms} phòng`,
-            duration: 2000
-        })
-        return
-    }
-
-    try {
-        await apiGanPhong({
-            idPhieuDat: route.params.id as string,
-            danhSachIdPhong: selectedRooms.value
-        })
-
-        notification.success({
-            content: 'Gắn phòng thành công',
-            duration: 2000
-        })
-
-        showPhongModal.value = false
-        fetchDetail()
-    } catch (error: any) {
-        notification.error({
-            content: error.message || 'Lỗi khi gắn phòng',
-            duration: 3000
-        })
-    }
-}
+// Associated functions removed because assignment is handled in management page
 
 // Confirm booking
 async function handleXacNhan() {
@@ -370,10 +283,6 @@ const currentStep = computed(() => {
                                         :status="loaiPhong.soLuongDaGan === loaiPhong.soLuong ? 'success' : 'info'"
                                         class="mt-2" />
                                 </div>
-                                <n-button v-if="canEdit && loaiPhong.soLuongDaGan < loaiPhong.soLuong" type="primary"
-                                    @click="openGanPhong(loaiPhong)">
-                                    Gắn phòng
-                                </n-button>
                             </div>
                         </n-card>
                     </n-space>
@@ -438,45 +347,6 @@ const currentStep = computed(() => {
             </div>
         </n-modal>
 
-        <!-- Modal gắn phòng -->
-        <n-modal v-model:show="showPhongModal" preset="card" title="Chọn phòng" style="width: 700px">
-            <n-spin :show="loadingPhong">
-                <div class="space-y-4">
-                    <div class="text-sm text-gray-600">
-                        Chọn tối đa {{ getMaxRoomsToSelect() }} phòng
-                    </div>
-
-                    <n-checkbox-group v-model:value="selectedRooms">
-                        <n-space vertical>
-                            <n-card v-for="phong in phongKhaDungList" :key="phong.id" size="small" :bordered="true"
-                                hoverable>
-                                <div class="flex items-center justify-between">
-                                    <n-checkbox :value="phong.id"
-                                        :disabled="selectedRooms.length >= getMaxRoomsToSelect() && !selectedRooms.includes(phong.id)">
-                                        <div class="ml-2">
-                                            <div class="font-semibold">Phòng {{ phong.maPhong }} - {{ phong.tenPhong }}
-                                            </div>
-                                            <div class="text-sm text-gray-600">
-                                                Tầng {{ phong.tang }} • {{ phong.gia?.toLocaleString() }} VNĐ
-                                            </div>
-                                        </div>
-                                    </n-checkbox>
-                                </div>
-                            </n-card>
-                        </n-space>
-                    </n-checkbox-group>
-                </div>
-            </n-spin>
-
-            <template #footer>
-                <n-space justify="end">
-                    <n-button @click="showPhongModal = false">Hủy</n-button>
-                    <n-button type="primary" @click="handleGanPhong">
-                        Xác nhận ({{ selectedRooms.length }})
-                    </n-button>
-                </n-space>
-            </template>
-        </n-modal>
     </div>
 </template>
 

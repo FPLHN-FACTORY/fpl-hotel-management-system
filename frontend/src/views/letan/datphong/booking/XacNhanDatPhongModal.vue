@@ -5,7 +5,7 @@ import { getPhieuDatTam, confirmBookingFromPhieuTam } from '@/service/api/letan/
 
 interface Props {
   visible: boolean
-  sessionId: string | null
+  sessionId: string | null | undefined
 }
 
 interface Emits {

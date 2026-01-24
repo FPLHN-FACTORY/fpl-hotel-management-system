@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, onMounted, reactive, ref, watch } from 'vue'
-import type { DataTableColumns, FormInst } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import { useBoolean } from '@/hooks'
 import {
   NButton,
@@ -38,7 +38,6 @@ const initialModel = {
 }
 
 const model = reactive({ ...initialModel })
-const formRef = ref<FormInst | null>(null)
 
 const tangOptions = [1, 2, 3].map(t => ({ label: `Tầng ${t}`, value: t }))
 const loaiPhongOptions = ref<{ label: string; value: string }[]>([])
@@ -100,7 +99,7 @@ async function fetchRooms(page = 1) {
     if (res.items.length === 0 && page === 1) errorMessage.value = 'Không có phòng phù hợp với tiêu chí lọc'
     listData.value = res.items
     totalItems.value = res.totalItems
-    currentPage.value = res.currentPage
+    currentPage.value = res.currentPage + 1
 
     if (sortBy.value) {
       const key = sortBy.value, order = sortOrder.value
@@ -173,7 +172,7 @@ const columns: DataTableColumns<PhongResponse> = [
   {
     type: 'expand',
     renderExpand: (row) => h('div', { style: 'padding: 20px 32px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 8px 0;' }, [
-      h('div', { style: 'display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 32px;' }, [
+      h('div', { style: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; width: 100%;' }, [
         h('div', { style: 'display: flex; flex-direction: column; gap: 12px;' }, [
           h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
             h('div', { style: 'display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; min-width: 180px;' }, [h(NIcon, { size: 18, color: '#8b5cf6' }, { default: () => h(Home) }), h('span', 'Tên phòng:')]),
@@ -239,7 +238,7 @@ const columns: DataTableColumns<PhongResponse> = [
     title: 'Trạng thái', align: 'center', key: 'trangThaiHoatDong',
     render: (row) => {
       const m: Record<string, { label: string; type: 'success' | 'warning' | 'error' }> = { DANG_HOAT_DONG: { label: 'Hoạt động', type: 'success' }, DANG_SUA: { label: 'Bảo trì', type: 'warning' }, NGUNG_HOAT_DONG: { label: 'Ngưng hoạt động', type: 'error' } }
-      const s = m[row.trangThaiHoatDong] || { label: row.trangThaiHoatDong, type: 'info' }
+      const s = m[row.trangThaiHoatDong as string] || { label: row.trangThaiHoatDong || 'N/A', type: 'info' }
       return h(NTag, { type: s.type }, { default: () => s.label })
     }
   },
@@ -291,7 +290,16 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
             <NSelect v-model:value="model.tagIds" :options="tagOptions" placeholder="Chọn tags" multiple clearable />
           </n-form-item-gi>
           <n-gi :span="24" class="flex justify-end gap-3">
-            <NButton strong secondary @click="handleResetSearch">Làm mới</NButton>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleResetSearch">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
+              </template>
+              Làm mới
+            </n-tooltip>
           </n-gi>
         </n-grid>
       </n-form>
@@ -307,12 +315,14 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
         </NAlert>
 
         <n-data-table :columns="columns" :data="listData" :loading="loading" :row-key="(row: PhongResponse) => row.id"
-          :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys: string[]) => expandedRowKeys = keys" />
-        <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
-          @update:page-size="(size: number) => { pageSize = size; fetchRooms(1) }">
-          <template #prefix>Tổng {{ totalItems }} phòng</template>
-        </n-pagination>
+          :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys" />
+        <div class="mt-4 flex justify-start">
+          <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
+            show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+            @update:page-size="(size: number) => { pageSize = size; fetchRooms(1) }">
+            <template #prefix>Tổng {{ totalItems }} phòng</template>
+          </n-pagination>
+        </div>
         <TableModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
           @refresh="fetchRooms(currentPage)" />
       </NSpace>

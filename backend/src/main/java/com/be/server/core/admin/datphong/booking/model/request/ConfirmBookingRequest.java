@@ -25,4 +25,6 @@ public class ConfirmBookingRequest {
     BigDecimal tienKhachTra;
 
     java.util.List<String> danhSachIdPhong;
+
+    java.util.List<DatPhongTheoLoaiRequest.ChonLoaiPhong> danhSachLoaiPhong;
 }

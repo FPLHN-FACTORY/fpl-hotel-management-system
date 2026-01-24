@@ -107,10 +107,10 @@ export async function getAllRooms(params: ParamsGetRoom) {
     >
 
     return {
-      items: res.data.data.data || [],
-      totalItems: res.data.data.totalElements || 0,
-      totalPages: res.data.data.totalPages || 0,
-      currentPage: params.page || 1,
+      items: res.data.data?.data || [],
+      totalItems: res.data.data?.totalElements || 0,
+      totalPages: res.data.data?.totalPages || 0,
+      currentPage: res.data.data?.currentPage ?? 0,
     }
   }
   catch (error: any) {

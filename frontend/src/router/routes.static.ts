@@ -20,6 +20,16 @@ export const staticRoutes: AppRoute.RowRoute[] = [
     hide: true,
   },
   {
+    name: "xacNhanDatPhong",
+    path: "/letan/dat-phong/xac-nhan",
+    title: "Xác nhận đặt phòng",
+    requiresAuth: true,
+    componentPath: "/letan/datphong/booking/XacNhanDatPhongPage.vue",
+    id: 25,
+    pid: null,
+    hide: true,
+  },
+  {
     name: "chiTietPhieuDat",
     path: "/letan/phieu-dat/:id",
     title: "Chi tiết phiếu đặt",

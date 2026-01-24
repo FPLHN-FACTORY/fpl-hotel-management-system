@@ -5,7 +5,6 @@ import { useBoolean } from '@/hooks'
 import {
   NButton,
   NInput,
-  NInputNumber,
   NPopconfirm,
   NSelect,
   NSpace,
@@ -13,15 +12,15 @@ import {
   NTooltip,
   NIcon,
 } from 'naive-ui'
-import { Tag as TagIcon, Identification, Home, Building, Category, Currency, UserMultiple, ChartLineData, Hotel, GroupPresentation, Row } from '@vicons/carbon'
+import { Tag as TagIcon, Identification, Home, UserMultiple, GroupPresentation } from '@vicons/carbon'
 import TableModal from './components/TableModal.vue'
-import { changeStatusKhachHang, addKhachHang, updateKhachHang, getAllCustomers, fetchLoaiKhachHang, fetchTinhThanhPho } from '@/service/api/nhansu/khachhang'
+import { changeStatusKhachHang, getAllCustomers, fetchLoaiKhachHang } from '@/service/api/nhansu/khachhang'
 import type { KhachHangResponse } from '@/service/api/nhansu/khachhang'
-import CccdScanner from '@/components/custom/CccdScanner.vue';
+// import CccdScanner from '@/components/custom/CccdScanner.vue';
 
 
 const { bool: loading, setTrue: startLoading, setFalse: endLoading } = useBoolean(false)
-const { bool: visible, setTrue: openModal, setFalse: closeModal } = useBoolean(false)
+const { bool: visible, setTrue: openModal } = useBoolean(false)
 
 const modalType = ref<'add' | 'edit'>('add')
 const modalData = ref<{ id: string } | null>(null)
@@ -38,8 +37,8 @@ const initialModel = {
 }
 
 const model = reactive({ ...initialModel })
-const formRef = ref<FormInst | null>(null)
-const statusOptions = [
+// const formRef = ref<FormInst | null>(null)
+const statusOptions: any = [
   { label: 'Tất cả', value: null },
   { label: 'Hoạt động', value: 0 },
   { label: 'Ngưng hoạt động', value: 1 }
@@ -49,14 +48,14 @@ const loaiGiayToOptions = [
   { label: 'CCCD', value: 0 },
   { label: 'Hộ chiếu', value: 1 }
 ]
-const loaiKhachHangOptions = ref([]);
+const loaiKhachHangOptions = ref<any[]>([]);
 
 
 async function loaiKhachHangCombobox() {
   const data = await fetchLoaiKhachHang();
   loaiKhachHangOptions.value = [
     { label: "Không có", value: '-1' },
-    ...data
+    ...(Array.isArray(data) ? data : [])
   ];
 }
 
@@ -80,7 +79,7 @@ async function fetchCustomers(page = 1) {
   errorMessage.value = ''
   try {
     const params: any = {
-      page,
+      page: page, // Helper decrement in backend
       size: pageSize.value,
     }
 
@@ -105,7 +104,7 @@ async function fetchCustomers(page = 1) {
 
     listData.value = res.items
     totalItems.value = res.totalItems
-    currentPage.value = res.currentPage
+    currentPage.value = res.currentPage + 1
 
 
   }
@@ -178,7 +177,7 @@ function changePage(page: number) {
 }
 
 
-const expandedRowKeys = ref<string[]>([])
+const expandedRowKeys = ref<any[]>([])
 
 function handleRowClick(row: any, event: MouseEvent) {
   // Nếu click vào button, popconfirm, input, svg icon,... thì bỏ qua
@@ -474,9 +473,16 @@ onMounted(() => {
           </n-form-item-gi>
           <n-gi :span="24" class="flex justify-end gap-3">
 
-            <NButton strong secondary @click="handleResetSearch">
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleResetSearch">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
+              </template>
               Làm mới
-            </NButton>
+            </n-tooltip>
           </n-gi>
         </n-grid>
       </n-form>
@@ -501,13 +507,15 @@ onMounted(() => {
           })" />
 
 
-        <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
-          @update:page-size="(size: number) => { pageSize = size; fetchCustomers(1) }">
-          <template #prefix>
-            Tổng {{ totalItems }} khách hàng
-          </template>
-        </n-pagination>
+        <div class="mt-4 flex justify-start">
+          <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
+            show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+            @update:page-size="(size: number) => { pageSize = size; fetchCustomers(1) }">
+            <template #prefix>
+              Tổng {{ totalItems }} khách hàng
+            </template>
+          </n-pagination>
+        </div>
 
         <TableModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
           @refresh="fetchCustomers(currentPage)" />

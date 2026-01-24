@@ -1,10 +1,226 @@
 /* 
  * Responsive adjustments
- * The application now uses an auto-zoom logic in App.vue to standardise the display.
- * We ensure basic containers are flexible.
+ * Master-Detail (One Viewpoint) layout rules.
  */
 
-#app {
+:root {
+  --action-panel-width: 380px;
+  --master-content-gap: 1.25rem;
+}
+
+html, body, #app {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Main layout handles scrolling */
+}
+
+/* Master-Detail Layout Containers */
+.master-detail-container {
+  display: flex !important;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.master-content {
+  flex: 1;
+  width: 0; 
+  min-width: 0; /* Ensures content can shrink */
+  overflow-y: auto;
+  padding: var(--master-content-gap);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.action-panel-sider {
+  width: var(--action-panel-width) !important;
+  max-width: 450px; /* Increased slightly for better usability */
+  min-width: 320px;
+  border-left: 1px solid var(--n-border-color);
+  background: var(--n-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 
+ * Utility Classes for Grid & Flex
+ * Targets existing management grid structures to force stretch behavior
+ * Broad selector to hit containers in various pages without modifying .vue files
+ */
+.grid-responsive,
+.n-layout-content [class*="grid-cols-"],
+.n-layout [class*="grid-cols-"],
+[class*="grid-cols-"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: var(--master-content-gap) !important;
+  width: 100% !important;
+  justify-content: stretch !important;
+  justify-items: stretch !important; /* Overrides inline justifyItems: center */
+}
+
+/* Ensure Room Cards and wrappers fill the width of the grid cell */
+.room-card-wrapper,
+.room-card,
+[class*="grid-cols-"] > * {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Fix for specific Master-Detail containers if they use flex */
+.master-detail-container, 
+[class*="master-detail"] {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.master-content,
+[class*="master-content"] {
+  flex: 1 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow-y: auto !important;
+}
+
+/* Re-adjust Action Panel for Small Decor */
+.action-panel-sider,
+[class*="action-panel"] {
+  width: var(--action-panel-width) !important;
+  min-width: 300px !important;
+  max-width: 400px !important;
+}
+
+/* Sticky Footer in Action Panel */
+.panel-footer-sticky {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--n-color);
+  border-top: 1px solid var(--n-border-color);
+  padding: 1rem;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 
+ * Responsive Breakpoints
+ */
+
+/* Laptop / Small Desktop (1024px - 1550px) */
+@media screen and (min-width: 1024px) and (max-width: 1550px) {
+  :root {
+    --action-panel-width: 28%;
+    --master-content-gap: 0.75rem;
+  }
+  
+  html {
+    font-size: 13px !important; /* Forces rem-based spacing to shrink */
+  }
+
+  /* Force shrink containers that might have fixed or large minimum widths */
+  .n-card, .n-data-table, .n-form {
+    font-size: 13.5px !important;
+  }
+
+  /* Make grid cells even more compact */
+  .grid-responsive,
+  [class*="grid-cols-"] {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* 
+ * Scroll-to-Hide Header Animation
+ */
+.n-layout-header {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, box-shadow 0.3s ease !important;
+  will-change: transform;
+  background-color: #ffffff !important; /* Force solid white */
+  z-index: 2000 !important; /* Extremely high to stay above all content */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* Add shadow to prevent bleed */
+}
+
+/* Ensure all internal rows in header are also solid */
+.n-layout-header > div,
+.n-layout-header .h-60px,
+.n-layout-header .n-tabs {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.header-hidden .n-layout-header {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Adjust content position when header is hidden to fill space */
+.header-hidden .n-layout-header + div {
+  transform: translateY(-105px) !important;
+}
+
+/* Ensure transition is smooth for the content as well */
+.n-layout-header + div,
+.n-layout-header + span + div,
+.n-layout-header + * + .n-layout-content {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure content doesn't have transparency issues */
+.n-layout-content, .master-content {
+  background-color: var(--n-color) !important;
+}
+
+/* Tablet (< 1024px) */
+@media screen and (max-width: 1023px) {
+  :root {
+    --action-panel-width: 0px; 
+  }
+}
+
+/* Mobile (< 768px) */
+@media screen and (max-width: 767px) {
+  .master-detail-container {
+    flex-direction: column;
+  }
+  
+  .master-content {
+    padding: 0.5rem;
+    width: 100%;
+  }
+  
+  .action-panel-sider {
+    width: 100% !important;
+    max-width: 100% !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    height: 100vh;
+  }
+}
+
+/* Utility for vertical scroll within Action Panel */
+.action-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* Fix for Naive UI Datatable on mobile */
+.n-data-table-base-table {
+  overflow-x: auto !important;
 }

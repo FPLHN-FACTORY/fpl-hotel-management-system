@@ -129,6 +129,9 @@
     "userCenter": "Personal Center",
     "accountSetting": "User settings",
     "cascader": "Administrative region selection",
+    "taoPhieuDat": "Create Booking",
+    "xacNhanDatPhong": "Confirm Booking",
+    "chiTietPhieuDat": "Booking Details",
     "serviceManagement": "Service Management",
     "dict": "Dictionary example"
   },

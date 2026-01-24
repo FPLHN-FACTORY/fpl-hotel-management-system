@@ -1,11 +1,28 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useNotification, type DataTableColumns, NIcon } from 'naive-ui'
+import {
+  useNotification,
+  type DataTableColumns,
+  NIcon,
+  NButton,
+  NTag,
+  NSpace,
+  NInput,
+  NSelect,
+  NDatePicker,
+  NForm,
+  NFormItemGridItem,
+  NGrid,
+  NCard,
+  NPagination,
+  NDataTable,
+  NTooltip
+} from 'naive-ui'
 import { Calendar, Currency, Hotel, Time } from '@vicons/carbon'
-import { NButton, NTag, NSpace } from 'naive-ui'
 import { apiGetDanhSachPhieuDat, apiHuyPhieuDat } from '@/service/api/letan/phieudat'
 import type { PhieuDatPhongFilterRequest } from '@/service/api/letan/phieudat'
+import AssignRoomModal from './components/AssignRoomModal.vue'
 
 
 const router = useRouter()
@@ -16,8 +33,8 @@ const filterForm = reactive<PhieuDatPhongFilterRequest>({
     status: undefined,
     tuNgay: undefined,
     denNgay: undefined,
-    page: 0,
-    size: 20
+    page: 1,
+    size: 10
 })
 
 const dateRange = ref<[number, number] | null>(null)
@@ -50,7 +67,7 @@ const columns: DataTableColumns = [
         type: 'expand',
         renderExpand: (row: any) => {
             return h('div', { style: 'padding: 20px 32px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 8px 0;' }, [
-                h('div', { style: 'display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 32px;' }, [
+                h('div', { style: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; width: 100%;' }, [
                     h('div', { style: 'display: flex; flex-direction: column; gap: 12px;' }, [
                         h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
                             h('div', { style: 'display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; min-width: 150px;' }, [
@@ -141,6 +158,20 @@ const columns: DataTableColumns = [
                     },
                     () => 'Xem'
                 ),
+                row.trangThai === 'PENDING'
+                    ? h(
+                        NButton,
+                        {
+                            size: 'small',
+                            type: 'primary',
+                            onClick: (e) => {
+                                e.stopPropagation()
+                                openAssignRoom(row)
+                            }
+                        },
+                        () => 'Gán phòng'
+                    )
+                    : null,
                 row.trangThai === 'PENDING' || row.trangThai === 'CONFIRMED'
                     ? h(
                         NButton,
@@ -177,11 +208,15 @@ onMounted(() => {
 async function fetchData() {
     loading.value = true
     try {
-        const response = await apiGetDanhSachPhieuDat(filterForm)
+        const response = await apiGetDanhSachPhieuDat({
+            ...filterForm,
+            page: filterForm.page - 1
+        })
         const pageData = response.data.data || response.data
         data.value = pageData.content || []
         totalPages.value = pageData.totalPages || 0
         totalElements.value = pageData.totalElements || 0
+        filterForm.page = pageData.number + 1 || pageData.currentPage + 1 || pageData.page + 1 || 1
     } catch (error: any) {
         notification.error({
             content: error.message || 'Lỗi khi tải danh sách',
@@ -193,7 +228,7 @@ async function fetchData() {
 }
 
 function handleSearch() {
-    filterForm.page = 0
+    filterForm.page = 1
     fetchData()
 }
 
@@ -203,12 +238,12 @@ function handleReset() {
     filterForm.tuNgay = undefined
     filterForm.denNgay = undefined
     dateRange.value = null
-    filterForm.page = 0
+    filterForm.page = 1
     fetchData()
 }
 
 function handlePageChange(page: number) {
-    filterForm.page = page - 1
+    filterForm.page = page
     fetchData()
 }
 
@@ -243,6 +278,18 @@ function handleCancel(id: string, maPhieu: string) {
 
 function createNew() {
     router.push({ name: 'taoPhieuDat' })
+}
+
+const assignRoomVisible = ref(false)
+const selectedPhieuForAssign = ref<any>(null)
+
+function openAssignRoom(phieu: any) {
+    selectedPhieuForAssign.value = phieu
+    assignRoomVisible.value = true
+}
+
+function handleAssignSuccess() {
+    fetchData()
 }
 </script>
 
@@ -288,9 +335,16 @@ function createNew() {
                     <n-form-item-grid-item :span="6">
                         <n-space justify="end" style="width: 100%" align="center">
                             <div style="height: 34px; display: flex; align-items: center;">
-                                <n-button strong secondary @click="handleReset">
+                                <n-tooltip trigger="hover">
+                                    <template #trigger>
+                                        <n-button quaternary circle @click="handleReset">
+                                            <template #icon>
+                                                <nova-icon icon="carbon:reset" />
+                                            </template>
+                                        </n-button>
+                                    </template>
                                     Làm mới
-                                </n-button>
+                                </n-tooltip>
                             </div>
                         </n-space>
                     </n-form-item-grid-item>
@@ -300,15 +354,11 @@ function createNew() {
 
         <!-- Table Section -->
         <n-card>
-            <!-- Button and Stats Row -->
-            <div class="flex justify-between items-center mb-4">
+            <!-- Button Row -->
+            <div class="mb-4">
                 <n-button type="success" @click="createNew">
                     Tạo phiếu mới
                 </n-button>
-
-                <div class="text-sm text-gray-600">
-                    Tổng số: <span class="font-semibold text-base">{{ totalElements }}</span> phiếu đặt
-                </div>
             </div>
 
             <!-- Data Table -->
@@ -320,7 +370,7 @@ function createNew() {
                 :single-line="true" 
                 :row-key="(row: any) => row.id"
                 :expanded-row-keys="expandedRowKeys"
-                @update:expanded-row-keys="(keys: string[]) => expandedRowKeys = keys"
+                @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys"
                 :row-props="(row: any) => ({
                     style: 'cursor: pointer;',
                     onClick: () => handleRowClick(row)
@@ -328,22 +378,32 @@ function createNew() {
             />
 
             <!-- Pagination -->
-            <div class="flex justify-end mt-4">
+            <!-- Pagination -->
+            <div class="flex justify-start mt-4">
                 <n-pagination 
                     v-model:page="filterForm.page" 
                     :page-count="totalPages" 
                     :page-size="filterForm.size"
                     show-size-picker 
                     :page-sizes="[10, 20, 50, 100]" 
-                    @update:page="handlePageChange" 
-                    @update:page-size="(size: number) => {
+                    @update:page="handlePageChange"                    @update:page-size="(size: number) => {
                         filterForm.size = size
-                        filterForm.page = 0
+                        filterForm.page = 1
                         fetchData()
                     }" 
-                />
+                >
+                    <template #prefix>
+                        Tổng {{ totalElements }} phiếu đặt
+                    </template>
+                </n-pagination>
             </div>
         </n-card>
+
+        <AssignRoomModal 
+            v-model:visible="assignRoomVisible" 
+            :phieu-data="selectedPhieuForAssign"
+            @success="handleAssignSuccess"
+        />
     </div>
 </template>
 
@@ -361,7 +421,21 @@ function createNew() {
 }
 
 :deep(.n-form-item-label) {
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 500;
+}
+
+:deep(.n-pagination) {
+    font-size: 17px;
+}
+
+:deep(.n-button__content) {
+    font-size: 17px;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input) {
+    font-size: 17px;
 }
 </style>

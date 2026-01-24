@@ -61,11 +61,36 @@ const selectedPhongList = computed(() => {
 })
 
 const tongTienPhong = computed(() => {
-  return selectedPhongList.value.reduce((sum, p) => sum + p.gia, 0)
+  if (selectedPhongIds.value.length > 0) {
+    return selectedPhongList.value.reduce((sum, p) => sum + p.gia, 0)
+  }
+  
+  if (props.bookingData) {
+    // If no rooms selected, calculate based on selected types from first step
+    return props.bookingData.danhSachLoaiPhong.reduce((sum, item) => {
+      // We need to find the price for this loaiPhong. 
+      // It's available in danhSachPhong return (if any) or we could fetch from dataCombobox if we had prices there.
+      // In this system, getPhongTheoLoai returns rooms with prices. 
+      // Let's find one room of this type to get price, or default to 0.
+      const roomTypeName = item.tenLoaiPhong || getLoaiPhongName(item.idLoaiPhong)
+      const roomOfType = danhSachPhong.value.find(p => p.tenLoaiPhong === roomTypeName)
+      const price = item.gia || roomOfType?.gia || 0
+      return sum + (price * item.soLuong)
+    }, 0)
+  }
+  return 0
 })
 
 const tongTien = computed(() => {
   return tongTienPhong.value * soNgayO.value
+})
+
+const totalRoomsToDisplay = computed(() => {
+  if (selectedPhongIds.value.length > 0) return selectedPhongIds.value.length
+  if (props.bookingData) {
+    return props.bookingData.danhSachLoaiPhong.reduce((sum, item) => sum + item.soLuong, 0)
+  }
+  return 0
 })
 
 const tienThua = computed(() => {
@@ -109,10 +134,10 @@ function resetForm() {
 }
 
 function getLoaiPhongName(idLoaiPhong: string): string {
-  const loaiPhongArray = dataCombobox.value?.loaiPhong
+  const loaiPhongArray = dataCombobox.loaiPhong
   if (!loaiPhongArray) return 'Không xác định'
-  const loaiPhong = loaiPhongArray.find((lp: any) => lp.value === idLoaiPhong)
-  return loaiPhong?.label || 'Không xác định'
+  const loaiPhong = loaiPhongArray.find((lp: any) => String(lp.value) === String(idLoaiPhong))
+  return String(loaiPhong?.label || 'Không xác định')
 }
 
 async function loadDanhSachPhong() {
@@ -126,7 +151,7 @@ async function loadDanhSachPhong() {
       danhSachLoaiPhong: props.bookingData.danhSachLoaiPhong,
     })
     danhSachPhong.value = data
-    selectedPhongIds.value = data.map(p => p.idPhong)
+    // selectedPhongIds.value = data.map(p => p.idPhong) // Stop automatic selection
     sessionId.value = generateSessionId()
   }
   catch (error: any) {
@@ -174,7 +199,7 @@ async function handleLuuTam() {
     window.$message.warning('Dữ liệu đặt phòng không hợp lệ')
     return
   }
-  if (selectedPhongIds.value.length === 0) {
+  if (selectedPhongIds.value.length === 0 && (!props.bookingData || props.bookingData.danhSachLoaiPhong.length === 0)) {
     window.$message.warning('Vui lòng chọn ít nhất một phòng')
     return
   }
@@ -196,7 +221,7 @@ async function handleLuuTam() {
       currentStep: selectedKhachHang.value 
         ? (formData.value.tienKhachTra !== null ? 'READY_TO_CONFIRM' : 'PAYMENT_INFO')
         : 'CUSTOMER_INFO',
-      roomDetails: selectedPhongList.value.map(p => ({
+      roomDetails: selectedPhongIds.value.length > 0 ? selectedPhongList.value.map(p => ({
         idPhong: p.idPhong,
         maPhong: p.maPhong,
         tenPhong: p.tenPhong,
@@ -204,7 +229,7 @@ async function handleLuuTam() {
         tang: p.tang,
         gia: p.gia,
         soNgay: soNgayO.value,
-      })),
+      })) : [],
     }
 
     await savePhieuDatTam(phieuData)
@@ -224,7 +249,7 @@ async function handleDatPhong() {
     window.$message.warning('Dữ liệu đặt phòng không hợp lệ')
     return
   }
-  if (selectedPhongIds.value.length === 0) {
+  if (selectedPhongIds.value.length === 0 && (!props.bookingData || props.bookingData.danhSachLoaiPhong.length === 0)) {
     window.$message.warning('Vui lòng chọn ít nhất một phòng')
     return
   }
@@ -253,7 +278,7 @@ async function handleDatPhong() {
       tienKhachTra: formData.value.tienKhachTra,
       isFromRoomClick: false,
       currentStep: 'READY_TO_CONFIRM',
-      roomDetails: selectedPhongList.value.map(p => ({
+      roomDetails: selectedPhongIds.value.length > 0 ? selectedPhongList.value.map(p => ({
         idPhong: p.idPhong,
         maPhong: p.maPhong,
         tenPhong: p.tenPhong,
@@ -261,7 +286,7 @@ async function handleDatPhong() {
         tang: p.tang,
         gia: p.gia,
         soNgay: soNgayO.value,
-      })),
+      })) : [],
     }
 
     const result = await savePhieuDatTam(phieuData)
@@ -276,6 +301,7 @@ async function handleDatPhong() {
       nhanNgay: formData.value.nhanNgay,
       tienKhachTra: formData.value.tienKhachTra || undefined,
       danhSachIdPhong: selectedPhongIds.value,
+      danhSachLoaiPhong: selectedPhongIds.value.length === 0 ? props.bookingData.danhSachLoaiPhong : undefined,
     }
     await confirmBookingFromPhieuTam(confirmData)
 
@@ -318,8 +344,9 @@ function formatDate(timestamp: number) {
     v-model:show="modalVisible"
     :mask-closable="false"
     preset="card"
-    title="Đặt phòng"
-    class="w-1200px modal-custom-font"
+    title="Xác nhận đặt phòng & Thông tin khách hàng"
+    class="w-full-overlay modal-custom-font"
+    style="width: 98vw; max-width: 1600px; margin-top: 1vh;"
     :segmented="{ content: true, action: true }"
   >
     <n-spin :show="isLoading">
@@ -327,7 +354,13 @@ function formatDate(timestamp: number) {
         <!-- Left: Summary (35%) -->
         <div class="col-span-4 space-y-3">
           <!-- Booking Summary -->
-          <n-card v-if="bookingData" size="small" title="📋 Chi tiết đặt phòng" :bordered="false" class="bg-blue-50 compact-card">
+          <n-card v-if="bookingData" size="small" :bordered="false" class="bg-blue-50 compact-card">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <nova-icon icon="carbon:document" />
+                <span>Chi tiết đặt phòng</span>
+              </div>
+            </template>
             <div class="space-y-2 text-xs">
               <div class="flex justify-between">
                 <span class="text-gray-600">Nhận:</span>
@@ -349,19 +382,25 @@ function formatDate(timestamp: number) {
           </n-card>
 
           <!-- Room Types Selected -->
-          <n-card v-if="bookingData" size="small" title="🏨 Loại phòng đã chọn" :bordered="false" class="compact-card">
+          <n-card v-if="bookingData" size="small" :bordered="false" class="compact-card">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <nova-icon icon="carbon:hotel" />
+                <span>Loại phòng đã chọn</span>
+              </div>
+            </template>
             <div class="space-y-1.5">
               <div
                 v-for="(loai, index) in bookingData.danhSachLoaiPhong"
                 :key="index"
                 class="flex justify-between items-center text-xs py-1 border-b last:border-0"
               >
-                <span class="font-medium">{{ getLoaiPhongName(loai.idLoaiPhong) }}</span>
+                <span class="font-medium">{{ loai.tenLoaiPhong || getLoaiPhongName(loai.idLoaiPhong) }}</span>
                 <span class="text-blue-600 font-semibold">{{ loai.soLuong }} phòng</span>
               </div>
               <div class="pt-2 mt-2 border-t-2 flex justify-between font-semibold text-sm">
-                <span>Tổng số phòng:</span>
-                <span class="text-green-600">{{ selectedPhongIds.length }} phòng</span>
+                <span>Tổng số phòng {{(selectedPhongIds.length === 0 && bookingData) ? '(theo loại)' : ''}}:</span>
+                <span class="text-green-600">{{ totalRoomsToDisplay }} phòng</span>
               </div>
             </div>
           </n-card>
@@ -370,7 +409,7 @@ function formatDate(timestamp: number) {
           <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between">
-                <span>Tiền phòng ({{ selectedPhongIds.length }} × 1 đêm):</span>
+                <span>Tiền phòng ({{ totalRoomsToDisplay }} × 1 đêm):</span>
                 <span class="font-semibold">{{ tongTienPhong.toLocaleString('vi-VN') }} VNĐ</span>
               </div>
               <div class="flex justify-between">
@@ -390,7 +429,13 @@ function formatDate(timestamp: number) {
         <!-- Right: Forms (65%) -->
         <div class="col-span-8 space-y-2.5">
           <!-- Customer Info -->
-          <n-card size="small" title="👤 Thông tin khách hàng" :bordered="false" class="compact-card">
+          <n-card size="small" :bordered="false" class="compact-card">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <nova-icon icon="carbon:user-avatar" />
+                <span>Thông tin khách hàng</span>
+              </div>
+            </template>
             <n-form-item label="Tìm khách hàng" class="!mb-2">
               <n-select
                 v-model:value="selectedKhachHang"
@@ -417,7 +462,13 @@ function formatDate(timestamp: number) {
           </n-card>
 
           <!-- Payment -->
-          <n-card size="small" title="💳 Thanh toán" :bordered="false" class="bg-yellow-50 compact-card">
+          <n-card size="small" :bordered="false" class="bg-yellow-50 compact-card">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <nova-icon icon="carbon:wallet" />
+                <span>Thanh toán</span>
+              </div>
+            </template>
             <div class="space-y-2">
               <n-form-item label="Số tiền khách trả" class="!mb-2">
                 <n-input-number
@@ -444,7 +495,13 @@ function formatDate(timestamp: number) {
           </n-card>
 
           <!-- Additional Info -->
-          <n-card size="small" title="📝 Thông tin bổ sung" :bordered="false" class="compact-card">
+          <n-card size="small" :bordered="false" class="compact-card">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <nova-icon icon="carbon:edit" />
+                <span>Thông tin bổ sung</span>
+              </div>
+            </template>
             <n-form-item label="Ghi chú" class="!mb-2">
               <n-input
                 v-model:value="formData.ghiChu"
@@ -488,7 +545,7 @@ function formatDate(timestamp: number) {
           <n-button
             type="primary"
             size="large"
-            :disabled="!selectedKhachHang || formData.tienKhachTra === null || formData.tienKhachTra === undefined || selectedPhongIds.length === 0"
+            :disabled="!selectedKhachHang || formData.tienKhachTra === null || formData.tienKhachTra === undefined || (selectedPhongIds.length === 0 && !bookingData)"
             @click="handleDatPhong"
           >
             <template #icon>
@@ -503,13 +560,8 @@ function formatDate(timestamp: number) {
 </template>
 
 <style scoped>
-.w-1200px {
-  width: 1200px;
-  max-width: 95vw;
-}
-
-.w-1200px :deep(.n-card__content) {
-  max-height: 68vh;
+.w-full-overlay :deep(.n-card__content) {
+  max-height: 82vh;
   overflow-y: auto;
 }
 

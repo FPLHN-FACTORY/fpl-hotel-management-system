@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { h, onMounted, reactive, ref, watch } from 'vue'
-import type { DataTableColumns, FormInst } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import { useBoolean } from '@/hooks'
 import {
   NButton,
   NInput,
-  NInputNumber,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
   NAlert,
   NIcon,
+  NTooltip,
 } from 'naive-ui'
 import { ShoppingBag, Money, DataTable } from '@vicons/carbon'
 import DichVuModal from './components/DichVuModal.vue'
@@ -30,7 +30,6 @@ const initialModel = {
 }
 
 const model = reactive({ ...initialModel })
-const formRef = ref<FormInst | null>(null)
 
 const trangThaiOptions = [
   { label: 'Hoạt động', value: 0 },
@@ -137,7 +136,7 @@ const columns: DataTableColumns<DichVuResponse> = [
   {
     type: 'expand',
     renderExpand: row => h('div', { style: 'padding: 20px 32px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 8px 0;' }, [
-      h('div', { style: 'display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 32px;' }, [
+      h('div', { style: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; width: 100%;' }, [
         h('div', { style: 'display: flex; flex-direction: column; gap: 12px;' }, [
           h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
             h('div', { style: 'display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; min-width: 180px;' }, [
@@ -259,9 +258,16 @@ onMounted(() => {
               clearable />
           </n-form-item-gi>
           <n-gi :span="24" class="flex justify-end gap-3">
-            <NButton strong secondary @click="handleResetSearch">
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary circle @click="handleResetSearch">
+                  <template #icon>
+                    <nova-icon icon="carbon:reset" />
+                  </template>
+                </n-button>
+              </template>
               Làm mới
-            </NButton>
+            </n-tooltip>
           </n-gi>
         </n-grid>
       </n-form>
@@ -281,15 +287,17 @@ onMounted(() => {
 
         <n-data-table :columns="columns" :data="listData" :loading="loading"
           :row-key="(row: DichVuResponse) => row.id" :expanded-row-keys="expandedRowKeys"
-          @update:expanded-row-keys="(keys: string[]) => expandedRowKeys = keys" />
+          @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys" />
 
-        <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
-          @update:page-size="(size: number) => { pageSize = size; fetchDichVu(1) }">
-          <template #prefix>
-            Tổng {{ totalItems }} dịch vụ
-          </template>
-        </n-pagination>
+        <div class="mt-4 flex justify-start">
+          <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
+            show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+            @update:page-size="(size: number) => { pageSize = size; fetchDichVu(1) }">
+            <template #prefix>
+              Tổng {{ totalItems }} dịch vụ
+            </template>
+          </n-pagination>
+        </div>
 
         <DichVuModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
           @refresh="fetchDichVu(currentPage)" />

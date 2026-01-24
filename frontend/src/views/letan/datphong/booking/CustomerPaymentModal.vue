@@ -6,7 +6,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { CameraOutline, QrCodeOutline, SearchOutline, PersonAddOutline, PersonOutline, CallOutline } from '@vicons/ionicons5'
 interface Props {
   visible: boolean
-  sessionId: string | null
+  sessionId: string | null | undefined
   initialStep: 'CUSTOMER_INFO' | 'PAYMENT_INFO'
 }
 
@@ -69,7 +69,7 @@ const formModelKhachHang = reactive({
 
 })
 const loaiNguoi = computed(() =>
-  phieuData.value?.soLuongKhach > 1 ? "trưởng đoàn" : "khách hàng"
+  (phieuData.value?.soLuongKhach ?? 0) > 1 ? "trưởng đoàn" : "khách hàng"
 );
 const isSearchMode = ref(false);
 const resetFormKhachHang = () => {

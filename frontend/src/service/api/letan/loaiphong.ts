@@ -57,18 +57,25 @@ export async function getAllRoomTypes(params: ParamsGetRoomType) {
       queryParams.size = params.size
     }
     
-    const res = await request({
+    const res = (await request({
       url: `${API_LE_TAN_LOAI_PHONG}`,
-      method: 'GET',
+      method: "GET",
       params: queryParams,
-    }) as AxiosResponse<DefaultResponse<RoomTypeResponse[]>>
+    })) as AxiosResponse<
+      DefaultResponse<{
+        data: RoomTypeResponse[];
+        totalElements: number;
+        totalPages: number;
+        currentPage: number;
+      }>
+    >;
 
     return {
-      items: res.data.data || [],
-      totalItems: res.data.data?.length || 0,
-      totalPages: 1,
-      currentPage: params.page || 1
-    }
+      items: res.data.data?.data || [],
+      totalItems: res.data.data?.totalElements || 0,
+      totalPages: res.data.data?.totalPages || 0,
+      currentPage: res.data.data?.currentPage ?? 0,
+    };
 
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách loại phòng')

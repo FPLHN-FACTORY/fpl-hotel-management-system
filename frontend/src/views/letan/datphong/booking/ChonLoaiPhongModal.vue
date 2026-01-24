@@ -118,7 +118,15 @@ function handleSubmit() {
   }
 
   const danhSachLoaiPhong: ChonLoaiPhong[] = Array.from(selectedLoaiPhong.value.entries()).map(
-    ([idLoaiPhong, soLuong]) => ({ idLoaiPhong, soLuong }),
+    ([idLoaiPhong, soLuong]) => {
+      const info = loaiPhongList.value.find(lp => lp.idLoaiPhong === idLoaiPhong)
+      return {
+        idLoaiPhong,
+        soLuong,
+        tenLoaiPhong: info?.tenLoaiPhong,
+        gia: info?.giaCaNgay,
+      }
+    },
   )
 
   emit('submit', {

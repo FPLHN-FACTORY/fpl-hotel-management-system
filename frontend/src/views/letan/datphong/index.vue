@@ -8,7 +8,6 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import SoDo from './sodo/soDo.vue'
 import Timeline from './timeline/timeline.vue'
 import ChonLoaiPhongModal from './booking/ChonLoaiPhongModal.vue'
-import DatPhongChiTietModal from './booking/DatPhongChiTiet.vue'
 import DatPhongTrucTiepModal from './booking/DatPhongTrucTiepModal.vue'
 import XacNhanDatPhongModal from './booking/XacNhanDatPhongModal.vue'
 import PhieuDatTamList from './booking/PhieuDatTamList.vue'
@@ -42,7 +41,6 @@ const notification = useNotification()
 
 // Modal đặt phòng theo loại
 const showChonLoaiPhongModal = ref(false)
-const showDatPhongModal = ref(false)
 
 const bookingData = ref<{
   ngayNhan: number
@@ -50,7 +48,6 @@ const bookingData = ref<{
   soLuongKhach: number
   danhSachLoaiPhong: ChonLoaiPhong[]
 } | null>(null)
-const sessionIdDatTheoLoai = ref<string | null>(null)
 
 // Modal quản lý đặt phòng
 const showQuanLyModal = ref(false)
@@ -60,6 +57,7 @@ const selectedBookingForManagement = ref<{
   roomName: string
   customerName?: string
   status: string
+  phieuDatPhongId?: string
 } | null>(null)
 
 
@@ -74,7 +72,7 @@ const selectedRoomsForBooking = ref<Array<{
   tang: number
   gia: number
 }>>([])
-const currentSessionId = ref<string | null>(null)
+const currentSessionId = ref<string | undefined>(undefined)
 
 const showPhieuDatTamList = ref(false)
 
@@ -189,24 +187,13 @@ function handleChonLoaiPhongSubmit(data: {
   danhSachLoaiPhong: ChonLoaiPhong[]
 }) {
   bookingData.value = data
-  showDatPhongModal.value = true
-}
-
-function handleDatPhongChiTietNext(data: {
-  sessionId: string
-  danhSachIdPhong: string[]
-  tongTien: number
-}) {
-  sessionIdDatTheoLoai.value = data.sessionId
-  currentSessionId.value = data.sessionId
-
-  // Mở CustomerPaymentModal để nhập thông tin khách hàng
-  customerPaymentStep.value = 'CUSTOMER_INFO'
-
-  nextTick(() => {
-    showCustomerPaymentModal.value = true
+  // showDatPhongModal.value = true
+  router.push({ 
+    name: 'xacNhanDatPhong', 
+    query: { data: JSON.stringify(data) } 
   })
 }
+
 
 function handleDatPhongSuccess() {
   fetchDataSoDoPhong()
@@ -257,7 +244,7 @@ async function handleRoomClick(room: SoDoPhongResponse) {
     gia: room.price || 0,
   }]
 
-  currentSessionId.value = null
+  currentSessionId.value = undefined
   showDatPhongTrucTiepModal.value = true
 }
 
@@ -270,7 +257,7 @@ function handleMultiRoomSelect(rooms: Array<{
   gia: number
 }>) {
   selectedRoomsForBooking.value = rooms
-  currentSessionId.value = null
+  currentSessionId.value = undefined
   showDatPhongTrucTiepModal.value = true
 }
 
@@ -377,9 +364,16 @@ function handleCustomerPaymentContinue(sessionId: string) {
           Quản lý phiếu đặt
         </n-button>
       </div>
-      <n-button @click="resetFilter">
+      <n-tooltip trigger="hover">
+        <template #trigger>
+          <n-button @click="resetFilter" quaternary circle size="large">
+            <template #icon>
+              <nova-icon icon="carbon:reset" />
+            </template>
+          </n-button>
+        </template>
         Làm mới
-      </n-button>
+      </n-tooltip>
     </div>
 
     <div class="mt-4">
@@ -390,8 +384,8 @@ function handleCustomerPaymentContinue(sessionId: string) {
     <!-- Modals đặt phòng theo loại -->
     <ChonLoaiPhongModal v-model:visible="showChonLoaiPhongModal" @submit="handleChonLoaiPhongSubmit" />
 
-    <DatPhongChiTietModal v-model:visible="showDatPhongModal" :booking-data="bookingData"
-      @next="handleDatPhongChiTietNext" />
+    <!-- <DatPhongChiTietModal v-model:visible="showDatPhongModal" :booking-data="bookingData"
+      @next="handleDatPhongChiTietNext" /> -->
 
     <!-- Modals đặt phòng trực tiếp -->
     <DatPhongTrucTiepModal v-model:visible="showDatPhongTrucTiepModal" :selected-rooms="selectedRoomsForBooking"

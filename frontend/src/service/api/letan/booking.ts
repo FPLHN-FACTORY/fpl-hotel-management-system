@@ -25,6 +25,8 @@ export interface LoaiPhongAvailableResponse {
 export interface ChonLoaiPhong {
   idLoaiPhong: string
   soLuong: number
+  tenLoaiPhong?: string
+  gia?: number
 }
 
 export interface DatPhongTheoLoaiRequest {
@@ -115,6 +117,7 @@ export interface ConfirmBookingRequest {
   nhanNgay: boolean
   tienKhachTra?: number
   danhSachIdPhong: string[]
+  danhSachLoaiPhong?: ChonLoaiPhong[]
 }
 
 export interface TimKhachHangResponse {
@@ -343,6 +346,7 @@ export async function confirmBookingFromPhieuTam(data: ConfirmBookingRequest) {
         nhanNgay: data.nhanNgay,
         tienKhachTra: data.tienKhachTra,
         danhSachIdPhong: data.danhSachIdPhong,
+        danhSachLoaiPhong: data.danhSachLoaiPhong,
       },
     })) as AxiosResponse<DefaultResponse<any>>
 
