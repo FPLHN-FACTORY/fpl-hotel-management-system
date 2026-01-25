@@ -23,6 +23,8 @@ public class CreateBookingResponse {
 
     Long ngayCheckOut;
 
+    Integer soLuongKhach;
+
     String trangThai;
 
     BigDecimal tongTien;

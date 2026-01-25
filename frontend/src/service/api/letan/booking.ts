@@ -113,6 +113,7 @@ export interface ConfirmBookingRequest {
   idKhachHang: string
   checkInDate: number
   checkOutDate: number
+  soLuongKhach: number
   ghiChu?: string
   nhanNgay: boolean
   tienKhachTra?: number
@@ -342,6 +343,7 @@ export async function confirmBookingFromPhieuTam(data: ConfirmBookingRequest) {
         idKhachHang: data.idKhachHang,
         ngayNhan: data.checkInDate,
         ngayTra: data.checkOutDate,
+        soLuongKhach: data.soLuongKhach,
         ghiChu: data.ghiChu,
         nhanNgay: data.nhanNgay,
         tienKhachTra: data.tienKhachTra,

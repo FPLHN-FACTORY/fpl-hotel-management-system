@@ -227,6 +227,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
     @Transactional
     public ResponseObject<?> confirmBooking(ConfirmBookingRequest request) {
         try {
+
             // Validation
             if (request.getIdKhachHang() == null || request.getIdKhachHang().isEmpty()) {
                 return ResponseObject.errorForward("Vui long chon khach hang", HttpStatus.BAD_REQUEST);
@@ -243,6 +244,10 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             if ((request.getDanhSachIdPhong() == null || request.getDanhSachIdPhong().isEmpty()) &&
                 (request.getDanhSachLoaiPhong() == null || request.getDanhSachLoaiPhong().isEmpty())) {
                 return ResponseObject.errorForward("Vui long chon phong hoac loai phong", HttpStatus.BAD_REQUEST);
+            }
+
+            if (request.getSoLuongKhach() == null || request.getSoLuongKhach() <= 0) {
+                return ResponseObject.errorForward("Số lượng khách phải lớn hơn 0", HttpStatus.BAD_REQUEST);
             }
 
             KhachHang khachHang = khachHangRepository.findById(request.getIdKhachHang())
@@ -271,6 +276,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             phieuDatPhong.setCheckInDate(request.getNgayNhan());
             phieuDatPhong.setCheckOutDate(request.getNgayTra());
             phieuDatPhong.setKhachHang(khachHang);
+            phieuDatPhong.setSoLuongKhach(request.getSoLuongKhach());
             phieuDatPhong.setGhiChu(request.getGhiChu());
 
             // Case 1: Assigned specific rooms
@@ -316,6 +322,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                 response.setTenKhachHang(khachHang.getHoTen());
                 response.setNgayCheckIn(savedPhieu.getCheckInDate());
                 response.setNgayCheckOut(savedPhieu.getCheckOutDate());
+                response.setSoLuongKhach(request.getSoLuongKhach());
                 response.setTrangThai(savedPhieu.getStatus_phieu_dat_phong().name());
                 response.setTongTien(tongTien);
 
@@ -367,6 +374,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                 response.setTenKhachHang(khachHang.getHoTen());
                 response.setNgayCheckIn(savedPhieu.getCheckInDate());
                 response.setNgayCheckOut(savedPhieu.getCheckOutDate());
+                response.setSoLuongKhach(savedPhieu.getSoLuongKhach());
                 response.setTrangThai(savedPhieu.getStatus_phieu_dat_phong().name());
                 response.setTongTien(tongTien);
                 response.setDanhSachPhong(new ArrayList<>());

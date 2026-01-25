@@ -334,21 +334,22 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
 .range-picker {
   display: flex;
   align-items: center;
-  border: 1px solid #e0e0e6;
+  border: 1px solid #e0e0e6; /* Viền mặc định */
   border-radius: 3px;
   background: #fff;
   padding: 0 8px;
   transition: border-color 0.3s, box-shadow 0.3s;
   width: 100%;
+  min-height: 40px; /* Thêm chiều cao tối thiểu */
 }
 
 .range-picker:hover {
-  border-color: #18a058;
+  border-color: #18a058; /* Viền khi hover */
 }
 
 .range-picker:focus-within {
-  border-color: #18a058;
-  box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.2);
+  border-color: #18a058; /* Viền khi focus */
+  box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.2); /* Hiệu ứng focus */
 }
 
 .range-input {
@@ -372,6 +373,20 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
   font-weight: 500;
   flex-shrink: 0;
   font-size: 17px;
+}
+
+/* Thêm style cho trạng thái lỗi nếu cần */
+.range-picker.error {
+  border-color: #d03050;
+}
+
+.range-picker.error:hover {
+  border-color: #e88080;
+}
+
+.range-picker.error:focus-within {
+  border-color: #d03050;
+  box-shadow: 0 0 0 2px rgba(208, 48, 80, 0.2);
 }
 
 .ml-a {
@@ -415,5 +430,21 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
 
 :deep(.n-alert__content) {
   font-size: 17px;
+}
+
+:deep(.n-input),
+:deep(.n-input-number),
+:deep(.n-select) {
+  min-height: 40px;
+}
+
+:deep(.n-base-selection) {
+  min-height: 40px !important;
+}
+
+:deep(.n-base-selection .n-base-selection-label) {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
 }
 </style>
