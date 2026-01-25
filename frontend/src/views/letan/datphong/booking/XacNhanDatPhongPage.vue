@@ -1,37 +1,44 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
-  useMessage, 
-  NSpace, 
-  NButton, 
-  NSpin, 
-  NTag, 
-  NGrid, 
-  NGridItem, 
-  NSelect, 
-  NInput, 
-  NCheckbox, 
+import {
+  useMessage,
+  NSpace,
+  NButton,
+  NSpin,
+  NTag,
+  NGrid,
+  NGridItem,
+  NSelect,
+  NInput,
+  NCheckbox,
   NIcon,
   NRadio,
-  NRadioGroup
+  NRadioGroup,
+  NInputNumber,
+  NCard,
+  NScrollbar,
+  NAlert
 } from 'naive-ui'
-import { 
-  getPhongTheoLoai, 
-  searchKhachHang, 
-  savePhieuDatTam, 
+import {
+  getPhongTheoLoai,
+  searchKhachHang,
+  savePhieuDatTam,
   confirmBookingFromPhieuTam,
   type ChonLoaiPhong,
   type PhongDatResponse,
   type TimKhachHangResponse,
-  type ConfirmBookingRequest 
+  type ConfirmBookingRequest
 } from '@/service/api/letan/booking'
 import { useDebounceFn } from '@vueuse/core'
 import { useDataCombobox } from '@/store/dataCombox'
-import { 
+import {
   Calendar,
   Time,
-  UserAvatar
+  UserAvatar,
+  Home,
+  Currency,
+  User
 } from '@vicons/carbon'
 
 const route = useRoute()
@@ -39,7 +46,6 @@ const router = useRouter()
 const message = useMessage()
 const { dataCombobox } = useDataCombobox()
 
-// Data from query params
 const bookingData = ref<{
   ngayNhan: number
   ngayTra: number
@@ -60,17 +66,19 @@ const formData = ref({
   ghiChu: '',
   nhanNgay: false,
   tienKhachTra: null as number | null,
-  hinhThucThanhToan: 'FULL', // FULL, DEPOSIT, LATER
-  phuongThucThanhToan: 'CASH', // CASH, CARD, TRANSFER, E-WALLET
-  isCheckXacNhan: false
+  hinhThucThanhToan: 'FULL',
+  phuongThucThanhToan: 'CASH',
+  isCheckXacNhan: false,
 })
 
-// Initialize from route query
 onMounted(() => {
   try {
     const query = route.query
     if (query.data) {
       bookingData.value = JSON.parse(query.data as string)
+      // Nếu có số lượng khách từ bookingData thì đồng bộ, không thì để mặc định = 2
+        bookingData.value.soLuongKhach
+
       loadDanhSachPhong()
     } else {
       message.error('Thiếu dữ liệu đặt phòng')
@@ -80,7 +88,6 @@ onMounted(() => {
   }
 })
 
-// Computed
 const soNgayO = computed(() => {
   if (!bookingData.value) return 0
   return Math.ceil((bookingData.value.ngayTra - bookingData.value.ngayNhan) / (1000 * 60 * 60 * 24))
@@ -94,7 +101,7 @@ const tongTienPhong = computed(() => {
   if (selectedPhongIds.value.length > 0) {
     return selectedPhongList.value.reduce((sum, p) => sum + p.gia, 0)
   }
-  
+
   if (bookingData.value) {
     return bookingData.value.danhSachLoaiPhong.reduce((sum, item) => {
       const roomTypeName = item.tenLoaiPhong || getLoaiPhongName(item.idLoaiPhong)
@@ -118,11 +125,34 @@ const totalRoomsToDisplay = computed(() => {
   return 0
 })
 
+const isPaymentValid = computed(() => {
+  if (!selectedKhachHang.value || !formData.value.isCheckXacNhan) return false
+
+  // Kiểm tra số lượng khách
+// isPaymentValid
+if (!bookingData.value?.soLuongKhach || bookingData.value.soLuongKhach <= 0) return false
+
+  if (formData.value.hinhThucThanhToan === 'FULL') {
+    return formData.value.tienKhachTra !== null && formData.value.tienKhachTra >= tongTien.value
+  } else if (formData.value.hinhThucThanhToan === 'DEPOSIT') {
+    return formData.value.tienKhachTra !== null && formData.value.tienKhachTra > 0 && formData.value.tienKhachTra <= tongTien.value
+  } else if (formData.value.hinhThucThanhToan === 'LATER') {
+    return true
+  }
+  return false
+})
+
+const tienConLai = computed(() => {
+  if (formData.value.hinhThucThanhToan === 'DEPOSIT' && formData.value.tienKhachTra) {
+    return tongTien.value - formData.value.tienKhachTra
+  }
+  return 0
+})
+
 const selectedKhachHangInfo = computed(() => {
   return khachHangOptions.value.find(kh => kh.id === selectedKhachHang.value)
 })
 
-// Functions
 function generateSessionId() {
   return `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
@@ -178,34 +208,61 @@ watch(() => keywordKhachHang.value, () => {
 })
 
 async function handleDatPhong() {
-  if (!bookingData.value || !selectedKhachHang.value || formData.value.tienKhachTra === null) {
-      message.warning('Vui lòng điền đủ thông tin')
+  if (!bookingData.value || !selectedKhachHang.value) {
+    message.warning('Vui lòng chọn khách hàng')
+    return
+  }
+
+  // Validate số lượng khách
+  if (!bookingData.value?.soLuongKhach || bookingData.value.soLuongKhach <= 0) {
+    message.warning('Vui lòng nhập số lượng khách')
+    return
+  }
+
+
+  // Validate payment amount based on payment type
+  if (formData.value.hinhThucThanhToan === 'FULL') {
+    if (formData.value.tienKhachTra === null || formData.value.tienKhachTra < tongTien.value) {
+      message.warning('Số tiền thanh toán phải bằng tổng tiền phòng')
       return
+    }
+  } else if (formData.value.hinhThucThanhToan === 'DEPOSIT') {
+    if (formData.value.tienKhachTra === null || formData.value.tienKhachTra <= 0) {
+      message.warning('Vui lòng nhập số tiền đặt cọc')
+      return
+    }
+    if (formData.value.tienKhachTra > tongTien.value) {
+      message.warning('Số tiền đặt cọc không được vượt quá tổng tiền')
+      return
+    }
+  } else if (formData.value.hinhThucThanhToan === 'LATER') {
+    formData.value.tienKhachTra = 0
   }
 
   try {
     isLoading.value = true
+
     const result = await savePhieuDatTam({
-        sessionId: sessionId.value,
-        checkInDate: bookingData.value.ngayNhan,
-        checkOutDate: bookingData.value.ngayTra,
-        soLuongKhach: bookingData.value.soLuongKhach,
-        danhSachIdPhong: selectedPhongIds.value,
-        idKhachHang: selectedKhachHang.value,
-        ghiChu: formData.value.ghiChu,
-        nhanNgay: formData.value.nhanNgay,
-        tienKhachTra: formData.value.tienKhachTra,
-        currentStep: 'READY_TO_CONFIRM',
-        isFromRoomClick: false,
-        roomDetails: selectedPhongList.value.map(p => ({
-            idPhong: p.idPhong,
-            maPhong: p.maPhong,
-            tenPhong: p.tenPhong,
-            tenLoaiPhong: p.tenLoaiPhong,
-            tang: p.tang,
-            gia: p.gia,
-            soNgay: soNgayO.value,
-        }))
+      sessionId: sessionId.value,
+      checkInDate: bookingData.value.ngayNhan,
+      checkOutDate: bookingData.value.ngayTra,
+      soLuongKhach: bookingData.value.soLuongKhach,
+      danhSachIdPhong: selectedPhongIds.value,
+      idKhachHang: selectedKhachHang.value,
+      ghiChu: formData.value.ghiChu,
+      nhanNgay: formData.value.nhanNgay,
+      tienKhachTra: formData.value.tienKhachTra,
+      currentStep: 'READY_TO_CONFIRM',
+      isFromRoomClick: false,
+      roomDetails: selectedPhongList.value.map(p => ({
+        idPhong: p.idPhong,
+        maPhong: p.maPhong,
+        tenPhong: p.tenPhong,
+        tenLoaiPhong: p.tenLoaiPhong,
+        tang: p.tang,
+        gia: p.gia,
+        soNgay: soNgayO.value,
+      }))
     })
 
     const confirmData: ConfirmBookingRequest = {
@@ -213,12 +270,16 @@ async function handleDatPhong() {
       idKhachHang: selectedKhachHang.value!,
       checkInDate: bookingData.value.ngayNhan,
       checkOutDate: bookingData.value.ngayTra,
+      soLuongKhach: bookingData.value.soLuongKhach,
       ghiChu: formData.value.ghiChu || undefined,
       nhanNgay: formData.value.nhanNgay,
       tienKhachTra: formData.value.tienKhachTra || undefined,
       danhSachIdPhong: selectedPhongIds.value,
       danhSachLoaiPhong: selectedPhongIds.value.length === 0 ? bookingData.value.danhSachLoaiPhong : undefined,
-    }
+    } as any
+
+    console.log('Confirm Data being sent:', confirmData)
+
     await confirmBookingFromPhieuTam(confirmData)
 
     message.success('Đặt phòng thành công!')
@@ -241,300 +302,617 @@ function formatDate(timestamp: number) {
 
 const formatCurrency = (val: number) => val.toLocaleString('vi-VN') + ' VNĐ'
 
+function getCustomerAddress(customer: TimKhachHangResponse): string {
+  if (!customer.diaChi) return 'N/A'
+  try {
+    const addressObj = JSON.parse(customer.diaChi)
+    const parts = []
+    if (addressObj.ward?.name) parts.push(addressObj.ward.name)
+    if (addressObj.province?.name) parts.push(addressObj.province.name)
+    return parts.join(', ') || 'N/A'
+  } catch {
+    return 'N/A'
+  }
+}
+
 </script>
 
 <template>
-  <div class="xac-nhan-page bg-slate-50 flex flex-col p-3">
-    <n-spin :show="isLoading" class="flex-1 min-h-0">
-      <div v-if="bookingData" class="flex flex-col h-full space-y-3">
-        <!-- Slim Top Bar -->
-        <div class="flex items-center justify-between bg-white px-4 h-12 rounded-xl shadow-sm border border-slate-200 flex-none">
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-2">
-                    <n-icon :size="16" :component="Calendar" color="#3b82f6" />
-                    <span class="text-[11px] text-slate-400 font-bold uppercase">Check-in:</span>
-                    <span class="text-[12px] font-black text-slate-700">{{ formatDate(bookingData.ngayNhan) }}</span>
-                </div>
-                
-                <div class="h-4 w-px bg-slate-100"></div>
-
-                <div class="flex items-center gap-2">
-                    <n-icon :size="16" :component="Calendar" color="#f43f5e" />
-                    <span class="text-[11px] text-slate-400 font-bold uppercase">Check-out:</span>
-                    <span class="text-[12px] font-black text-slate-700">{{ formatDate(bookingData.ngayTra) }}</span>
-                </div>
-
-                <div class="h-4 w-px bg-slate-100"></div>
-
-                <div class="flex items-center gap-2">
-                    <n-icon :size="16" :component="Time" color="#10b981" />
-                    <span class="text-[12px] font-black text-emerald-600">{{ soNgayO }} đêm</span>
-                </div>
-
-                <div class="h-4 w-px bg-slate-100"></div>
-
-                <div class="flex items-center gap-2">
-                    <n-icon :size="16" :component="UserAvatar" color="#6366f1" />
-                    <span class="text-[12px] font-black text-slate-700">{{ bookingData.soLuongKhach }} khách</span>
-                </div>
+  <div class="xac-nhan-page">
+    <n-spin :show="isLoading">
+      <n-space vertical size="large">
+        <!-- Header Card -->
+        <n-card v-if="bookingData">
+          <div class="header-info">
+            <div class="info-item">
+              <n-icon :size="20" :component="Calendar" color="#3b82f6" />
+              <span class="label">Check-in:</span>
+              <span class="value">{{ formatDate(bookingData.ngayNhan) }}</span>
             </div>
 
-            <div class="flex items-center gap-4">
-                <n-tag size="small" type="warning" :bordered="false" class="font-bold text-[10px]">PENDING</n-tag>
+            <div class="divider"></div>
+
+            <div class="info-item">
+              <n-icon :size="20" :component="Calendar" color="#f43f5e" />
+              <span class="label">Check-out:</span>
+              <span class="value">{{ formatDate(bookingData.ngayTra) }}</span>
             </div>
-        </div>
 
-        <div class="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
-          <!-- Row 1: Rooms | Customer | Notes (3-column split) -->
-          <div class="flex-1 min-h-0 grid grid-cols-3 gap-3">
-             <!-- Room Selection -->
-             <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-0">
-                <div class="p-2 border-b border-slate-100 flex items-center gap-2 flex-none">
-                    <div class="w-1 h-3 bg-blue-500 rounded-full"></div>
-                    <span class="font-black text-[11px] text-slate-800 uppercase tracking-tight">Danh sách phòng</span>
-                </div>
-                <n-scrollbar content-style="padding: 8px;">
-                    <div class="space-y-1.5">
-                        <div v-for="(loai, index) in bookingData.danhSachLoaiPhong" :key="index" 
-                            class="p-2 bg-slate-50/50 rounded-lg border border-slate-100 flex justify-between items-center">
-                            <div class="min-w-0">
-                                <div class="font-bold text-[10px] text-slate-800 truncate">{{ loai.tenLoaiPhong || getLoaiPhongName(loai.idLoaiPhong) }}</div>
-                                <div class="text-[9px] text-slate-400">
-                                    <span class="font-bold text-slate-500">{{ loai.soLuong }}P</span> × {{ formatCurrency(loai.gia || 0) }}
-                                </div>
-                            </div>
-                            <div class="px-2 py-1 bg-blue-50 rounded text-[11px] font-black text-blue-600 ml-1 border border-blue-100/50">
-                                {{ formatCurrency((loai.gia || 0) * loai.soLuong * soNgayO) }}
-                            </div>
-                        </div>
-                    </div>
-                </n-scrollbar>
-             </div>
+            <div class="divider"></div>
 
-             <!-- Customer Info -->
-             <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-0">
-                <div class="p-2 border-b border-slate-100 flex items-center gap-2 flex-none">
-                    <div class="w-1 h-3 bg-indigo-500 rounded-full"></div>
-                    <span class="font-black text-[11px] text-slate-800 uppercase tracking-tight">Khách hàng</span>
-                </div>
-                <div class="p-2.5 flex flex-col gap-2.5 flex-1 min-h-0">
-                    <div class="flex gap-1.5 flex-none">
-                        <n-select
-                            v-model:value="selectedKhachHang"
-                            filterable
-                            placeholder="SĐT, Tên..."
-                            :options="khachHangOptions.map(kh => ({
-                                label: `${kh.hoTen} - ${kh.soDienThoai}`,
-                                value: kh.id,
-                            }))"
-                            :loading="isSearchingKH"
-                            clearable
-                            remote
-                            size="small"
-                            class="flex-1 custom-select"
-                            @search="(val: string) => keywordKhachHang = val"
-                        />
-                        <n-button type="primary" size="small" class="font-bold">Tìm</n-button>
-                    </div>
-                    
-                    <div v-if="selectedKhachHangInfo" class="p-2 bg-indigo-50/40 rounded-lg border border-indigo-100 flex-1 overflow-auto">
-                        <div class="grid grid-cols-2 gap-x-3 gap-y-2">
-                            <div>
-                                <div class="text-[7px] text-indigo-400 font-bold uppercase mb-0.5">Họ tên</div>
-                                <div class="font-black text-slate-800 text-[10px] truncate">{{ selectedKhachHangInfo.hoTen }}</div>
-                            </div>
-                            <div>
-                                <div class="text-[7px] text-indigo-400 font-bold uppercase mb-0.5">SĐT</div>
-                                <div class="font-black text-slate-800 text-[10px]">{{ selectedKhachHangInfo.soDienThoai || 'N/A' }}</div>
-                            </div>
-                            <div class="col-span-2">
-                                <div class="text-[7px] text-indigo-400 font-bold uppercase mb-0.5">Email</div>
-                                <div class="font-bold text-slate-600 text-[9px] truncate">{{ selectedKhachHangInfo.email || 'N/A' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-else class="flex-1 flex flex-col items-center justify-center bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
-                        <span class="text-[8px] font-bold uppercase tracking-widest text-slate-300">Chưa chọn khách</span>
-                    </div>
-                </div>
-             </div>
+            <div class="info-item">
+              <n-icon :size="20" :component="Time" color="#10b981" />
+              <span class="value highlight">{{ soNgayO }} đêm</span>
+            </div>
 
-             <!-- Quick Note & Stats -->
-             <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-0">
-                <div class="p-2 border-b border-slate-100 flex items-center justify-between flex-none">
-                    <div class="flex items-center gap-2">
-                        <div class="w-1 h-3 bg-amber-500 rounded-full"></div>
-                        <span class="font-black text-[11px] text-slate-800 uppercase tracking-tight">Ghi chú & Thống kê</span>
-                    </div>
-                    <div class="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
-                        LẬP: {{ new Date().toLocaleDateString('vi-VN') }}
-                    </div>
-                </div>
-                <div class="p-2.5 flex flex-col gap-3 flex-1">
-                    <n-input
-                        v-model:value="formData.ghiChu"
-                        type="textarea"
-                        placeholder="Nhập ghi chú nhanh..."
-                        :rows="3"
-                        size="small"
-                        class="flex-1"
-                    />
-                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex justify-between items-center text-[10px]">
-                        <span class="text-slate-400 font-bold">NHÂN VIÊN:</span>
-                        <span class="font-black text-slate-700">Lễ tân hệ thống</span>
-                    </div>
-                </div>
-             </div>
+            <div class="divider"></div>
+
+            <div class="info-item">
+              <n-icon :size="20" :component="UserAvatar" color="#6366f1" />
+              <span class="value">{{ bookingData.soLuongKhach  }} khách</span>
+            </div>
+
+            <div style="margin-left: auto;">
+              <n-tag type="warning" :bordered="false">PENDING</n-tag>
+            </div>
           </div>
+        </n-card>
 
-          <!-- Row 2: Horizontal Payment Area -->
-          <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex-none">
-              <div class="flex min-h-[185px]">
-                  <!-- Payment Options (Left - 65%) -->
-                  <div class="w-[65%] border-r border-slate-100 p-3.5 space-y-3.5">
-                      <div class="flex items-center gap-2 mb-1">
-                          <div class="w-1 h-3.5 bg-emerald-500 rounded-full"></div>
-                          <span class="font-black text-[12px] text-slate-800 uppercase tracking-tight">Phương thức thanh toán</span>
+        <!-- Main Content -->
+        <div v-if="bookingData" class="main-content">
+          <!-- Left Column 70% -->
+          <div class="left-column">
+            <n-space vertical size="large">
+              <!-- Danh sách phòng -->
+              <n-card title="Danh sách loại phòng">
+                <template #header-extra>
+                  <n-tag type="info" :bordered="false">
+                    {{ totalRoomsToDisplay }} phòng
+                  </n-tag>
+                </template>
+                <n-space vertical size="medium">
+                  <div v-for="(loai, index) in bookingData.danhSachLoaiPhong" :key="index" class="room-item">
+                    <div class="room-info">
+                      <div class="room-header">
+                        <n-icon :size="18" :component="Home" color="#3b82f6" />
+                        <span class="room-name">{{ loai.tenLoaiPhong || getLoaiPhongName(loai.idLoaiPhong) }}</span>
                       </div>
-                      
-                      <div class="grid grid-cols-2 gap-3">
-                          <div class="bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
-                              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Hình thức</div>
-                              <n-radio-group v-model:value="formData.hinhThucThanhToan" size="small">
-                                  <n-space :size="24">
-                                      <n-radio value="FULL"><span class="text-[11px] font-bold">Toàn bộ</span></n-radio>
-                                      <n-radio value="DEPOSIT"><span class="text-[11px] font-bold">Đặt cọc</span></n-radio>
-                                      <n-radio value="LATER"><span class="text-[11px] font-bold">Thanh toán sau</span></n-radio>
-                                  </n-space>
-                              </n-radio-group>
-                          </div>
+                      <div class="room-details">
+                        <span class="quantity">{{ loai.soLuong }} phòng</span>
+                        <span class="separator">×</span>
+                        <span class="price">{{ formatCurrency(loai.gia || 0) }}</span>
+                        <span class="separator">×</span>
+                        <span class="nights">{{ soNgayO }} đêm</span>
+                      </div>
+                    </div>
+                    <div class="room-total">
+                      {{ formatCurrency((loai.gia || 0) * loai.soLuong * soNgayO) }}
+                    </div>
+                  </div>
+                </n-space>
+              </n-card>
 
-                          <div class="bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
-                              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Phương thức</div>
-                              <n-radio-group v-model:value="formData.phuongThucThanhToan" size="small">
-                                  <n-grid :cols="2" :x-gap="12" :y-gap="6">
-                                      <n-grid-item><n-radio value="CASH"><span class="text-[11px] font-bold">Tiền mặt</span></n-radio></n-grid-item>
-                                      <n-grid-item><n-radio value="TRANSFER"><span class="text-[11px] font-bold">Chuyển khoản</span></n-radio></n-grid-item>
-                                      <n-grid-item><n-radio value="CARD"><span class="text-[11px] font-bold">Thẻ / POS</span></n-radio></n-grid-item>
-                                      <n-grid-item><n-radio value="E-WALLET"><span class="text-[11px] font-bold">Ví điện tử</span></n-radio></n-grid-item>
-                                  </n-grid>
-                              </n-radio-group>
-                          </div>
-                      </div>
+              <!-- Thông tin khách hàng -->
+              <n-card title="Thông tin khách hàng">
+                <n-space vertical size="large">
+                  <div class="search-customer">
+                    <n-select v-model:value="selectedKhachHang" filterable
+                      placeholder="Tìm kiếm theo SĐT hoặc tên khách hàng..." :options="khachHangOptions.map(kh => ({
+                        label: `${kh.hoTen} - ${kh.soDienThoai}`,
+                        value: kh.id,
+                      }))" :loading="isSearchingKH" clearable remote class="flex-1"
+                      @search="(val: string) => keywordKhachHang = val" />
+                    <n-button type="primary">
+                      <template #icon>
+                        <n-icon :component="User" />
+                      </template>
+                      Tìm kiếm
+                    </n-button>
                   </div>
 
-                  <!-- Checkout Summary (Right - 35%) -->
-                  <div class="w-[35%] bg-blue-50/50 p-3.5 flex flex-col justify-between border-l border-blue-100">
-                      <div class="space-y-1 text-slate-500 text-[11px]">
-                          <div class="flex justify-between items-center">
-                              <span class="text-slate-400">Tiền phòng ({{ totalRoomsToDisplay }} phòng):</span>
-                              <span class="font-black text-slate-800">{{ formatCurrency(tongTien) }}</span>
-                          </div>
-                          <div class="flex justify-between items-center">
-                              <span>Số đêm ở:</span>
-                              <span class="font-bold text-slate-700">{{ soNgayO }} đêm</span>
-                          </div>
-                          <div v-if="formData.hinhThucThanhToan === 'DEPOSIT'" class="flex flex-col gap-1 pt-2 border-t border-blue-100">
-                              <span class="text-emerald-600 text-[10px] font-black uppercase tracking-wider">Khách trả trước:</span>
-                              <n-input-number 
-                                v-model:value="formData.tienKhachTra" 
-                                size="small" 
-                                :min="0" 
-                                class="w-full custom-light-input" 
-                                placeholder="Nhập số tiền..."
-                                :show-button="false"
-                              >
-                                <template #suffix>
-                                   <span class="text-[10px] text-slate-400 font-bold">VNĐ</span>
-                                </template>
-                              </n-input-number>
-                          </div>
+                  <n-alert v-if="selectedKhachHangInfo" type="info" :bordered="false">
+                    <div class="customer-details-grid">
+                      <div class="customer-column">
+                        <div class="detail-row">
+                          <span class="detail-label">Họ tên:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.hoTen }}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="detail-label">Email:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.email || 'N/A' }}</span>
+                        </div>
                       </div>
-
-                      <div class="space-y-3">
-                           <div class="flex justify-between items-center border-t border-blue-200 pt-3">
-                              <div class="flex flex-col">
-                                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">Tổng cộng thanh toán</span>
-                                  <span class="text-3xl font-black text-blue-600 leading-none tracking-tighter">{{ formatCurrency(tongTien) }}</span>
-                              </div>
-                              <div class="flex flex-col items-center gap-1 bg-white p-1.5 rounded-lg border border-blue-200 shadow-sm">
-                                <n-checkbox v-model:checked="formData.isCheckXacNhan" size="small" />
-                                <span class="text-[8px] font-black text-blue-600 uppercase">Xác nhận</span>
-                              </div>
-                          </div>
-
-                          <div class="grid grid-cols-2 gap-2">
-                              <n-button size="small" ghost type="error" class="font-bold h-9" @click="router.back()">HỦY</n-button>
-                              <n-button 
-                                  type="primary" 
-                                  size="small" 
-                                  color="#2563eb"
-                                  class="font-black h-9"
-                                  :disabled="!formData.isCheckXacNhan || !selectedKhachHang"
-                                  :loading="isLoading"
-                                  @click="handleDatPhong"
-                              >
-                                  XÁC NHẬN ĐẶT
-                              </n-button>
-                          </div>
+                      <div class="customer-column">
+                        <div class="detail-row">
+                          <span class="detail-label">Số điện thoại:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.soDienThoai || 'N/A' }}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="detail-label">Địa chỉ:</span>
+                          <span class="detail-value">{{ getCustomerAddress(selectedKhachHangInfo) }}</span>
+                        </div>
                       </div>
+                    </div>
+                  </n-alert>
+                  <n-alert v-else type="warning" :bordered="false">
+                    Vui lòng chọn khách hàng để tiếp tục
+                  </n-alert>
+                </n-space>
+              </n-card>
+
+              <!-- Ghi chú & Số lượng khách -->
+              <n-card title="Ghi chú & Thông tin bổ sung">
+                <n-space vertical size="large">
+                  <div>
+                    <div class="payment-label">Số lượng khách</div>
+                    <n-input-number v-model:value="bookingData!.soLuongKhach" :min="1" :max="50" class="w-full"
+                      placeholder="Nhập số lượng khách...">
+                      <template #prefix>
+                        <n-icon :component="UserAvatar" />
+                      </template>
+                      <template #suffix>
+                        <span style="color: #999;">người</span>
+                      </template>
+                    </n-input-number>
                   </div>
-              </div>
+
+                  <div>
+                    <div class="payment-label">Ghi chú</div>
+                    <n-input v-model:value="formData.ghiChu" type="textarea"
+                      placeholder="Nhập ghi chú cho đơn đặt phòng..." :rows="4" />
+                  </div>
+                </n-space>
+                <template #footer>
+                  <div class="note-footer">
+                    <span class="note-label">Nhân viên lập phiếu:</span>
+                    <span class="note-value">Lễ tân hệ thống</span>
+                  </div>
+                  <div class="note-footer">
+                    <span class="note-label">Ngày lập:</span>
+                    <span class="note-value">{{ new Date().toLocaleDateString('vi-VN') }}</span>
+                  </div>
+                </template>
+              </n-card>
+            </n-space>
+          </div>
+
+          <!-- Right Column 30% -->
+          <div class="right-column">
+            <n-card title="Thanh toán">
+              <n-space vertical size="large">
+                <!-- Hình thức thanh toán -->
+                <div>
+                  <div class="payment-label">Hình thức thanh toán</div>
+                  <n-radio-group v-model:value="formData.hinhThucThanhToan">
+                    <n-space vertical>
+                      <n-radio value="FULL">Thanh toán toàn bộ</n-radio>
+                      <n-radio value="DEPOSIT">Đặt cọc trước</n-radio>
+                      <n-radio value="LATER">Thanh toán sau</n-radio>
+                    </n-space>
+                  </n-radio-group>
+                </div>
+
+                <!-- Phương thức thanh toán -->
+                <div>
+                  <div class="payment-label">Phương thức thanh toán</div>
+                  <n-radio-group v-model:value="formData.phuongThucThanhToan">
+                    <n-grid :cols="2" :x-gap="12" :y-gap="12">
+                      <n-grid-item><n-radio value="CASH">Tiền mặt</n-radio></n-grid-item>
+                      <n-grid-item><n-radio value="TRANSFER">Chuyển khoản</n-radio></n-grid-item>
+                      <n-grid-item><n-radio value="CARD">Thẻ / POS</n-radio></n-grid-item>
+                      <n-grid-item><n-radio value="E-WALLET">Ví điện tử</n-radio></n-grid-item>
+                    </n-grid>
+                  </n-radio-group>
+                </div>
+
+                <!-- Số tiền thanh toán -->
+                <div v-if="formData.hinhThucThanhToan === 'FULL'">
+                  <div class="payment-label">Số tiền thanh toán</div>
+                  <n-input-number v-model:value="formData.tienKhachTra" :min="tongTien" class="w-full"
+                    placeholder="Nhập số tiền..." :show-button="false">
+                    <template #suffix>
+                      <span style="color: #999;">VNĐ</span>
+                    </template>
+                  </n-input-number>
+                  <div class="payment-hint">
+                    <span class="hint-icon">ℹ️</span>
+                    <span>Nhập chính xác số tiền khách đưa (tối thiểu {{ formatCurrency(tongTien) }})</span>
+                  </div>
+                  <div v-if="formData.tienKhachTra && formData.tienKhachTra > tongTien" class="change-money">
+                    <span>Tiền thừa trả khách:</span>
+                    <span class="change-amount">{{ formatCurrency(formData.tienKhachTra - tongTien) }}</span>
+                  </div>
+                </div>
+
+                <!-- Số tiền đặt cọc -->
+                <div v-else-if="formData.hinhThucThanhToan === 'DEPOSIT'">
+                  <div class="payment-label">Số tiền đặt cọc</div>
+                  <n-input-number v-model:value="formData.tienKhachTra" :min="1" :max="tongTien" class="w-full"
+                    placeholder="Nhập số tiền đặt cọc..." :show-button="false">
+                    <template #suffix>
+                      <span style="color: #999;">VNĐ</span>
+                    </template>
+                  </n-input-number>
+                  <div class="payment-hint">
+                    <span class="hint-icon">ℹ️</span>
+                    <span>Số tiền tối đa: {{ formatCurrency(tongTien) }}</span>
+                  </div>
+                  <div v-if="tienConLai > 0" class="remaining-money">
+                    <span>Còn lại cần thanh toán:</span>
+                    <span class="remaining-amount">{{ formatCurrency(tienConLai) }}</span>
+                  </div>
+                </div>
+
+                <!-- Thanh toán sau -->
+                <div v-else-if="formData.hinhThucThanhToan === 'LATER'">
+                  <n-alert type="warning" :bordered="false">
+                    Khách hàng sẽ thanh toán toàn bộ {{ formatCurrency(tongTien) }} khi nhận phòng
+                  </n-alert>
+                </div>
+
+                <!-- Tổng kết -->
+                <div class="summary-section">
+                  <div class="summary-row">
+                    <span>Tiền phòng ({{ totalRoomsToDisplay }} phòng):</span>
+                    <span class="amount">{{ formatCurrency(tongTien) }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Số đêm ở:</span>
+                    <span class="nights-count">{{ soNgayO }} đêm</span>
+                  </div>
+                  <div class="summary-total">
+                    <span>Tổng cộng:</span>
+                    <span class="total-amount">{{ formatCurrency(tongTien) }}</span>
+                  </div>
+                </div>
+
+                <!-- Checkbox xác nhận -->
+                <n-checkbox v-model:checked="formData.isCheckXacNhan">
+                  Tôi xác nhận thông tin đặt phòng chính xác
+                </n-checkbox>
+
+                <!-- Action buttons -->
+                <n-space>
+                  <n-button type="error" @click="router.back()">
+                    Hủy bỏ
+                  </n-button>
+                  <n-button type="primary" :disabled="!isPaymentValid" :loading="isLoading" @click="handleDatPhong"
+                    style="flex: 1;">
+                    Xác nhận đặt phòng
+                  </n-button>
+                </n-space>
+              </n-space>
+            </n-card>
           </div>
         </div>
-      </div>
+      </n-space>
     </n-spin>
   </div>
 </template>
 
 <style scoped>
 .xac-nhan-page {
-  font-family: 'Inter', sans-serif;
-  height: 100vh;
-  letter-spacing: -0.02em;
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100vh;
 }
 
-:deep(.n-spin-content) {
-  height: 100%;
+/* Header Info */
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-item .label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.info-item .value {
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.info-item .highlight {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: #e0e0e6;
+}
+
+/* Main Content */
+.main-content {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  gap: 20px;
+  align-items: start;
+}
+
+.left-column,
+.right-column {
   display: flex;
   flex-direction: column;
 }
 
-:deep(.n-button) {
+/* Room Item */
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8fafc;
   border-radius: 8px;
+  border: 1px solid #e0e0e6;
 }
 
-:deep(.n-input), :deep(.n-select .n-base-selection) {
-  border-radius: 8px !important;
-  --n-border-radius: 8px !important;
+.room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 
-:deep(.custom-select .n-base-selection) {
-    background-color: #f8fafc !important;
+.room-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-:deep(.n-radio-group) {
-    display: flex;
+.room-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
-:deep(.n-radio.n-radio--checked .n-radio__dot) {
-    box-shadow: inset 0 0 0 0.125em #fff, 0 0 0 0.125em #3b82f6;
+.room-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
 }
 
-:deep(.n-scrollbar .n-scrollbar-content) {
-    height: 100%;
-}
-:deep(.custom-light-input .n-input) {
-    background-color: #fff !important;
-    --n-text-color: #1e40af !important;
-    --n-border: 1px solid #bfdbfe !important;
-    --n-border-hover: 1px solid #3b82f6 !important;
-    --n-border-focus: 1px solid #3b82f6 !important;
-    --n-placeholder-color: #94a3b8 !important;
-    font-weight: 900 !important;
+.quantity {
+  font-weight: 600;
+  color: #3b82f6;
 }
 
-:deep(.custom-dark-input .n-input__suffix) {
-    margin-right: 8px;
+.separator {
+  color: #999;
+}
+
+.price,
+.nights {
+  font-weight: 500;
+}
+
+.room-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: #10b981;
+  padding: 8px 16px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #86efac;
+}
+
+/* Customer Search */
+.search-customer {
+  display: flex;
+  gap: 12px;
+}
+
+.search-customer .flex-1 {
+  flex: 1;
+}
+
+/* Customer Details */
+.customer-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.customer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Note Footer */
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #e0e0e6;
+}
+
+.note-footer:first-child {
+  border-top: none;
+}
+
+.note-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.note-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Payment Section */
+.payment-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.summary-section {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e0e0e6;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-row .amount {
+  font-weight: 600;
+  color: #333;
+}
+
+.summary-row .nights-count {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 2px solid #e0e0e6;
+}
+
+.summary-total span:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* Increase font sizes globally */
+:deep(.n-card-header__main) {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
+:deep(.n-button__content) {
+  font-size: 15px;
+}
+
+:deep(.n-radio__label),
+:deep(.n-checkbox__label) {
+  font-size: 15px;
+}
+
+:deep(.n-tag) {
+  font-size: 14px;
+}
+
+:deep(.n-alert__content) {
+  font-size: 15px;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Payment Hints */
+.payment-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #eff6ff;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #3b82f6;
+}
+
+.hint-icon {
+  font-size: 14px;
+}
+
+.change-money,
+.remaining-money {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #86efac;
+}
+
+.change-money span:first-child,
+.remaining-money span:first-child {
+  font-size: 14px;
+  color: #666;
+}
+
+.change-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.remaining-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -188,9 +188,9 @@ function handleChonLoaiPhongSubmit(data: {
 }) {
   bookingData.value = data
   // showDatPhongModal.value = true
-  router.push({ 
-    name: 'xacNhanDatPhong', 
-    query: { data: JSON.stringify(data) } 
+  router.push({
+    name: 'xacNhanDatPhong',
+    query: { data: JSON.stringify(data) }
   })
 }
 
@@ -417,6 +417,24 @@ function handleCustomerPaymentContinue(sessionId: string) {
 :deep(.n-base-selection-input),
 :deep(.n-input-number-input) {
   font-size: 17px;
+}
+
+/* CRITICAL: Make all inputs same height */
+:deep(.n-input),
+:deep(.n-input-number),
+:deep(.n-date-picker),
+:deep(.n-select) {
+  min-height: 40px;
+}
+
+:deep(.n-base-selection) {
+  min-height: 40px !important;
+}
+
+:deep(.n-base-selection .n-base-selection-label) {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 :deep(.n-input__placeholder) {

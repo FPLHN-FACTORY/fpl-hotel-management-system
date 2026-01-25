@@ -17,9 +17,10 @@ import {
   NCard,
   NPagination,
   NDataTable,
-  NTooltip
+  NTooltip,
+  NDropdown
 } from 'naive-ui'
-import { Calendar, Currency, Hotel, Time } from '@vicons/carbon'
+import { Calendar, Currency, Hotel, Time, OverflowMenuVertical } from '@vicons/carbon'
 import { apiGetDanhSachPhieuDat, apiHuyPhieuDat } from '@/service/api/letan/phieudat'
 import type { PhieuDatPhongFilterRequest } from '@/service/api/letan/phieudat'
 import AssignRoomModal from './components/AssignRoomModal.vue'
@@ -114,19 +115,41 @@ const columns: DataTableColumns = [
     {
         title: 'Mã phiếu',
         key: 'maPhieu',
-        width: 100,
-        align: 'center'
+        align: 'center',
+        render: (row: any) => {
+            return h('span', { style: 'font-weight: 600; color: #1e293b;' }, row.maPhieu)
+        }
     },
     {
         title: 'Khách hàng',
         key: 'tenKhachHang',
-        width: 160,
-        align: 'center'
+        align: 'center',
+        render: (row: any) => {
+            return h('div', { style: 'display: flex; flex-direction: column; align-items: center; gap: 2px;' }, [
+                h('span', { style: 'font-weight: 600; color: #1e293b;' }, row.tenKhachHang || 'Chưa có'),
+                row.tenKhachHang ? null : h('span', { style: 'font-size: 12px; color: #94a3b8;' }, '(Chưa gắn)')
+            ])
+        }
+    },
+    {
+        title: 'Số phòng',
+        key: 'tongSoPhong',
+        align: 'center',
+        render: (row: any) => {
+            return h('span', { style: 'font-weight: 600; color: #3b82f6;' }, row.tongSoPhong)
+        }
+    },
+    {
+        title: 'Tổng tiền',
+        key: 'tongTien',
+        align: 'center',
+        render: (row: any) => {
+            return h('span', { style: 'font-weight: 700; color: #10b981;' }, row.tongTien?.toLocaleString() + ' VNĐ')
+        }
     },
     {
         title: 'Trạng thái',
         key: 'trangThai',
-        width: 100,
         align: 'center',
         render: (row: any) => {
             const statusMap: Record<string, { type: any; text: string }> = {
@@ -137,56 +160,71 @@ const columns: DataTableColumns = [
                 CANCELLED: { type: 'error', text: 'Đã hủy' }
             }
             const status = statusMap[row.trangThai] || { type: 'default', text: row.trangThai }
-            return h(NTag, { type: status.type }, () => status.text)
+            return h(NTag, { type: status.type, bordered: false }, () => status.text)
         }
     },
     {
         title: 'Thao tác',
         key: 'actions',
-        width: 160,
+        width: 80,
         align: 'center',
         render: (row: any) => {
-            return h(NSpace, { justify: 'center' }, () => [
-                h(
-                    NButton,
-                    {
-                        size: 'small',
-                        onClick: (e) => {
-                            e.stopPropagation()
-                            viewDetail(row.id)
-                        }
-                    },
-                    () => 'Xem'
-                ),
-                row.trangThai === 'PENDING'
-                    ? h(
+            const dropdownOptions = [
+                {
+                    label: 'Xem chi tiết',
+                    key: 'view',
+                    icon: () => h(NIcon, null, { default: () => h('svg', { viewBox: '0 0 32 32', fill: 'currentColor' }, [
+                        h('path', { d: 'M30.94 15.66A16.69 16.69 0 0 0 16 5A16.69 16.69 0 0 0 1.06 15.66a1 1 0 0 0 0 .68A16.69 16.69 0 0 0 16 27a16.69 16.69 0 0 0 14.94-10.66a1 1 0 0 0 0-.68M16 25c-5.3 0-10.9-3.93-12.93-9C5.1 10.93 10.7 7 16 7s10.9 3.93 12.93 9C26.9 21.07 21.3 25 16 25' }),
+                        h('path', { d: 'M16 10a6 6 0 1 0 6 6a6 6 0 0 0-6-6m0 10a4 4 0 1 1 4-4a4 4 0 0 1-4 4' })
+                    ]) })
+                }
+            ]
+
+            if (row.trangThai === 'PENDING') {
+                dropdownOptions.push({
+                    label: 'Gán phòng',
+                    key: 'assign',
+                    icon: () => h(NIcon, null, { default: () => h('svg', { viewBox: '0 0 32 32', fill: 'currentColor' }, [
+                        h('path', { d: 'M25 5h-3V4a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v1H7a2 2 0 0 0-2 2v21a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2M12 4h8v4h-8Zm13 24H7V7h3v3h12V7h3Z' }),
+                        h('path', { d: 'M14 15h4v2h-4zm0 5h6v2h-6z' })
+                    ]) })
+                })
+            }
+
+            if (row.trangThai === 'PENDING' || row.trangThai === 'CONFIRMED') {
+                dropdownOptions.push({
+                    label: 'Hủy phiếu',
+                    key: 'cancel',
+                    icon: () => h(NIcon, null, { default: () => h('svg', { viewBox: '0 0 32 32', fill: 'currentColor' }, [
+                        h('path', { d: 'M12 12h2v12h-2zm6 0h2v12h-2z' }),
+                        h('path', { d: 'M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zm4-26h8v2h-8z' })
+                    ]) })
+                })
+            }
+
+            return h(
+                NDropdown,
+                {
+                    trigger: 'hover',
+                    options: dropdownOptions,
+                    onSelect: (key: string) => {
+                        if (key === 'view') viewDetail(row.id)
+                        else if (key === 'assign') openAssignRoom(row)
+                        else if (key === 'cancel') handleCancel(row.id, row.maPhieu)
+                    }
+                },
+                {
+                    default: () => h(
                         NButton,
                         {
-                            size: 'small',
-                            type: 'primary',
-                            onClick: (e) => {
-                                e.stopPropagation()
-                                openAssignRoom(row)
-                            }
+                            text: true,
+                            style: 'font-size: 20px; padding: 4px;',
+                            onClick: (e: Event) => e.stopPropagation()
                         },
-                        () => 'Gán phòng'
+                        { default: () => h(NIcon, { size: 20 }, { default: () => h(OverflowMenuVertical) }) }
                     )
-                    : null,
-                row.trangThai === 'PENDING' || row.trangThai === 'CONFIRMED'
-                    ? h(
-                        NButton,
-                        {
-                            size: 'small',
-                            type: 'error',
-                            onClick: (e) => {
-                                e.stopPropagation()
-                                handleCancel(row.id, row.maPhieu)
-                            }
-                        },
-                        () => 'Hủy'
-                    )
-                    : null
-            ])
+                }
+            )
         }
     }
 ]
@@ -294,148 +332,177 @@ function handleAssignSuccess() {
 </script>
 
 <template>
-    <div class="p-4">
-        <!-- Filter Section -->
-        <n-card class="mb-4" :bordered="false" size="small">
-            <n-form :model="filterForm" label-placement="left" :show-feedback="false">
+    <n-space vertical size="large">
+        <!-- Filter Card -->
+        <n-card>
+            <n-form ref="formRef" :model="filterForm" :show-feedback="false">
                 <n-grid :cols="24" :x-gap="12">
-                    <n-form-item-grid-item :span="6" label="Tìm kiếm" path="keyword">
-                        <n-input 
-                            v-model:value="filterForm.keyword" 
-                            placeholder="Mã phiếu, tên KH, SĐT..."
-                            clearable 
+                    <n-gi :span="6">
+                        <n-input
+                            v-model:value="filterForm.keyword"
+                            placeholder="Tìm kiếm: Mã phiếu, tên KH, SĐT..."
+                            clearable
                             @keyup.enter="handleSearch"
-                        >
-                            <!-- <template #prefix>
-                                <nova-icon icon="carbon:search" />
-                            </template> -->
-                        </n-input>
-                    </n-form-item-grid-item>
-
-                    <n-form-item-grid-item :span="4" label="Trạng thái" path="status">
-                        <n-select 
-                            v-model:value="filterForm.status" 
-                            :options="statusOptions" 
-                            placeholder="Tất cả"
-                            clearable 
                         />
-                    </n-form-item-grid-item>
+                    </n-gi>
 
-                    <n-form-item-grid-item :span="8" label="Thời gian" path="dateRange">
-                        <n-date-picker 
-                            v-model:value="dateRange" 
-                            type="daterange" 
-                            clearable 
+                    <n-gi :span="4">
+                        <n-select
+                            v-model:value="filterForm.status"
+                            :options="statusOptions"
+                            placeholder="Trạng thái"
+                            clearable
+                        />
+                    </n-gi>
+
+                    <n-gi :span="8">
+                        <n-date-picker
+                            v-model:value="dateRange"
+                            type="daterange"
+                            clearable
                             start-placeholder="Từ ngày"
-                            end-placeholder="Đến ngày" 
+                            end-placeholder="Đến ngày"
                             style="width: 100%"
                         />
-                    </n-form-item-grid-item>
+                    </n-gi>
 
-                    <n-form-item-grid-item :span="6">
-                        <n-space justify="end" style="width: 100%" align="center">
-                            <div style="height: 34px; display: flex; align-items: center;">
-                                <n-tooltip trigger="hover">
-                                    <template #trigger>
-                                        <n-button quaternary circle @click="handleReset">
-                                            <template #icon>
-                                                <nova-icon icon="carbon:reset" />
-                                            </template>
-                                        </n-button>
+                    <n-gi :span="6" class="flex justify-end gap-3">
+                        <n-tooltip trigger="hover">
+                            <template #trigger>
+                                <n-button quaternary circle @click="handleReset">
+                                    <template #icon>
+                                        <nova-icon icon="carbon:reset" />
                                     </template>
-                                    Làm mới
-                                </n-tooltip>
-                            </div>
-                        </n-space>
-                    </n-form-item-grid-item>
+                                </n-button>
+                            </template>
+                            Làm mới
+                        </n-tooltip>
+                    </n-gi>
                 </n-grid>
             </n-form>
         </n-card>
 
-        <!-- Table Section -->
+        <!-- Table Card -->
         <n-card>
-            <!-- Button Row -->
-            <div class="mb-4">
-                <n-button type="success" @click="createNew">
-                    Tạo phiếu mới
-                </n-button>
-            </div>
+            <n-space vertical size="large">
+                <!-- Action Button -->
+                <div class="flex gap-4">
+                    <n-button type="primary" @click="createNew">
+                        <template #icon>
+                            <nova-icon icon="carbon:add" />
+                        </template>
+                        Tạo phiếu đặt mới
+                    </n-button>
+                </div>
 
-            <!-- Data Table -->
-            <n-data-table 
-                :columns="columns" 
-                :data="data" 
-                :loading="loading" 
-                :bordered="false"
-                :single-line="true" 
-                :row-key="(row: any) => row.id"
-                :expanded-row-keys="expandedRowKeys"
-                @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys"
-                :row-props="(row: any) => ({
-                    style: 'cursor: pointer;',
-                    onClick: () => handleRowClick(row)
-                })"
-            />
+                <!-- Data Table -->
+                <n-data-table
+                    :columns="columns"
+                    :data="data"
+                    :loading="loading"
+                    :row-key="(row: any) => row.id"
+                    :expanded-row-keys="expandedRowKeys"
+                    @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys"
+                    :row-props="(row: any) => ({
+                        style: 'cursor: pointer;',
+                        onClick: () => handleRowClick(row)
+                    })"
+                />
 
-            <!-- Pagination -->
-            <!-- Pagination -->
-            <div class="flex justify-start mt-4">
-                <n-pagination 
-                    v-model:page="filterForm.page" 
-                    :page-count="totalPages" 
-                    :page-size="filterForm.size"
-                    show-size-picker 
-                    :page-sizes="[10, 20, 50, 100]" 
-                    @update:page="handlePageChange"                    @update:page-size="(size: number) => {
-                        filterForm.size = size
-                        filterForm.page = 1
-                        fetchData()
-                    }" 
-                >
-                    <template #prefix>
-                        Tổng {{ totalElements }} phiếu đặt
-                    </template>
-                </n-pagination>
-            </div>
+                <!-- Pagination -->
+                <div class="flex justify-start mt-4">
+                    <n-pagination
+                        v-model:page="filterForm.page"
+                        :page-count="totalPages"
+                        :page-size="filterForm.size"
+                        show-size-picker
+                        :page-sizes="[10, 20, 30, 50]"
+                        @update:page="handlePageChange"
+                        @update:page-size="(size: number) => {
+                            filterForm.size = size
+                            filterForm.page = 1
+                            fetchData()
+                        }"
+                    >
+                        <template #prefix>
+                            Tổng {{ totalElements }} phiếu đặt
+                        </template>
+                    </n-pagination>
+                </div>
+            </n-space>
         </n-card>
 
-        <AssignRoomModal 
-            v-model:visible="assignRoomVisible" 
+        <!-- Assign Room Modal -->
+        <AssignRoomModal
+            v-model:visible="assignRoomVisible"
             :phieu-data="selectedPhieuForAssign"
             @success="handleAssignSuccess"
         />
-    </div>
+    </n-space>
 </template>
 
 <style scoped>
-:deep(.n-data-table-th) {
-    text-align: center;
-    font-weight: normal; /* Not bold */
-    font-size: 14px;
-    background-color: transparent !important; /* Ensure no gray background if any */
-    border-bottom: 2px solid #efeff5; /* Add distinct border */
-}
-
-:deep(.n-data-table-td) {
-    font-size: 14px;
+/* Increase font sizes globally */
+:deep(.n-card-header__main) {
+    font-size: 18px;
+    font-weight: 600;
 }
 
 :deep(.n-form-item-label) {
     font-size: 17px;
-    font-weight: 500;
 }
 
-:deep(.n-pagination) {
-    font-size: 17px;
-}
-
+:deep(.n-input__input-el),
+:deep(.n-input__textarea-el),
+:deep(.n-base-selection-label),
+:deep(.n-base-selection-input),
+:deep(.n-input-number-input),
 :deep(.n-button__content) {
     font-size: 17px;
 }
 
-:deep(.n-input__input-el),
-:deep(.n-base-selection-label),
-:deep(.n-base-selection-input) {
+/* Make all inputs same height */
+:deep(.n-input),
+:deep(.n-input-number),
+:deep(.n-date-picker),
+:deep(.n-select) {
+    min-height: 40px;
+}
+
+:deep(.n-base-selection) {
+    min-height: 40px !important;
+}
+
+:deep(.n-base-selection .n-base-selection-label) {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+:deep(.n-data-table-th),
+:deep(.n-data-table-td) {
     font-size: 17px;
+}
+
+:deep(.n-data-table-th__title) {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+:deep(.n-tag),
+:deep(.n-pagination),
+:deep(.n-base-select-option__content) {
+    font-size: 17px;
+}
+
+:deep(.n-dropdown-option__icon),
+:deep(.n-dropdown-option__label) {
+    font-size: 16px;
+}
+
+/* Hover effect for dropdown trigger */
+:deep(.n-button.n-button--text-type:hover) {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 </style>

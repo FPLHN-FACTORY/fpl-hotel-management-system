@@ -1,5 +1,6 @@
 package com.be.server.core.admin.datphong.booking.model.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -17,6 +18,8 @@ public class ConfirmBookingRequest {
     Long ngayNhan;
 
     Long ngayTra;
+
+    Integer soLuongKhach;
 
     String ghiChu;
 

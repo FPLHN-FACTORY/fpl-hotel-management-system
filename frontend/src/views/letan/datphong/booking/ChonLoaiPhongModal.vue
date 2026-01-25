@@ -300,7 +300,7 @@ function formatDate(timestamp: number) {
                   <span class="font-bold text-gray-800 text-base">{{ formData.soLuongKhach }} người</span>
                 </div>
               </div>
-              
+
               <div class="flex-1 flex items-end">
                  <div class="w-full bg-green-50 p-3 rounded-lg border border-green-200 flex justify-between items-center">
                     <span class="text-gray-700 font-medium">Đã chọn:</span>
