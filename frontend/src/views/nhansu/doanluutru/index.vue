@@ -42,7 +42,7 @@ async function fetchData(page = 1) {
   loading.value = true
   try {
     const params: ParamsGetGroups = {
-      page,
+      page: page - 1,
       size: pageSize.value
 
     }
@@ -205,7 +205,7 @@ const columns: DataTableColumns<DoanLuuTru> = [
         2: { label: 'Đã check-out', type: 'default' }
       }
       const st = map[row.trangThai ?? 0]
-      return h(NTag, { type: st.type }, { default: () => st.label })
+      return h(NTag, { type: st.type, round: true, bordered: false }, { default: () => st.label })
     }
   },
   {
@@ -332,7 +332,7 @@ function handleCheckIn(row: DoanLuuTru) {
 </script>
 
 <template>
-  <NSpace vertical size="large" class="p-4">
+  <NSpace vertical size="large">
     <NCard>
       <NForm :model="searchModel" label-placement="left">
         <NGrid :cols="24" :x-gap="24">
@@ -361,12 +361,11 @@ function handleCheckIn(row: DoanLuuTru) {
       </NForm>
     </NCard>
 
-    <NCard :bordered="false">
+    <NCard bordered>
       <!-- <div class="flex gap-4 mb-3">
         <NButton type="primary" @click="showCreateModal = true">Thêm đoàn lưu trú</NButton>
       </div> -->
 
-      <!-- <NDataTable :columns="columns" :data="data" :loading="loading" /> -->
       <NDataTable :columns="columns" :data="data" :loading="loading" :row-key="(row) => row.id"
         :expanded-row-keys="expandedRowKeys"
         @update:expanded-row-keys="(keys: DataTableRowKey[]) => expandedRowKeys = keys" :row-props="(row) => ({
@@ -375,11 +374,9 @@ function handleCheckIn(row: DoanLuuTru) {
         })" />
       <div class="mt-4 flex justify-start">
         <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+          show-size-picker circle :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
           @update:page-size="(size: number) => { pageSize = size; fetchData(1) }">
-          <template #prefix>
-            Tổng {{ totalItems }} đoàn
-          </template>
+          <template #prefix>Tổng {{ totalItems }} đoàn</template>
         </n-pagination>
       </div>
     </NCard>
@@ -425,6 +422,22 @@ function handleCheckIn(row: DoanLuuTru) {
 
 :deep(.n-pagination) {
   font-size: 17px;
+}
+
+:deep(.n-input),
+:deep(.n-input-number),
+:deep(.n-select) {
+  min-height: 40px;
+}
+
+:deep(.n-base-selection) {
+  min-height: 40px !important;
+}
+
+:deep(.n-base-selection .n-base-selection-label) {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
 }
 
 :deep(.n-base-select-option__content) {

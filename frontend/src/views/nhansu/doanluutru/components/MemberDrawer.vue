@@ -33,7 +33,7 @@ const giayToRequest = ref<GiayToRequest>({
 const form = reactive({
     hoTen: '',
     gioiTinh: null as number | null,
-    ngaySinh: null as Date | null,
+    ngaySinh: null as number | null,
     loaiGiayTo: null as number | null,
     soGiayTo: '',
     vaiTro: 1 as number
@@ -45,10 +45,6 @@ const formSearch = reactive({
     soGiayTo: '',
 
 })
-const roleOptions = [
-    { label: 'Trưởng đoàn', value: 'Trưởng đoàn' },
-    { label: 'Thành viên', value: 'Thành viên' }
-]
 const loaiGiayToOptions = [
     { label: 'CCCD', value: 0 },
     { label: 'Hộ chiếu', value: 1 }
@@ -64,7 +60,7 @@ async function fetchMembers(page = 1) {
     loading.value = true
     try {
         const params: ParamsGetMembers = {
-            page,
+            page: page - 1,
             size: pageSize.value,
 
         }
@@ -82,7 +78,7 @@ async function fetchMembers(page = 1) {
 
 
         totalItems.value = res.totalItems
-        currentPage.value = res.currentPage
+        currentPage.value = res.currentPage + 1
 
 
     } finally {
@@ -104,7 +100,11 @@ async function openUpdateCustomerModal() {
             : ''
     }
 
-    const res1 = await updateKhachHangLuuTru(res.data.id, payload) // ✅
+    const res1 = await updateKhachHangLuuTru(res.data.id, { 
+        ...payload, 
+        gioiTinh: payload.gioiTinh as number,
+        loaiGiayTo: payload.loaiGiayTo as number
+    }) // ✅
     window.$message.success(res1?.message || 'Cập nhật khách hàng thành công!')
     handleAddMember(true)
     // 4. Reload & reset
@@ -199,10 +199,10 @@ async function handleAddMember(confirm: boolean = false) {
       const errors = validateGuest(form)
 
   
-    const payload = {
+        const payload = {
         idDoanLuuTru: props.groupId,
         hoTen: form.hoTen,
-        gioiTinh: form.gioiTinh,
+        gioiTinh: form.gioiTinh as number,
         ngaySinh: form.ngaySinh
             ? dayjs(form.ngaySinh).format('YYYY-MM-DD')
             : '',
@@ -265,7 +265,7 @@ function handleResetSearch() {
     formSearch.hoTen = ''
     formSearch.loaiGiayTo = null
     formSearch.soGiayTo = ''
-    fetchMembers(1, props.groupId)
+    fetchMembers(1)
 }
 
 async function changePage(page: number) {
@@ -295,7 +295,7 @@ async function onScanResult(data: any) {
     const ngay = parseInt(str.slice(0, 2));
     const thang = parseInt(str.slice(2, 4));
     const nam = parseInt(str.slice(4, 8));
-    form.ngaySinh = new Date(nam, thang - 1, ngay);
+    form.ngaySinh = new Date(nam, thang - 1, ngay).getTime();
 
     form.hoTen = val.hoTen || ''
     form.soGiayTo = val.soGiayTo || ''
@@ -322,7 +322,7 @@ async function onOCRResult(data: any) {
     const val = data
     if (val.ngaySinh) {
         const [ngay, thang, nam] = val.ngaySinh.split('/').map(Number)
-        form.ngaySinh = new Date(nam, thang - 1, ngay)
+        form.ngaySinh = new Date(nam, thang - 1, ngay).getTime()
     } else {
         form.ngaySinh = null
     }
@@ -489,7 +489,7 @@ const columns = [
                 <NDataTable :columns="columns" :data="members" :loading="loading" />
                 <div class="mt-4">
                     <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)"
-                        :page-size="pageSize" show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+                        :page-size="pageSize" show-size-picker circle :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
                         @update:page-size="(size: number) => { pageSize = size; fetchMembers(1) }">
                         <template #prefix>
                             Tổng {{ totalItems }} khách hàng

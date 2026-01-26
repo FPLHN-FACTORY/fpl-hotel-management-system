@@ -582,7 +582,7 @@ onMounted(async () => {
 
       <div class="mt-4 flex justify-start">
         <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-          show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage" @update:page-size="
+          show-size-picker circle :page-sizes="[10, 20, 30, 50]" @update:page="changePage" @update:page-size="
             (size) => {
               pageSize = size;
               fetchNhanVien(1);

@@ -1,12 +1,12 @@
 <template>
-  <div v-if="modelValue" class="modal-overlay">
+  <n-modal :show="modelValue">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Quét OCR</h2>
         <button class="close-btn" @click="closeModal">X</button>
       </div>
       <div class="video-container">
-        <video ref="videoRef" autoplay></video>
+        <video ref="videoRef"></video>
         <canvas ref="canvasRef" style="display:none;"></canvas>
       </div>
  
@@ -39,7 +39,7 @@
                           
       </div> -->
     </div>
-  </div>
+  </n-modal>
 </template>
 
 
@@ -48,6 +48,8 @@ import { ref, nextTick, watch } from 'vue'
 import Tesseract from 'tesseract.js'
 import { CameraOutline, CloudUploadOutline} from '@vicons/ionicons5'
 import { Camera } from '@vicons/carbon'
+import { NModal } from 'naive-ui'
+
 const videoRef = ref(null)
 const canvasRef = ref(null)
 const ocrRawText = ref('')
@@ -66,7 +68,13 @@ const stopCamera = () => {
     stream.getTracks().forEach(t => t.stop())
     stream = null
   }
-  if (videoRef.value) videoRef.value.srcObject = null
+  if (videoRef.value) {
+    if (videoRef.value.srcObject) {
+      const tracks = videoRef.value.srcObject.getTracks();
+      tracks.forEach(t => t.stop());
+    }
+    videoRef.value.srcObject = null
+  }
 }
 const closeModal = () => {
   stopCamera()
@@ -549,17 +557,6 @@ const parseMRZ=(result, mrzLines)=> {
 <style scoped>
   .n-message-wrapper {
   z-index: 10000 !important; /* cao hơn modal */
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  z-index: 5000;
 }
 
 .modal-content {

@@ -6,6 +6,7 @@ export * from './auth'
 export * from './dict'
 export * from './router'
 export * from './tab'
+export * from './booking'
 
 // Install the pinia global state library
 export function installPinia(app: App) {

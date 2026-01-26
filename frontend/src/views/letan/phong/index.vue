@@ -318,7 +318,7 @@ onMounted(() => { fetchRooms(); fetchLoaiPhong(); fetchTags() })
           :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys: any) => expandedRowKeys = keys" />
         <div class="mt-4 flex justify-start">
           <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-            show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+            show-size-picker circle :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
             @update:page-size="(size: number) => { pageSize = size; fetchRooms(1) }">
             <template #prefix>Tổng {{ totalItems }} phòng</template>
           </n-pagination>

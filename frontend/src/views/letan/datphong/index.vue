@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import type { SoDoPhongResponse } from '@/service/api/letan/sodophong'
 import { getSoDoPhong } from '@/service/api/letan/sodophong'
 import { useDataCombobox } from '@/store/dataCombox'
+import { useBookingStore } from '@/store/booking'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import SoDo from './sodo/soDo.vue'
 import Timeline from './timeline/timeline.vue'
@@ -17,6 +18,7 @@ import { getActiveBookingByRoom } from '@/service/api/letan/incurredService'
 import type { ChonLoaiPhong } from '@/service/api/letan/booking'
 
 const router = useRouter()
+const bookingStore = useBookingStore()
 
 const currentView = ref<string>('map')
 const { dataCombobox, fetchDataLoaiPhong } = useDataCombobox()
@@ -188,9 +190,9 @@ function handleChonLoaiPhongSubmit(data: {
 }) {
   bookingData.value = data
   // showDatPhongModal.value = true
+  bookingStore.setBookingData(data)
   router.push({
-    name: 'xacNhanDatPhong',
-    query: { data: JSON.stringify(data) }
+    name: 'xacNhanDatPhong'
   })
 }
 

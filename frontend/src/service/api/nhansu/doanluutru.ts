@@ -1,6 +1,6 @@
 import request from "@/service/request";
 import { API_URL } from "@/constants/url";
-import type { ResponseList, PaginationParams, DefaultResponse,DataCombobox } from '@/typings/api/api.common'
+import type { ResponseList, PaginationParams, DefaultResponse } from '@/typings/api/api.common'
 const API_DOAN_LUU_TRU = `${API_URL}/leTan/doan-luu-tru`;
 import type { AxiosResponse } from 'axios'
 export interface DoanLuuTru {
@@ -59,7 +59,7 @@ export async function getAllGroups(params:ParamsGetGroups) {
       items: res.data.data.data || [],
       totalItems: res.data.data.totalElements || 0,
       totalPages: res.data.data.totalPages || 0,
-      currentPage: params.page || 1,
+      currentPage: res.data.data.currentPage,
     }
 }
 
@@ -105,12 +105,12 @@ export async function getGroupMembers(params: ParamsGetMembers,id: string) {
     console.log("items",res.data.data.data )
        console.log("totalitems", res.data.data.totalElements )
           console.log("totalPages", res.data.data.totalPages )
-             console.log("currentPage",params.page )
+             console.log("currentPage",res.data.data.currentPage )
         return {
       items: res.data.data.data || [],
       totalItems: res.data.data.totalElements || 0,
       totalPages: res.data.data.totalPages || 0,
-      currentPage: params.page || 1,
+      currentPage: res.data.data.currentPage,
     }
 }
 

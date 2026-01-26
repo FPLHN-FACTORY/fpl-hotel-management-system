@@ -295,11 +295,14 @@ async function handleDatPhong() {
     const confirmData: ConfirmBookingRequest = {
       sessionId: result.sessionId,
       idKhachHang: selectedKhachHang.value!,
+      tenDoan: null,
+      idChiTietDoan: null,
       checkInDate: props.bookingData.ngayNhan,
       checkOutDate: props.bookingData.ngayTra,
-      ghiChu: formData.value.ghiChu || undefined,
+      soLuongKhach: props.bookingData.soLuongKhach,
+      ghiChu: formData.value.ghiChu || null,
       nhanNgay: formData.value.nhanNgay,
-      tienKhachTra: formData.value.tienKhachTra || undefined,
+      tienKhachTra: (formData.value.tienKhachTra !== null && formData.value.tienKhachTra !== undefined) ? formData.value.tienKhachTra : null,
       danhSachIdPhong: selectedPhongIds.value,
       danhSachLoaiPhong: selectedPhongIds.value.length === 0 ? props.bookingData.danhSachLoaiPhong : undefined,
     }

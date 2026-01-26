@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelValue" class="modal-overlay">
+  <n-modal :show="modelValue">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Quét QR CCCD</h2>
@@ -7,7 +7,7 @@
       </div>
 
       <div class="video-container">
-        <video ref="videoRef" autoplay></video>
+        <video ref="videoRef"></video>
       </div>
 
       <div v-if="decodedData" class="result-container">
@@ -28,15 +28,15 @@
             </tr>
           </tbody>
         </table>
-
       </div>
     </div>
-  </div>
+  </n-modal>
 </template>
 
 <script setup>
 import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { BrowserQRCodeReader } from "@zxing/library";
+import { NModal } from "naive-ui";
 
 const props = defineProps({
   modelValue: Boolean   // v-model từ cha
@@ -46,6 +46,7 @@ const emit = defineEmits(["update:modelValue", "scan-result"]);
 
 const videoRef = ref(null);
 const decodedData = ref(null);
+const isScanning = ref(false);
 
 let codeReader = null;
 
@@ -70,27 +71,40 @@ function parseCCCDQR(raw) {
 async function startScanner() {
   await nextTick(); // 💡 bảo đảm video mount
 
-  if (!videoRef.value) return;
+  if (!videoRef.value || isScanning.value) return;
 
   stopScanner(); // tránh bị chạy 2 lần
 
+  isScanning.value = true;
   codeReader = new BrowserQRCodeReader();
 
-  codeReader.decodeFromVideoDevice(null, videoRef.value, (result) => {
-    if (result) {
-      const data = parseCCCDQR(result.getText());
-      decodedData.value = data;
+  try {
+    await codeReader.decodeFromVideoDevice(null, videoRef.value, (result) => {
+      if (result) {
+        const data = parseCCCDQR(result.getText());
+        decodedData.value = data;
 
-      emit("scan-result", data);   // gửi dữ liệu lên cha
-      closeModal();                // tự tắt modal
-    }
-  });
+        emit("scan-result", data);   // gửi dữ liệu lên cha
+        closeModal();                // tự tắt modal
+      }
+    });
+  } catch (err) {
+    console.error("Scanner Error:", err);
+    isScanning.value = false;
+  }
 }
 
 function stopScanner() {
+  if (videoRef.value && videoRef.value.srcObject) {
+    const stream = videoRef.value.srcObject;
+    const tracks = stream.getTracks();
+    tracks.forEach(track => track.stop());
+    videoRef.value.srcObject = null;
+  }
   codeReader?.reset?.();
   codeReader = null;
   decodedData.value = null;
+  isScanning.value = false;
 }
 
 function closeModal() {
@@ -111,17 +125,6 @@ onBeforeUnmount(stopScanner);
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  z-index: 9999;
-}
-
 .modal-content {
   background: #fff;
   border-radius: 10px;

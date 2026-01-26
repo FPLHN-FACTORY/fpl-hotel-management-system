@@ -37,7 +37,7 @@ const initialModel = {
 }
 
 const model = reactive({ ...initialModel })
-// const formRef = ref<FormInst | null>(null)
+const formRef = ref<FormInst | null>(null)
 const statusOptions: any = [
   { label: 'Tất cả', value: null },
   { label: 'Hoạt động', value: 0 },
@@ -79,7 +79,7 @@ async function fetchCustomers(page = 1) {
   errorMessage.value = ''
   try {
     const params: any = {
-      page: page, // Helper decrement in backend
+      page: page - 1,
       size: pageSize.value,
     }
 
@@ -92,7 +92,7 @@ async function fetchCustomers(page = 1) {
     if (model.loaiGiayTo !== null)
       params.loaiGiayTo = model.loaiGiayTo
 
-    if (model.idLoaiKhachHang)
+    if (model.idLoaiKhachHang && model.idLoaiKhachHang !== '-1')
       params.idLoaiKhachHang = model.idLoaiKhachHang
     if (model.status !== null) {
       params.status = model.status
@@ -398,7 +398,7 @@ const columns: DataTableColumns<KhachHangResponse> = [
       }
 
       const status = statusMap[row.status] || { label: '-', type: 'info' }
-      return h(NTag, { type: status.type }, { default: () => status.label })
+      return h(NTag, { type: status.type, round: true, bordered: false }, { default: () => status.label })
     },
   }
   ,
@@ -490,36 +490,28 @@ onMounted(() => {
 
     <!-- Bảng danh sách -->
     <n-card>
-      <NSpace vertical size="large">
-        <div class="flex gap-4">
-          <NButton type="primary" @click="handleAddTable">
-            Thêm khách hàng
-          </NButton>
+      <div class="flex gap-4 mb-3">
+        <NButton type="primary" @click="handleAddTable">
+          Thêm khách hàng
+        </NButton>
+      </div>
 
+      <n-data-table :columns="columns" :data="listData" :loading="loading" :row-key="(row) => row.id"
+        :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys) => expandedRowKeys = keys" :row-props="(row) => ({
+          style: 'cursor: pointer;',
+          onClick: (event: MouseEvent) => handleRowClick(row, event)
+        })" />
 
-        </div>
+      <div class="mt-4 flex justify-start">
+        <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
+          show-size-picker circle :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
+          @update:page-size="(size: number) => { pageSize = size; fetchCustomers(1) }">
+          <template #prefix>Tổng {{ totalItems }} khách hàng</template>
+        </n-pagination>
+      </div>
 
-        <!-- <n-data-table :columns="columns" :data="listData" :loading="loading" /> -->
-        <n-data-table :columns="columns" :data="listData" :loading="loading" :row-key="(row) => row.id"
-          :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys) => expandedRowKeys = keys" :row-props="(row) => ({
-            style: 'cursor: pointer;',
-            onClick: (event: MouseEvent) => handleRowClick(row, event)
-          })" />
-
-
-        <div class="mt-4 flex justify-start">
-          <n-pagination v-model:page="currentPage" :page-count="Math.ceil(totalItems / pageSize)" :page-size="pageSize"
-            show-size-picker :page-sizes="[10, 20, 30, 50]" @update:page="changePage"
-            @update:page-size="(size: number) => { pageSize = size; fetchCustomers(1) }">
-            <template #prefix>
-              Tổng {{ totalItems }} khách hàng
-            </template>
-          </n-pagination>
-        </div>
-
-        <TableModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
-          @refresh="fetchCustomers(currentPage)" />
-      </NSpace>
+      <TableModal v-model:visible="visible" :type="modalType" :modal-data="modalData"
+        @refresh="fetchCustomers(currentPage)" />
     </n-card>
   </NSpace>
 </template>
@@ -560,6 +552,22 @@ onMounted(() => {
 
 :deep(.n-pagination) {
   font-size: 17px;
+}
+
+:deep(.n-input),
+:deep(.n-input-number),
+:deep(.n-select) {
+  min-height: 40px;
+}
+
+:deep(.n-base-selection) {
+  min-height: 40px !important;
+}
+
+:deep(.n-base-selection .n-base-selection-label) {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
 }
 
 :deep(.n-base-select-option__content) {

@@ -34,6 +34,7 @@ import {
 } from '@/service/api/letan/booking'
 import { useDebounceFn } from '@vueuse/core'
 import { useDataCombobox } from '@/store/dataCombox'
+import { useBookingStore } from '@/store/booking'
 import {
   Calendar,
   Time,
@@ -47,6 +48,7 @@ const route = useRoute()
 const router = useRouter()
 const message = useMessage()
 const { dataCombobox } = useDataCombobox()
+const bookingStore = useBookingStore()
 
 const bookingData = ref<{
   ngayNhan: number
@@ -76,19 +78,16 @@ const formData = ref({
 })
 
 onMounted(() => {
-  try {
-    const query = route.query
-    if (query.data) {
-      bookingData.value = JSON.parse(query.data as string)
-      // Nếu có số lượng khách từ bookingData thì đồng bộ, không thì để mặc định = 2
-      bookingData.value.soLuongKhach
-
-      loadDanhSachPhong()
-    } else {
-      message.error('Thiếu dữ liệu đặt phòng')
+  if (bookingStore.ngayNhan && bookingStore.ngayTra) {
+    bookingData.value = {
+      ngayNhan: bookingStore.ngayNhan,
+      ngayTra: bookingStore.ngayTra,
+      soLuongKhach: bookingStore.soLuongKhach,
+      danhSachLoaiPhong: bookingStore.danhSachLoaiPhong,
     }
-  } catch (error) {
-    message.error('Dữ liệu không hợp lệ')
+    loadDanhSachPhong()
+  } else {
+    message.error('Thiếu dữ liệu đặt phòng')
   }
 })
 
@@ -293,19 +292,20 @@ async function handleDatPhong() {
       checkInDate: bookingData.value.ngayNhan,
       checkOutDate: bookingData.value.ngayTra,
       soLuongKhach: bookingData.value.soLuongKhach,
-      ghiChu: formData.value.ghiChu || undefined,
+      ghiChu: formData.value.ghiChu || null,
       nhanNgay: formData.value.nhanNgay,
-      tienKhachTra: formData.value.tienKhachTra || undefined,
+      tienKhachTra: formData.value.tienKhachTra,
       danhSachIdPhong: selectedPhongIds.value,
       danhSachLoaiPhong: selectedPhongIds.value.length === 0 ? bookingData.value.danhSachLoaiPhong : undefined,
-    } as any
+    }
 
     console.log('Confirm Data being sent:', confirmData)
 
     await confirmBookingFromPhieuTam(confirmData)
     console.log('👉 after confirmBooking')
     message.success('Đặt phòng thành công!')
-        router.push({ name: 'phieuDatPhong' })
+    bookingStore.clearBookingData()
+    router.push({ name: 'phieuDatPhong' })
 
   }
   catch (error: any) {
@@ -392,322 +392,324 @@ function handleSubmitFromModal(payload: any) {
 </script>
 
 <template>
-  <AddTruongDoanModal v-model:show="isAddCustomerMode" :is-doan="bookingData?.soLuongKhach > 1"
-    @submit="handleSubmitFromModal" />
+  <div class="page-container">
+    <AddTruongDoanModal v-model:show="isAddCustomerMode" :is-doan="bookingData?.soLuongKhach > 1"
+      @submit="handleSubmitFromModal" />
 
-  <div class="xac-nhan-page">
-    <n-spin :show="isLoading">
-      <n-space vertical size="large">
-        <!-- Header Card -->
-        <n-card v-if="bookingData">
-          <div class="header-info">
-            <div class="info-item">
-              <n-icon :size="20" :component="Calendar" color="#3b82f6" />
-              <span class="label">Check-in:</span>
-              <span class="value">{{ formatDate(bookingData.ngayNhan) }}</span>
+    <div class="xac-nhan-page">
+      <n-spin :show="isLoading">
+        <n-space vertical size="large">
+          <!-- Header Card -->
+          <n-card v-if="bookingData">
+            <div class="header-info">
+              <div class="info-item">
+                <n-icon :size="20" :component="Calendar" color="#3b82f6" />
+                <span class="label">Check-in:</span>
+                <span class="value">{{ formatDate(bookingData.ngayNhan) }}</span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="info-item">
+                <n-icon :size="20" :component="Calendar" color="#f43f5e" />
+                <span class="label">Check-out:</span>
+                <span class="value">{{ formatDate(bookingData.ngayTra) }}</span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="info-item">
+                <n-icon :size="20" :component="Time" color="#10b981" />
+                <span class="value highlight">{{ soNgayO }} đêm</span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="info-item">
+                <n-icon :size="20" :component="UserAvatar" color="#6366f1" />
+                <span class="value">{{ bookingData.soLuongKhach }} khách</span>
+              </div>
+
+              <div style="margin-left: auto;">
+                <n-tag type="warning" :bordered="false">PENDING</n-tag>
+              </div>
             </div>
+          </n-card>
 
-            <div class="divider"></div>
-
-            <div class="info-item">
-              <n-icon :size="20" :component="Calendar" color="#f43f5e" />
-              <span class="label">Check-out:</span>
-              <span class="value">{{ formatDate(bookingData.ngayTra) }}</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="info-item">
-              <n-icon :size="20" :component="Time" color="#10b981" />
-              <span class="value highlight">{{ soNgayO }} đêm</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="info-item">
-              <n-icon :size="20" :component="UserAvatar" color="#6366f1" />
-              <span class="value">{{ bookingData.soLuongKhach }} khách</span>
-            </div>
-
-            <div style="margin-left: auto;">
-              <n-tag type="warning" :bordered="false">PENDING</n-tag>
-            </div>
-          </div>
-        </n-card>
-
-        <!-- Main Content -->
-        <div v-if="bookingData" class="main-content">
-          <!-- Left Column 70% -->
-          <div class="left-column">
-            <n-space vertical size="large">
-              <!-- Danh sách phòng -->
-              <n-card title="Danh sách loại phòng">
-                <template #header-extra>
-                  <n-tag type="info" :bordered="false">
-                    {{ totalRoomsToDisplay }} phòng
-                  </n-tag>
-                </template>
-                <n-space vertical size="medium">
-                  <div v-for="(loai, index) in bookingData.danhSachLoaiPhong" :key="index" class="room-item">
-                    <div class="room-info">
-                      <div class="room-header">
-                        <n-icon :size="18" :component="Home" color="#3b82f6" />
-                        <span class="room-name">{{ loai.tenLoaiPhong || getLoaiPhongName(loai.idLoaiPhong) }}</span>
+          <!-- Main Content -->
+          <div v-if="bookingData" class="main-content">
+            <!-- Left Column 70% -->
+            <div class="left-column">
+              <n-space vertical size="large">
+                <!-- Danh sách phòng -->
+                <n-card title="Danh sách loại phòng">
+                  <template #header-extra>
+                    <n-tag type="info" :bordered="false">
+                      {{ totalRoomsToDisplay }} phòng
+                    </n-tag>
+                  </template>
+                  <n-space vertical size="medium">
+                    <div v-for="(loai, index) in bookingData.danhSachLoaiPhong" :key="index" class="room-item">
+                      <div class="room-info">
+                        <div class="room-header">
+                          <n-icon :size="18" :component="Home" color="#3b82f6" />
+                          <span class="room-name">{{ loai.tenLoaiPhong || getLoaiPhongName(loai.idLoaiPhong) }}</span>
+                        </div>
+                        <div class="room-details">
+                          <span class="quantity">{{ loai.soLuong }} phòng</span>
+                          <span class="separator">×</span>
+                          <span class="price">{{ formatCurrency(loai.gia || 0) }}</span>
+                          <span class="separator">×</span>
+                          <span class="nights">{{ soNgayO }} đêm</span>
+                        </div>
                       </div>
-                      <div class="room-details">
-                        <span class="quantity">{{ loai.soLuong }} phòng</span>
-                        <span class="separator">×</span>
-                        <span class="price">{{ formatCurrency(loai.gia || 0) }}</span>
-                        <span class="separator">×</span>
-                        <span class="nights">{{ soNgayO }} đêm</span>
+                      <div class="room-total">
+                        {{ formatCurrency((loai.gia || 0) * loai.soLuong * soNgayO) }}
                       </div>
                     </div>
-                    <div class="room-total">
-                      {{ formatCurrency((loai.gia || 0) * loai.soLuong * soNgayO) }}
+                  </n-space>
+                </n-card>
+
+                <!-- Thông tin khách hàng -->
+                <n-card title="Thông tin khách hàng">
+                  <n-space vertical size="large">
+                    <div class="search-customer">
+                      <n-select v-model:value="selectedKhachHang" filterable
+                        placeholder="Tìm kiếm theo SĐT hoặc tên khách hàng..." :options="khachHangOptions.map(kh => ({
+                          label: `${kh.hoTen} - ${kh.soDienThoai}`,
+                          value: kh.id,
+                        }))" :loading="isSearchingKH" clearable remote class="flex-1"
+                        @search="(val: string) => keywordKhachHang = val" />
+
+                      <n-button type="primary" @click="isAddCustomerMode = true">
+                        <template #icon>
+                          <n-icon :component="User" />
+                        </template>
+                        Thêm khách
+                      </n-button>
                     </div>
-                  </div>
-                </n-space>
-              </n-card>
 
-              <!-- Thông tin khách hàng -->
-              <n-card title="Thông tin khách hàng">
-                <n-space vertical size="large">
-                  <div class="search-customer">
-                    <n-select v-model:value="selectedKhachHang" filterable
-                      placeholder="Tìm kiếm theo SĐT hoặc tên khách hàng..." :options="khachHangOptions.map(kh => ({
-                        label: `${kh.hoTen} - ${kh.soDienThoai}`,
-                        value: kh.id,
-                      }))" :loading="isSearchingKH" clearable remote class="flex-1"
-                      @search="(val: string) => keywordKhachHang = val" />
+                    <n-alert v-if="selectedKhachHangInfo" type="info" :bordered="false">
+                      <div class="customer-details-grid" :class="{
+                        'has-group': !!selectedKhachHangInfo?.tenDoan,
+                        'no-group': !selectedKhachHangInfo?.tenDoan
+                      }">
 
-                    <n-button type="primary" @click="isAddCustomerMode = true">
-                      <template #icon>
-                        <n-icon :component="User" />
-                      </template>
-                      Thêm khách
-                    </n-button>
-                  </div>
+                        <div class="customer-column">
+                          <div class="detail-row">
+                            <span class="detail-label">Họ tên:</span>
+                            <span class="detail-value">{{ selectedKhachHangInfo.hoTen }}</span>
+                          </div>
 
-                  <n-alert v-if="selectedKhachHangInfo" type="info" :bordered="false">
-                    <div class="customer-details-grid" :class="{
-                      'has-group': !!selectedKhachHangInfo?.tenDoan,
-                      'no-group': !selectedKhachHangInfo?.tenDoan
-                    }">
+                          <div class="detail-row">
+                            <span class="detail-label">Giới tính:</span>
+                            <span class="detail-value">
+                              {{
+                                selectedKhachHangInfo.gioiTinh === 'NAM'
+                                  ? 'Nam'
+                                  : selectedKhachHangInfo.gioiTinh === 'NU'
+                                    ? 'Nữ'
+                                    : selectedKhachHangInfo.gioiTinh === 'KHAC'
+                                      ? 'Khác'
+                                      : 'N/A'
+                              }}
+                            </span>
+                          </div>
 
-                      <div class="customer-column">
-                        <div class="detail-row">
-                          <span class="detail-label">Họ tên:</span>
-                          <span class="detail-value">{{ selectedKhachHangInfo.hoTen }}</span>
+                          <div class="detail-row">
+                            <span class="detail-label">Ngày sinh:</span>
+                            <span class="detail-value">{{ selectedKhachHangInfo.ngaySinh || 'N/A' }}</span>
+                          </div>
                         </div>
 
-                        <div class="detail-row">
-                          <span class="detail-label">Giới tính:</span>
-                          <span class="detail-value">
-                            {{
-                              selectedKhachHangInfo.gioiTinh === 'NAM'
-                                ? 'Nam'
-                                : selectedKhachHangInfo.gioiTinh === 'NU'
-                                  ? 'Nữ'
-                                  : selectedKhachHangInfo.gioiTinh === 'KHAC'
-                                    ? 'Khác'
+                        <div class="customer-column">
+                          <div class="detail-row">
+                            <span class="detail-label">Loại giấy tờ:</span>
+                            <span class="detail-value">
+                              {{
+                                selectedKhachHangInfo.loaiGiayTo === 'CCCD'
+                                  ? 'CCCD'
+                                  : selectedKhachHangInfo.loaiGiayTo === 'HO_CHIEU'
+                                    ? 'Hộ chiếu'
                                     : 'N/A'
-                            }}
-                          </span>
+                              }}
+                            </span>
+                          </div>
+
+                          <div class="detail-row">
+                            <span class="detail-label">Số giấy tờ:</span>
+                            <span class="detail-value">{{ selectedKhachHangInfo.soGiayTo || 'N/A' }}</span>
+                          </div>
+
+                          <div class="detail-row">
+                            <span class="detail-label">Số điện thoại:</span>
+                            <span class="detail-value">{{ selectedKhachHangInfo.soDienThoai || 'N/A' }}</span>
+                          </div>
                         </div>
 
-                        <div class="detail-row">
-                          <span class="detail-label">Ngày sinh:</span>
-                          <span class="detail-value">{{ selectedKhachHangInfo.ngaySinh || 'N/A' }}</span>
+                        <!-- 🔥 CỘT 4 -->
+                        <div v-if="selectedKhachHangInfo?.tenDoan" class="detail-row detail-group-name">
+                          <span class="detail-label">Tên đoàn:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.tenDoan }}</span>
                         </div>
+
                       </div>
+                    </n-alert>
 
-                      <div class="customer-column">
-                        <div class="detail-row">
-                          <span class="detail-label">Loại giấy tờ:</span>
-                          <span class="detail-value">
-                            {{
-                              selectedKhachHangInfo.loaiGiayTo === 'CCCD'
-                                ? 'CCCD'
-                                : selectedKhachHangInfo.loaiGiayTo === 'HO_CHIEU'
-                                  ? 'Hộ chiếu'
-                                  : 'N/A'
-                            }}
-                          </span>
-                        </div>
+                    <n-alert v-else type="warning" :bordered="false">
+                      Vui lòng chọn khách hàng để tiếp tục
+                    </n-alert>
+                  </n-space>
+                </n-card>
 
-                        <div class="detail-row">
-                          <span class="detail-label">Số giấy tờ:</span>
-                          <span class="detail-value">{{ selectedKhachHangInfo.soGiayTo || 'N/A' }}</span>
-                        </div>
-
-                        <div class="detail-row">
-                          <span class="detail-label">Số điện thoại:</span>
-                          <span class="detail-value">{{ selectedKhachHangInfo.soDienThoai || 'N/A' }}</span>
-                        </div>
-                      </div>
-
-                      <!-- 🔥 CỘT 4 -->
-                      <div v-if="selectedKhachHangInfo?.tenDoan" class="detail-row detail-group-name">
-                        <span class="detail-label">Tên đoàn:</span>
-                        <span class="detail-value">{{ selectedKhachHangInfo.tenDoan }}</span>
-                      </div>
-
+                <!-- Ghi chú & Số lượng khách -->
+                <n-card title="Ghi chú & Thông tin bổ sung">
+                  <n-space vertical size="large">
+                    <div>
+                      <div class="payment-label">Số lượng khách</div>
+                      <n-input-number v-model:value="bookingData!.soLuongKhach" :min="1" :max="50" class="w-full"
+                        placeholder="Nhập số lượng khách...">
+                        <template #prefix>
+                          <n-icon :component="UserAvatar" />
+                        </template>
+                        <template #suffix>
+                          <span style="color: #999;">người</span>
+                        </template>
+                      </n-input-number>
                     </div>
-                  </n-alert>
 
-                  <n-alert v-else type="warning" :bordered="false">
-                    Vui lòng chọn khách hàng để tiếp tục
-                  </n-alert>
-                </n-space>
-              </n-card>
+                    <div>
+                      <div class="payment-label">Ghi chú</div>
+                      <n-input v-model:value="formData.ghiChu" type="textarea"
+                        placeholder="Nhập ghi chú cho đơn đặt phòng..." :rows="4" />
+                    </div>
+                  </n-space>
+                  <template #footer>
+                    <div class="note-footer">
+                      <span class="note-label">Nhân viên lập phiếu:</span>
+                      <span class="note-value">Lễ tân hệ thống</span>
+                    </div>
+                    <div class="note-footer">
+                      <span class="note-label">Ngày lập:</span>
+                      <span class="note-value">{{ new Date().toLocaleDateString('vi-VN') }}</span>
+                    </div>
+                  </template>
+                </n-card>
+              </n-space>
+            </div>
 
-              <!-- Ghi chú & Số lượng khách -->
-              <n-card title="Ghi chú & Thông tin bổ sung">
+            <!-- Right Column 30% -->
+            <div class="right-column">
+              <n-card title="Thanh toán">
                 <n-space vertical size="large">
+                  <!-- Hình thức thanh toán -->
                   <div>
-                    <div class="payment-label">Số lượng khách</div>
-                    <n-input-number v-model:value="bookingData!.soLuongKhach" :min="1" :max="50" class="w-full"
-                      placeholder="Nhập số lượng khách...">
-                      <template #prefix>
-                        <n-icon :component="UserAvatar" />
-                      </template>
+                    <div class="payment-label">Hình thức thanh toán</div>
+                    <n-radio-group v-model:value="formData.hinhThucThanhToan">
+                      <n-space vertical>
+                        <n-radio value="FULL">Thanh toán toàn bộ</n-radio>
+                        <n-radio value="DEPOSIT">Đặt cọc trước</n-radio>
+                        <n-radio value="LATER">Thanh toán sau</n-radio>
+                      </n-space>
+                    </n-radio-group>
+                  </div>
+
+                  <!-- Phương thức thanh toán -->
+                  <div>
+                    <div class="payment-label">Phương thức thanh toán</div>
+                    <n-radio-group v-model:value="formData.phuongThucThanhToan">
+                      <n-grid :cols="2" :x-gap="12" :y-gap="12">
+                        <n-grid-item><n-radio value="CASH">Tiền mặt</n-radio></n-grid-item>
+                        <n-grid-item><n-radio value="TRANSFER">Chuyển khoản</n-radio></n-grid-item>
+                        <n-grid-item><n-radio value="CARD">Thẻ / POS</n-radio></n-grid-item>
+                        <n-grid-item><n-radio value="E-WALLET">Ví điện tử</n-radio></n-grid-item>
+                      </n-grid>
+                    </n-radio-group>
+                  </div>
+
+                  <!-- Số tiền thanh toán -->
+                  <div v-if="formData.hinhThucThanhToan === 'FULL'">
+                    <div class="payment-label">Số tiền thanh toán</div>
+                    <n-input-number v-model:value="formData.tienKhachTra" :min="tongTien" class="w-full"
+                      placeholder="Nhập số tiền..." :show-button="false">
                       <template #suffix>
-                        <span style="color: #999;">người</span>
+                        <span style="color: #999;">VNĐ</span>
                       </template>
                     </n-input-number>
+                    <div class="payment-hint">
+                      <span class="hint-icon">ℹ️</span>
+                      <span>Nhập chính xác số tiền khách đưa (tối thiểu {{ formatCurrency(tongTien) }})</span>
+                    </div>
+                    <div v-if="formData.tienKhachTra && formData.tienKhachTra > tongTien" class="change-money">
+                      <span>Tiền thừa trả khách:</span>
+                      <span class="change-amount">{{ formatCurrency(formData.tienKhachTra - tongTien) }}</span>
+                    </div>
                   </div>
 
-                  <div>
-                    <div class="payment-label">Ghi chú</div>
-                    <n-input v-model:value="formData.ghiChu" type="textarea"
-                      placeholder="Nhập ghi chú cho đơn đặt phòng..." :rows="4" />
+                  <!-- Số tiền đặt cọc -->
+                  <div v-else-if="formData.hinhThucThanhToan === 'DEPOSIT'">
+                    <div class="payment-label">Số tiền đặt cọc</div>
+                    <n-input-number v-model:value="formData.tienKhachTra" :min="1" :max="tongTien" class="w-full"
+                      placeholder="Nhập số tiền đặt cọc..." :show-button="false">
+                      <template #suffix>
+                        <span style="color: #999;">VNĐ</span>
+                      </template>
+                    </n-input-number>
+                    <div class="payment-hint">
+                      <span class="hint-icon">ℹ️</span>
+                      <span>Số tiền tối đa: {{ formatCurrency(tongTien) }}</span>
+                    </div>
+                    <div v-if="tienConLai > 0" class="remaining-money">
+                      <span>Còn lại cần thanh toán:</span>
+                      <span class="remaining-amount">{{ formatCurrency(tienConLai) }}</span>
+                    </div>
                   </div>
+
+                  <!-- Thanh toán sau -->
+                  <div v-else-if="formData.hinhThucThanhToan === 'LATER'">
+                    <n-alert type="warning" :bordered="false">
+                      Khách hàng sẽ thanh toán toàn bộ {{ formatCurrency(tongTien) }} khi nhận phòng
+                    </n-alert>
+                  </div>
+
+                  <!-- Tổng kết -->
+                  <div class="summary-section">
+                    <div class="summary-row">
+                      <span>Tiền phòng ({{ totalRoomsToDisplay }} phòng):</span>
+                      <span class="amount">{{ formatCurrency(tongTien) }}</span>
+                    </div>
+                    <div class="summary-row">
+                      <span>Số đêm ở:</span>
+                      <span class="nights-count">{{ soNgayO }} đêm</span>
+                    </div>
+                    <div class="summary-total">
+                      <span>Tổng cộng:</span>
+                      <span class="total-amount">{{ formatCurrency(tongTien) }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Checkbox xác nhận -->
+                  <n-checkbox v-model:checked="formData.isCheckXacNhan">
+                    Tôi xác nhận thông tin đặt phòng chính xác
+                  </n-checkbox>
+
+                  <!-- Action buttons -->
+                  <n-space>
+                    <n-button type="error" @click="router.back()">
+                      Hủy bỏ
+                    </n-button>
+                    <n-button type="primary" :disabled="!isPaymentValid" :loading="isLoading" @click="handleDatPhong"
+                      style="flex: 1;">
+                      Xác nhận đặt phòng
+                    </n-button>
+                  </n-space>
                 </n-space>
-                <template #footer>
-                  <div class="note-footer">
-                    <span class="note-label">Nhân viên lập phiếu:</span>
-                    <span class="note-value">Lễ tân hệ thống</span>
-                  </div>
-                  <div class="note-footer">
-                    <span class="note-label">Ngày lập:</span>
-                    <span class="note-value">{{ new Date().toLocaleDateString('vi-VN') }}</span>
-                  </div>
-                </template>
               </n-card>
-            </n-space>
+            </div>
           </div>
-
-          <!-- Right Column 30% -->
-          <div class="right-column">
-            <n-card title="Thanh toán">
-              <n-space vertical size="large">
-                <!-- Hình thức thanh toán -->
-                <div>
-                  <div class="payment-label">Hình thức thanh toán</div>
-                  <n-radio-group v-model:value="formData.hinhThucThanhToan">
-                    <n-space vertical>
-                      <n-radio value="FULL">Thanh toán toàn bộ</n-radio>
-                      <n-radio value="DEPOSIT">Đặt cọc trước</n-radio>
-                      <n-radio value="LATER">Thanh toán sau</n-radio>
-                    </n-space>
-                  </n-radio-group>
-                </div>
-
-                <!-- Phương thức thanh toán -->
-                <div>
-                  <div class="payment-label">Phương thức thanh toán</div>
-                  <n-radio-group v-model:value="formData.phuongThucThanhToan">
-                    <n-grid :cols="2" :x-gap="12" :y-gap="12">
-                      <n-grid-item><n-radio value="CASH">Tiền mặt</n-radio></n-grid-item>
-                      <n-grid-item><n-radio value="TRANSFER">Chuyển khoản</n-radio></n-grid-item>
-                      <n-grid-item><n-radio value="CARD">Thẻ / POS</n-radio></n-grid-item>
-                      <n-grid-item><n-radio value="E-WALLET">Ví điện tử</n-radio></n-grid-item>
-                    </n-grid>
-                  </n-radio-group>
-                </div>
-
-                <!-- Số tiền thanh toán -->
-                <div v-if="formData.hinhThucThanhToan === 'FULL'">
-                  <div class="payment-label">Số tiền thanh toán</div>
-                  <n-input-number v-model:value="formData.tienKhachTra" :min="tongTien" class="w-full"
-                    placeholder="Nhập số tiền..." :show-button="false">
-                    <template #suffix>
-                      <span style="color: #999;">VNĐ</span>
-                    </template>
-                  </n-input-number>
-                  <div class="payment-hint">
-                    <span class="hint-icon">ℹ️</span>
-                    <span>Nhập chính xác số tiền khách đưa (tối thiểu {{ formatCurrency(tongTien) }})</span>
-                  </div>
-                  <div v-if="formData.tienKhachTra && formData.tienKhachTra > tongTien" class="change-money">
-                    <span>Tiền thừa trả khách:</span>
-                    <span class="change-amount">{{ formatCurrency(formData.tienKhachTra - tongTien) }}</span>
-                  </div>
-                </div>
-
-                <!-- Số tiền đặt cọc -->
-                <div v-else-if="formData.hinhThucThanhToan === 'DEPOSIT'">
-                  <div class="payment-label">Số tiền đặt cọc</div>
-                  <n-input-number v-model:value="formData.tienKhachTra" :min="1" :max="tongTien" class="w-full"
-                    placeholder="Nhập số tiền đặt cọc..." :show-button="false">
-                    <template #suffix>
-                      <span style="color: #999;">VNĐ</span>
-                    </template>
-                  </n-input-number>
-                  <div class="payment-hint">
-                    <span class="hint-icon">ℹ️</span>
-                    <span>Số tiền tối đa: {{ formatCurrency(tongTien) }}</span>
-                  </div>
-                  <div v-if="tienConLai > 0" class="remaining-money">
-                    <span>Còn lại cần thanh toán:</span>
-                    <span class="remaining-amount">{{ formatCurrency(tienConLai) }}</span>
-                  </div>
-                </div>
-
-                <!-- Thanh toán sau -->
-                <div v-else-if="formData.hinhThucThanhToan === 'LATER'">
-                  <n-alert type="warning" :bordered="false">
-                    Khách hàng sẽ thanh toán toàn bộ {{ formatCurrency(tongTien) }} khi nhận phòng
-                  </n-alert>
-                </div>
-
-                <!-- Tổng kết -->
-                <div class="summary-section">
-                  <div class="summary-row">
-                    <span>Tiền phòng ({{ totalRoomsToDisplay }} phòng):</span>
-                    <span class="amount">{{ formatCurrency(tongTien) }}</span>
-                  </div>
-                  <div class="summary-row">
-                    <span>Số đêm ở:</span>
-                    <span class="nights-count">{{ soNgayO }} đêm</span>
-                  </div>
-                  <div class="summary-total">
-                    <span>Tổng cộng:</span>
-                    <span class="total-amount">{{ formatCurrency(tongTien) }}</span>
-                  </div>
-                </div>
-
-                <!-- Checkbox xác nhận -->
-                <n-checkbox v-model:checked="formData.isCheckXacNhan">
-                  Tôi xác nhận thông tin đặt phòng chính xác
-                </n-checkbox>
-
-                <!-- Action buttons -->
-                <n-space>
-                  <n-button type="error" @click="router.back()">
-                    Hủy bỏ
-                  </n-button>
-                  <n-button type="primary" :disabled="!isPaymentValid" :loading="isLoading" @click="handleDatPhong"
-                    style="flex: 1;">
-                    Xác nhận đặt phòng
-                  </n-button>
-                </n-space>
-              </n-space>
-            </n-card>
-          </div>
-        </div>
-      </n-space>
-    </n-spin>
+        </n-space>
+      </n-spin>
+    </div>
   </div>
 </template>
 

@@ -415,6 +415,7 @@ function handleAssignSuccess() {
                         :page-count="totalPages"
                         :page-size="filterForm.size"
                         show-size-picker
+                        circle
                         :page-sizes="[10, 20, 30, 50]"
                         @update:page="handlePageChange"
                         @update:page-size="(size: number) => {

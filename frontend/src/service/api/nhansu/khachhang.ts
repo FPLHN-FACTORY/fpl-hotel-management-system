@@ -93,7 +93,7 @@ export async function getAllCustomers(params: ParamsGetCustomers){
       items: res.data.data.data || [],
       totalItems: res.data.data.totalElements || 0,
       totalPages: res.data.data.totalPages || 0,
-      currentPage: params.page || 1,
+      currentPage: res.data.data.currentPage,
     }
   }
   catch (error: any) {

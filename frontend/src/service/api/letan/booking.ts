@@ -111,15 +111,14 @@ export interface PhongTamResponse {
 export interface ConfirmBookingRequest {
   sessionId?: string
   idKhachHang: string
-
-   idChiTietDoan:string
- tenDoan:string
+  idChiTietDoan?: string | null
+  tenDoan?: string | null
   checkInDate: number
   checkOutDate: number
   soLuongKhach: number
-  ghiChu?: string
+  ghiChu?: string | null
   nhanNgay: boolean
-  tienKhachTra?: number
+  tienKhachTra?: number | null
   danhSachIdPhong: string[]
   danhSachLoaiPhong?: ChonLoaiPhong[]
 }
@@ -354,22 +353,27 @@ export async function getAllPhieuDatTam(): Promise<PhieuDatTamResponse[]> {
 
 export async function confirmBookingFromPhieuTam(data: ConfirmBookingRequest) {
   try {
+    const payload = {
+      idKhachHang: data.idKhachHang,
+      idChiTietDoan: data.idChiTietDoan || null,
+      tenDoan: data.tenDoan || '',
+      ngayNhan: data.checkInDate,
+      ngayTra: data.checkOutDate,
+      soLuongKhach: data.soLuongKhach,
+      ghiChu: data.ghiChu || null,
+      nhanNgay: !!data.nhanNgay,
+      tienKhachTra: (data.tienKhachTra !== null && data.tienKhachTra !== undefined) ? data.tienKhachTra : null,
+      danhSachIdPhong: data.danhSachIdPhong || [],
+      danhSachLoaiPhong: data.danhSachLoaiPhong ? data.danhSachLoaiPhong.map(lp => ({
+        idLoaiPhong: lp.idLoaiPhong,
+        soLuong: lp.soLuong
+      })) : []
+    }
+
     const res = (await request({
       url: `${API_LE_TAN_BOOKING}/confirm`,
       method: 'POST',
-      data: {
-        idKhachHang: data.idKhachHang,
-        idChiTietDoan:data.idChiTietDoan,
-        tenDoan:data.tenDoan,
-        ngayNhan: data.checkInDate,
-        ngayTra: data.checkOutDate,
-        soLuongKhach: data.soLuongKhach,
-        ghiChu: data.ghiChu,
-        nhanNgay: data.nhanNgay,
-        tienKhachTra: data.tienKhachTra,
-        danhSachIdPhong: data.danhSachIdPhong,
-        danhSachLoaiPhong: data.danhSachLoaiPhong,
-      },
+      data: payload,
     })) as AxiosResponse<DefaultResponse<any>>
 
     if (data.sessionId) {

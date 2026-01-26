@@ -9,6 +9,16 @@ export function setLocale(locale: App.lang) {
 
 export const $t = i18n.global.t
 
+const viVN_Locale: NLocale = {
+  ...enUS,
+  DatePicker: {
+    ...enUS.DatePicker,
+    clear: 'Xóa',
+    confirm: 'Xác nhận',
+    now: 'Bây giờ',
+  },
+}
+
 export const naiveI18nOptions: Record<App.lang, { locale: NLocale | null, dateLocale: NDateLocale | null }> = {
   zhCN: {
     locale: zhCN,
@@ -19,7 +29,7 @@ export const naiveI18nOptions: Record<App.lang, { locale: NLocale | null, dateLo
     dateLocale: dateEnUS,
   },
   viVN: {
-    locale: enUS,
+    locale: viVN_Locale,
     dateLocale: dateEnUS,
   },
   jaJP: {

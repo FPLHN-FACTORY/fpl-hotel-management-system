@@ -73,12 +73,15 @@ async function handleConfirm(nhanNgay: boolean) {
 
     const requestData: ConfirmBookingRequest = {
       sessionId: phieuData.value.sessionId,
-      idKhachHang: phieuData.value.idKhachHang,
+      idKhachHang: phieuData.value.idKhachHang!,
+      tenDoan: null,
+      idChiTietDoan: null,
       checkInDate: phieuData.value.checkInDate,
       checkOutDate: phieuData.value.checkOutDate,
-      ghiChu: phieuData.value.ghiChu || undefined,
+      soLuongKhach: phieuData.value.soLuongKhach,
+      ghiChu: phieuData.value.ghiChu || null,
       nhanNgay,
-      tienKhachTra: phieuData.value.tienKhachTra || undefined,
+      tienKhachTra: (phieuData.value.tienKhachTra !== null && phieuData.value.tienKhachTra !== undefined) ? phieuData.value.tienKhachTra : null,
       danhSachIdPhong: phieuData.value.danhSachPhong.map(p => p.idPhong),
     }
 
