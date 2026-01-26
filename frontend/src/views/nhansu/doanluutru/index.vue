@@ -2,7 +2,7 @@
 import { h, onMounted, ref, reactive } from 'vue'
 import { NButton, NSpace, NTag, NIcon, NDataTable, NCard, NForm, NGrid, NFormItemGi, NInput, type DataTableColumns, NDatePicker, NTooltip, type DataTableRowKey } from 'naive-ui'
 import { Identification, UserMultiple } from '@vicons/carbon'
-import { getAllGroups, ParamsGetGroups, type DoanLuuTru,checkInDoan } from '@/service/api/nhansu/doanluutru'
+import { getAllGroups, ParamsGetGroups, type DoanLuuTru, checkInDoan } from '@/service/api/nhansu/doanluutru'
 import MemberDrawer from './components/MemberDrawer.vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
 import { useDialog } from 'naive-ui'
@@ -178,8 +178,24 @@ const columns: DataTableColumns<DoanLuuTru> = [
   { title: 'Mã đoàn', key: 'maDoan', align: 'center' },
   { title: 'Tên đoàn', key: 'tenDoan', align: 'center' },
   { title: 'Trưởng đoàn', key: 'hoTen', align: 'center', render: (row: any) => row.hoTen || '-' },
-  { title: 'Booking', key: 'maDatPhong', align: 'center', render: (row: any) => row.maDatPhong ? 'Booking #' + row.maDatPhong.substring(0, 8) : '-' },
-  { title: 'Ghi chú', key: 'ghiChu', align: 'center' },
+  { title: 'Booking', key: 'maDatPhong', align: 'center', render: (row: any) => row.maDatPhong || '-' },
+  {
+    title: 'Thời gian lưu trú đặt phòng', key: 'thoiGianLuuTruDatPhong', align: 'center', render(row: any) {
+      const ngayCheckIn = row.ngayCheckIn
+      const ngayCheckOut = row.ngayCheckOut
+
+      const format = (value: string) =>
+        new Date(value).toLocaleString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        })
+      return `${format(ngayCheckIn)} - ${format(ngayCheckOut)}`
+    }
+  },
   {
     title: 'Trạng thái', key: 'trangThai', align: 'center',
     render(row: any) {
@@ -193,8 +209,8 @@ const columns: DataTableColumns<DoanLuuTru> = [
     }
   },
   {
-    title: 'Thời gian lưu trú',
-    key: 'thoiGianLuuTru',
+    title: 'Thời gian lưu trú thực tế',
+    key: 'thoiGianLuuTruThucTe',
     align: 'center',
     render(row: any) {
       const checkIn = row.thoiGianCheckIn
@@ -259,7 +275,7 @@ const columns: DataTableColumns<DoanLuuTru> = [
             {
               size: 'small',
               type: 'success',
-              disabled: row.trangThai=== 1, // ✅ đã check-in thì disable
+              disabled: row.trangThai === 1, // ✅ đã check-in thì disable
               onClick: (e: MouseEvent) => {
                 e.stopPropagation()
                 handleCheckIn(row)
@@ -352,7 +368,8 @@ function handleCheckIn(row: DoanLuuTru) {
 
       <!-- <NDataTable :columns="columns" :data="data" :loading="loading" /> -->
       <NDataTable :columns="columns" :data="data" :loading="loading" :row-key="(row) => row.id"
-        :expanded-row-keys="expandedRowKeys" @update:expanded-row-keys="(keys: DataTableRowKey[]) => expandedRowKeys = keys" :row-props="(row) => ({
+        :expanded-row-keys="expandedRowKeys"
+        @update:expanded-row-keys="(keys: DataTableRowKey[]) => expandedRowKeys = keys" :row-props="(row) => ({
           style: 'cursor: pointer;',
           onClick: (event: MouseEvent) => handleRowClick(row, event)
         })" />

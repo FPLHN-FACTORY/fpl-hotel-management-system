@@ -1,7 +1,11 @@
 package com.be.server.core.admin.datphong.booking.model.response;
 
+import com.be.server.infrastructure.constant.GioiTinh;
+import com.be.server.infrastructure.constant.LoaiGiayTo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -18,7 +22,13 @@ public class TimKhachHangResponse {
 
     String email;
 
-    String soCCCD;
+    LoaiGiayTo loaiGiayTo;
+
+    GioiTinh gioiTinh;
+
+    LocalDate ngaySinh;
+
+    String soGiayTo;
 
     String soDienThoai;
 

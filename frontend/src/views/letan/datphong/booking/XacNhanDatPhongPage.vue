@@ -28,7 +28,9 @@ import {
   type ChonLoaiPhong,
   type PhongDatResponse,
   type TimKhachHangResponse,
-  type ConfirmBookingRequest
+  type ConfirmBookingRequest,
+  TruongDoan,
+  TruongDoanResponse
 } from '@/service/api/letan/booking'
 import { useDebounceFn } from '@vueuse/core'
 import { useDataCombobox } from '@/store/dataCombox'
@@ -40,7 +42,7 @@ import {
   Currency,
   User
 } from '@vicons/carbon'
-
+import AddTruongDoanModal from '@/views/letan/datphong/booking/AddTruongDoanModal.vue'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -61,7 +63,9 @@ const khachHangOptions = ref<TimKhachHangResponse[]>([])
 const selectedKhachHang = ref<string | null>(null)
 const isSearchingKH = ref(false)
 const sessionId = ref('')
-
+const isAddCustomerMode = ref(false)
+const tempKhachHang = ref<TruongDoanResponse | null>(null)
+const chiTietDoanId = ref('')
 const formData = ref({
   ghiChu: '',
   nhanNgay: false,
@@ -77,7 +81,7 @@ onMounted(() => {
     if (query.data) {
       bookingData.value = JSON.parse(query.data as string)
       // Nếu có số lượng khách từ bookingData thì đồng bộ, không thì để mặc định = 2
-        bookingData.value.soLuongKhach
+      bookingData.value.soLuongKhach
 
       loadDanhSachPhong()
     } else {
@@ -129,8 +133,8 @@ const isPaymentValid = computed(() => {
   if (!selectedKhachHang.value || !formData.value.isCheckXacNhan) return false
 
   // Kiểm tra số lượng khách
-// isPaymentValid
-if (!bookingData.value?.soLuongKhach || bookingData.value.soLuongKhach <= 0) return false
+  // isPaymentValid
+  if (!bookingData.value?.soLuongKhach || bookingData.value.soLuongKhach <= 0) return false
 
   if (formData.value.hinhThucThanhToan === 'FULL') {
     return formData.value.tienKhachTra !== null && formData.value.tienKhachTra >= tongTien.value
@@ -149,8 +153,24 @@ const tienConLai = computed(() => {
   return 0
 })
 
+// const selectedKhachHangInfo = computed(() => {
+//   if (tempKhachHang.value) return tempKhachHang.value
+//   return khachHangOptions.value.find(kh => kh.id === selectedKhachHang.value) || null
+// })
+
 const selectedKhachHangInfo = computed(() => {
-  return khachHangOptions.value.find(kh => kh.id === selectedKhachHang.value)
+  if (
+    tempKhachHang.value &&
+    tempKhachHang.value.id === selectedKhachHang.value
+  ) {
+    return tempKhachHang.value
+  }
+
+  return (
+    khachHangOptions.value.find(
+      kh => kh.id === selectedKhachHang.value
+    ) || null
+  )
 })
 
 function generateSessionId() {
@@ -267,6 +287,8 @@ async function handleDatPhong() {
 
     const confirmData: ConfirmBookingRequest = {
       sessionId: result.sessionId,
+      tenDoan: tempKhachHang.value?.tenDoan || '',
+      idChiTietDoan: chiTietDoanId.value || null,
       idKhachHang: selectedKhachHang.value!,
       checkInDate: bookingData.value.ngayNhan,
       checkOutDate: bookingData.value.ngayTra,
@@ -281,9 +303,10 @@ async function handleDatPhong() {
     console.log('Confirm Data being sent:', confirmData)
 
     await confirmBookingFromPhieuTam(confirmData)
-
+    console.log('👉 after confirmBooking')
     message.success('Đặt phòng thành công!')
-    router.push({ name: 'phieuDatPhong' })
+        router.push({ name: 'phieuDatPhong' })
+
   }
   catch (error: any) {
     message.error(error.message || 'Không thể đặt phòng')
@@ -292,6 +315,26 @@ async function handleDatPhong() {
     isLoading.value = false
   }
 }
+// watch(
+//   () => selectedKhachHang.value,
+//   () => {
+//     if (!selectedKhachHang.value) {
+//       chiTietDoanId.value = ''
+//       tempKhachHang.value = null
+//     }
+//   }
+// )
+watch(
+  () => keywordKhachHang.value,
+  () => {
+    if (
+      tempKhachHang.value &&
+      selectedKhachHang.value !== tempKhachHang.value.id
+    ) {
+      tempKhachHang.value = null
+    }
+  }
+)
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleString('vi-VN', {
@@ -314,10 +357,44 @@ function getCustomerAddress(customer: TimKhachHangResponse): string {
     return 'N/A'
   }
 }
+function handleSubmitFromModal(payload: any) {
+  const newCustomer = {
+    id: payload.id,
+    hoTen: payload.hoTen,
+    soDienThoai: payload.soDienThoai,
+    ngaySinh: payload.ngaySinh,
+    gioiTinh: payload.gioiTinh,
+    loaiGiayTo: payload.loaiGiayTo,
+    soGiayTo: payload.soGiayTo,
+    tenDoan: payload.tenDoan || null,
+    idChiTietDoan: payload.idChiTietDoan
+  }
+
+  // 👉 1. gán temp
+  tempKhachHang.value = newCustomer as any
+
+  // 👉 2. push vào options để select render label
+  khachHangOptions.value.unshift({
+    id: newCustomer.id,
+    hoTen: newCustomer.hoTen,
+    soDienThoai: newCustomer.soDienThoai
+  } as any)
+
+  // 👉 3. set select
+  selectedKhachHang.value = newCustomer.id
+  chiTietDoanId.value = newCustomer.idChiTietDoan
+
+  keywordKhachHang.value = ''
+  isAddCustomerMode.value = false
+}
+
 
 </script>
 
 <template>
+  <AddTruongDoanModal v-model:show="isAddCustomerMode" :is-doan="bookingData?.soLuongKhach > 1"
+    @submit="handleSubmitFromModal" />
+
   <div class="xac-nhan-page">
     <n-spin :show="isLoading">
       <n-space vertical size="large">
@@ -349,7 +426,7 @@ function getCustomerAddress(customer: TimKhachHangResponse): string {
 
             <div class="info-item">
               <n-icon :size="20" :component="UserAvatar" color="#6366f1" />
-              <span class="value">{{ bookingData.soLuongKhach  }} khách</span>
+              <span class="value">{{ bookingData.soLuongKhach }} khách</span>
             </div>
 
             <div style="margin-left: auto;">
@@ -402,38 +479,82 @@ function getCustomerAddress(customer: TimKhachHangResponse): string {
                         value: kh.id,
                       }))" :loading="isSearchingKH" clearable remote class="flex-1"
                       @search="(val: string) => keywordKhachHang = val" />
-                    <n-button type="primary">
+
+                    <n-button type="primary" @click="isAddCustomerMode = true">
                       <template #icon>
                         <n-icon :component="User" />
                       </template>
-                      Tìm kiếm
+                      Thêm khách
                     </n-button>
                   </div>
 
                   <n-alert v-if="selectedKhachHangInfo" type="info" :bordered="false">
-                    <div class="customer-details-grid">
+                    <div class="customer-details-grid" :class="{
+                      'has-group': !!selectedKhachHangInfo?.tenDoan,
+                      'no-group': !selectedKhachHangInfo?.tenDoan
+                    }">
+
                       <div class="customer-column">
                         <div class="detail-row">
                           <span class="detail-label">Họ tên:</span>
                           <span class="detail-value">{{ selectedKhachHangInfo.hoTen }}</span>
                         </div>
+
                         <div class="detail-row">
-                          <span class="detail-label">Email:</span>
-                          <span class="detail-value">{{ selectedKhachHangInfo.email || 'N/A' }}</span>
+                          <span class="detail-label">Giới tính:</span>
+                          <span class="detail-value">
+                            {{
+                              selectedKhachHangInfo.gioiTinh === 'NAM'
+                                ? 'Nam'
+                                : selectedKhachHangInfo.gioiTinh === 'NU'
+                                  ? 'Nữ'
+                                  : selectedKhachHangInfo.gioiTinh === 'KHAC'
+                                    ? 'Khác'
+                                    : 'N/A'
+                            }}
+                          </span>
+                        </div>
+
+                        <div class="detail-row">
+                          <span class="detail-label">Ngày sinh:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.ngaySinh || 'N/A' }}</span>
                         </div>
                       </div>
+
                       <div class="customer-column">
+                        <div class="detail-row">
+                          <span class="detail-label">Loại giấy tờ:</span>
+                          <span class="detail-value">
+                            {{
+                              selectedKhachHangInfo.loaiGiayTo === 'CCCD'
+                                ? 'CCCD'
+                                : selectedKhachHangInfo.loaiGiayTo === 'HO_CHIEU'
+                                  ? 'Hộ chiếu'
+                                  : 'N/A'
+                            }}
+                          </span>
+                        </div>
+
+                        <div class="detail-row">
+                          <span class="detail-label">Số giấy tờ:</span>
+                          <span class="detail-value">{{ selectedKhachHangInfo.soGiayTo || 'N/A' }}</span>
+                        </div>
+
                         <div class="detail-row">
                           <span class="detail-label">Số điện thoại:</span>
                           <span class="detail-value">{{ selectedKhachHangInfo.soDienThoai || 'N/A' }}</span>
                         </div>
-                        <div class="detail-row">
-                          <span class="detail-label">Địa chỉ:</span>
-                          <span class="detail-value">{{ getCustomerAddress(selectedKhachHangInfo) }}</span>
-                        </div>
                       </div>
+
+                      <!-- 🔥 CỘT 4 -->
+                      <div v-if="selectedKhachHangInfo?.tenDoan" class="detail-row detail-group-name">
+                        <span class="detail-label">Tên đoàn:</span>
+                        <span class="detail-value">{{ selectedKhachHangInfo.tenDoan }}</span>
+                      </div>
+
                     </div>
                   </n-alert>
+
                   <n-alert v-else type="warning" :bordered="false">
                     Vui lòng chọn khách hàng để tiếp tục
                   </n-alert>
@@ -720,17 +841,29 @@ function getCustomerAddress(customer: TimKhachHangResponse): string {
   flex: 1;
 }
 
-/* Customer Details */
-.customer-details-grid {
+/* Không có tên đoàn → 3 cột */
+.customer-details-grid.no-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
+/* Có tên đoàn → 4 cột */
+.customer-details-grid.has-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+
 .customer-column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: contents;
+  /* 🔥 KEY */
+}
+
+/* Khi có tên đoàn → chiếm cột 1–3 */
+.customer-details-grid.has-group .customer-column {
+  grid-column: 1 / 4;
 }
 
 .detail-row {
@@ -749,6 +882,32 @@ function getCustomerAddress(customer: TimKhachHangResponse): string {
   font-size: 15px;
   color: #333;
   font-weight: 600;
+}
+
+/* 
+.detail-group-name {
+  grid-column: 4 / 5;
+
+  grid-row: 1 / span 2;
+
+  align-self: center;
+
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px dashed #60a5fa;
+  border-radius: 8px;
+} */
+.detail-group-name {
+  grid-column: 4 / 5;
+  /* CỘT 4 */
+  grid-row: 1 / span 2;
+  /* cao 2 hàng */
+  align-self: center;
+
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px dashed #60a5fa;
+  border-radius: 8px;
 }
 
 /* Note Footer */

@@ -41,4 +41,10 @@ public class ADDatPhongController {
     public ResponseEntity<?> checkout(@PathVariable String id) {
         return Helper.createResponseEntity(adDatPhongService.checkout(id));
     }
+
+    @PostMapping("/add-truong-doan")
+    public ResponseEntity<?> addTruongDoanDatPhong(@RequestBody CreateTruongDoanRequest request) {
+        return Helper.createResponseEntity(adDatPhongService.addTruongDoanDatPhong(request));
+    }
+
 }

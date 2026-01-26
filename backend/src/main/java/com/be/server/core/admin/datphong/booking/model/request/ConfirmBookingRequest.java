@@ -12,7 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConfirmBookingRequest {
-
+    String idChiTietDoan;
+    String tenDoan;
     String idKhachHang;
 
     Long ngayNhan;

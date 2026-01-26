@@ -15,4 +15,6 @@ public interface ADDatPhongService {
 
     ResponseObject<?> checkout(String idChiTietDatPhong);
 
+
+    ResponseObject<?> addTruongDoanDatPhong(CreateTruongDoanRequest request);
 }

@@ -209,7 +209,21 @@ public class Helper {
 
         return code;
     }
+    public static String generateMaPhieuDatPhong() {
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random random = new Random();
 
+        // Random 3 chữ cái
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            prefix.append(letters.charAt(random.nextInt(letters.length())));
+        }
+
+        long timestamp = System.currentTimeMillis();
+        int randNum = random.nextInt(1000); // 0–999
+
+        return prefix + String.valueOf(timestamp) + randNum;
+    }
     public static String generateCodeSanPham() {
         Random random = new Random();
         int number = random.nextInt(10000);

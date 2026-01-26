@@ -29,7 +29,8 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
                     kh.so_dien_thoai,
                     kh.so_giay_to,
                     dp.ma AS maDatPhong,
-                    d.ghi_chu,
+                    dp.ngay_check_in,
+                    dp.ngay_check_out,
                     d.thoi_gian_check_in,
                     d.thoi_gian_check_out,
                     d.trang_thai
@@ -98,8 +99,7 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
             Pageable pageable
     );
     @Query(value = """
-
-                        SELECT\s
+               SELECT
                 p.id,
                 p.ten,
                 p.tang,
@@ -109,16 +109,20 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
                 lp.so_nguoi_toi_da,
                 COUNT(ctd.id) AS soNguoiHienTai
             FROM phong p
-            JOIN loai_phong lp\s
+            JOIN loai_phong lp
                 ON lp.id = p.loai_phong_id
-            LEFT JOIN chi_tiet_doan ctd\s
-                ON ctd.id_phong = p.id
-            LEFT JOIN doan_luu_tru dtl\s
-                ON dtl.id = ctd.id_doan_luu_tru
-            LEFT JOIN phieu_dat_phong dp\s
-                ON dp.id = dtl.id_phieu_dat_phong
+            JOIN chi_tiet_dat_phong ctdp
+                ON ctdp.phong_id = p.id
+            JOIN phieu_dat_phong dp
+                ON dp.id = ctdp.phieu_dat_phong_id
                 AND dp.status_phieu_dat_phong = 1
-            GROUP BY\s
+            JOIN doan_luu_tru dtl
+                ON dtl.id_phieu_dat_phong = dp.id
+            LEFT JOIN chi_tiet_doan ctd
+                ON ctd.id_phong = p.id
+                AND ctd.id_doan_luu_tru = dtl.id
+            WHERE dtl.id = :idDoan
+            GROUP BY
                 p.id,
                 p.ten,
                 p.tang,
@@ -126,8 +130,8 @@ public interface DoanLuuTruExtendRepository extends DoanLuuTruRepository {
                 lp.so_giuong_don,
                 lp.so_nguoi_quy_dinh,
                 lp.so_nguoi_toi_da
-            ORDER BY p.tang
-            """, nativeQuery = true)
+            ORDER BY p.tang, p.ten
+                        """, nativeQuery = true)
     List<DSPhongDaDatTheoDoanCombox> getDataComboboxDatPhongTheoDoan(@Param("idDoan") String idDoan);
 
 

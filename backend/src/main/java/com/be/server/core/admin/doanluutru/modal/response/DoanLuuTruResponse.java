@@ -15,7 +15,8 @@ public interface DoanLuuTruResponse extends IsIdentified {
     String getSoDienThoai();
     String getSoGiayTo();
     String getMaDatPhong();
-    String getGhiChu();
+    Long getNgayCheckIn();
+    Long getNgayCheckOut();
     Long getThoiGianCheckIn();
     Long getThoiGianCheckOut();
     Integer getTrangThai();

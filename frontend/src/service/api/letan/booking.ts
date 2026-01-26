@@ -111,6 +111,9 @@ export interface PhongTamResponse {
 export interface ConfirmBookingRequest {
   sessionId?: string
   idKhachHang: string
+
+   idChiTietDoan:string
+ tenDoan:string
   checkInDate: number
   checkOutDate: number
   soLuongKhach: number
@@ -124,12 +127,27 @@ export interface ConfirmBookingRequest {
 export interface TimKhachHangResponse {
   id: string
   maNguoiDung: string
+  ngaySinh: number
+  gioiTinh: number
+  loaiGiayTo:number
   hoTen: string
   email: string
-  soCCCD: string
+  soGiayTo: string
   soDienThoai: string
   diaChi: string
   quocTich: string
+}
+export interface TruongDoanResponse {
+  id: string
+  idChiTietDoan: string
+  ngaySinh: number
+  gioiTinh: number
+  loaiGiayTo:number
+  hoTen: string
+  tenDoan?: string
+  soGiayTo: string
+  soDienThoai: string
+
 }
 
 export async function checkPhongTrong(data: CheckPhongTrongRequest) {
@@ -341,6 +359,8 @@ export async function confirmBookingFromPhieuTam(data: ConfirmBookingRequest) {
       method: 'POST',
       data: {
         idKhachHang: data.idKhachHang,
+        idChiTietDoan:data.idChiTietDoan,
+        tenDoan:data.tenDoan,
         ngayNhan: data.checkInDate,
         ngayTra: data.checkOutDate,
         soLuongKhach: data.soLuongKhach,
@@ -393,4 +413,27 @@ export async function checkout(idChiTietDatPhong: string) {
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Lỗi trả phòng')
   }
+}
+
+
+export interface TruongDoan{
+    tenDoan?: string;
+  hoTenTruongDoan: string;
+  soDienThoaiTruongDoan: string;
+  ngaySinhTruongDoan:string;
+  loaiGiayToTruongDoan:number;
+  soGiayToTruongDoan: string;
+  gioiTinhTruongDoan: number;
+  isDoan: boolean;
+}
+
+export async function addTruongDoan(data: TruongDoan) {
+  const res = await request({
+    url: `${API_LE_TAN_BOOKING}/add-truong-doan`,
+    method: "POST",
+    data,
+  });
+  console.log('Response from addTruongDoan:', res);
+  console.log('Response from addTruongDoan1:', res.data.data);
+  return res.data.data;
 }

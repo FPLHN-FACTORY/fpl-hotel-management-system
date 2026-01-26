@@ -8,7 +8,7 @@ export interface DoanLuuTru {
   id: string;
   maDoan: string;
   tenDoan: string;
-  ghiChu: string;
+
   hoTen:string;
   ngaySinh:string;
   gioiTinh:number;
@@ -16,6 +16,8 @@ export interface DoanLuuTru {
   soGiayTo:string;
   soDienThoai:string;
   maDatPhong:string;
+  ngayCheckIn?: number;
+  ngayCheckOut?: number;
   thoiGianCheckIn?: number;
   thoiGianCheckOut?: number;
   trangThai?: number;

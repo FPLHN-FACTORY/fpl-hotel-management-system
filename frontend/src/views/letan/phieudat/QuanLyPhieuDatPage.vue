@@ -25,7 +25,6 @@ import { apiGetDanhSachPhieuDat, apiHuyPhieuDat } from '@/service/api/letan/phie
 import type { PhieuDatPhongFilterRequest } from '@/service/api/letan/phieudat'
 import AssignRoomModal from './components/AssignRoomModal.vue'
 
-
 const router = useRouter()
 const notification = useNotification()
 

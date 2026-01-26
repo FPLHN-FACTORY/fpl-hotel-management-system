@@ -4,12 +4,16 @@ import com.be.server.core.admin.datphong.booking.model.request.*;
 import com.be.server.core.admin.datphong.booking.model.response.*;
 import com.be.server.core.admin.datphong.booking.repository.*;
 import com.be.server.core.admin.datphong.booking.service.ADDatPhongService;
+import com.be.server.core.admin.doanluutru.repository.ChiTietDoanExtendRepository;
+import com.be.server.core.admin.doanluutru.repository.DoanLuuTruExtendRepository;
+import com.be.server.core.admin.khachhang.repository.ADKhachHangRepository;
 import com.be.server.core.admin.phong.repository.ADLoaiPhongRepository;
 import com.be.server.core.admin.phong.repository.ADPhongTagRepository;
 import com.be.server.core.common.base.ResponseObject;
 import com.be.server.entity.*;
 import com.be.server.infrastructure.constant.*;
 import com.be.server.repository.*;
+import com.be.server.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +41,10 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
     private final PhongRepository phongRepository;
     private final DichVuPhatSinhRepository dichVuPhatSinhRepository;
     private final ChiTietLoaiPhongDatRepository chiTietLoaiPhongDatRepository;
+
+    private final ADKhachHangRepository adKhachHangRepository;
+    private final ChiTietDoanExtendRepository chiTietDoanExtendRepository;
+    private final DoanLuuTruExtendRepository doanLuuTruExtendRepository;
 
     @Override
     @Transactional
@@ -73,14 +82,14 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
 
         // Check if all rooms in group are checkout
         PhieuDatPhong pdp = chiTiet.getPhieuDatPhong();
-        
+
         // Reload details to ensure up-to-date statuses if mappedBy default doesn't refresh automatically in transaction
         // But here we rely on the object graph. Ideally we should check database or refresh.
         // Simple approach: Check all loaded details.
         boolean allCheckout = pdp.getBookingDetails().stream()
                 .allMatch(ct -> ct.getStatus_chi_tiet() == StatusChiTietDatPhong.CHECKOUT);
 
-        if(allCheckout) {
+        if (allCheckout) {
             pdp.setStatus_phieu_dat_phong(StatusPhieuDatPhong.CHECKOUT);
             // pdp.setCheckOutDate(now); // Maybe keep original planned checkout or update to actual? 
             // Usually checkout date in invoice is actual. Let's update it.
@@ -95,6 +104,55 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
         result.put("days", days);
 
         return ResponseObject.successForward(result, "Trả phòng thành công");
+    }
+
+    @Override
+    public ResponseObject<?> addTruongDoanDatPhong(CreateTruongDoanRequest request) {
+        if (request.getSoGiayTo() != null && !request.getSoGiayTo().isEmpty() && request.getLoaiGiayTo() != null) {
+            Optional<KhachHang> existing = adKhachHangRepository.findByLoaiGiayToAndSoGiayTo(request.getLoaiGiayTo() == 0 ? LoaiGiayTo.CCCD : LoaiGiayTo.HO_CHIEU, request.getSoGiayTo());
+            KhachHang leader;
+            if (existing.isPresent()) {
+                leader = existing.get();
+            } else {
+                leader = new KhachHang();
+                leader.setHoTen(request.getHoTen());
+                leader.setSoDienThoai(request.getSoDienThoai());
+                leader.setNgaySinh(request.getNgaySinh());
+                leader.setGioiTinh(request.getGioiTinh() == 0 ? GioiTinh.NAM : request.getGioiTinh() == 1 ? GioiTinh.NU : GioiTinh.KHAC);
+
+                leader.setLoaiGiayTo(request.getLoaiGiayTo() == 0 ? LoaiGiayTo.CCCD : LoaiGiayTo.HO_CHIEU);
+                leader.setSoGiayTo(request.getSoGiayTo());
+                leader.setStatus(EntityStatus.ACTIVE);
+                leader = adKhachHangRepository.save(leader);
+            }
+            ChiTietDoan chiTietDoan = null;
+            String idCtd;
+            if(request.getIsDoan()) {
+                chiTietDoan = new ChiTietDoan();
+                chiTietDoan.setKhachHang(leader);
+                chiTietDoan.setVaiTro(EntityVaiTroDoan.TRUONG_DOAN);
+                chiTietDoan.setTrangThaiChiTietDoan(EntityTrangThaiChiTietDoan.BOOKED);
+                chiTietDoanExtendRepository.save(chiTietDoan);
+                idCtd=chiTietDoan.getId();
+            }
+            else {
+                idCtd=null;
+            }
+
+            return new ResponseObject<>(new TruongDoanResponse(
+                    leader.getId(),
+                    idCtd,
+                    request.getTenDoan(),
+                    leader.getHoTen(),
+                    leader.getSoDienThoai(),
+                    leader.getNgaySinh(),
+                    leader.getLoaiGiayTo(),
+                    leader.getSoGiayTo(),
+                    leader.getGioiTinh()
+            ), HttpStatus.OK, "Tạo trưởng đoàn thành công ");
+        } else {
+            return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Sô giấy tờ , loại giấy tờ khách không được để trống ");
+        }
     }
 
     @Override
@@ -212,6 +270,9 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
                         kh.getMaNguoiDung(),
                         kh.getHoTen(),
                         kh.getEmail(),
+                        kh.getLoaiGiayTo(),
+                        kh.getGioiTinh(),
+                        kh.getNgaySinh(),
                         kh.getSoGiayTo(),
                         kh.getSoDienThoai(),
                         kh.getDiaChi(),
@@ -242,7 +303,7 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             }
 
             if ((request.getDanhSachIdPhong() == null || request.getDanhSachIdPhong().isEmpty()) &&
-                (request.getDanhSachLoaiPhong() == null || request.getDanhSachLoaiPhong().isEmpty())) {
+                    (request.getDanhSachLoaiPhong() == null || request.getDanhSachLoaiPhong().isEmpty())) {
                 return ResponseObject.errorForward("Vui long chon phong hoac loai phong", HttpStatus.BAD_REQUEST);
             }
 
@@ -273,12 +334,45 @@ public class ADDatPhongServiceImpl implements ADDatPhongService {
             }
 
             PhieuDatPhong phieuDatPhong = new PhieuDatPhong();
+            phieuDatPhong.setMa(Helper.generateMaPhieuDatPhong());
             phieuDatPhong.setCheckInDate(request.getNgayNhan());
             phieuDatPhong.setCheckOutDate(request.getNgayTra());
             phieuDatPhong.setKhachHang(khachHang);
             phieuDatPhong.setSoLuongKhach(request.getSoLuongKhach());
             phieuDatPhong.setGhiChu(request.getGhiChu());
+            phieuDatPhong = phieuDatPhongRepository.save(phieuDatPhong);
+            if(request.getSoLuongKhach()>1) {
+                DoanLuuTru doanLuuTru = new DoanLuuTru();
+                doanLuuTru.setPhieuDatPhong(phieuDatPhong);
+                doanLuuTru.setMaDoan("G_" + System.currentTimeMillis());
+                doanLuuTru.setTrangThai(DoanLuuTruStatus.CHUA_CHECK_IN);
 
+                if (request.getTenDoan() != null && !request.getTenDoan().isBlank()) {
+                    doanLuuTru.setTenDoan(request.getTenDoan());
+                } else {
+                    String name = "Đoàn " + khachHang.getHoTen();
+                    doanLuuTru.setTenDoan(name);
+                }
+                doanLuuTru = doanLuuTruExtendRepository.save(doanLuuTru);
+                ChiTietDoan chiTietDoan;
+                if (request.getIdChiTietDoan() == null) {
+                    chiTietDoan = new ChiTietDoan();
+                    chiTietDoan.setDoanLuuTru(doanLuuTru);
+                    chiTietDoan.setKhachHang(khachHang);
+                    chiTietDoan.setTrangThaiChiTietDoan(EntityTrangThaiChiTietDoan.BOOKED);
+                } else {
+                    Optional<ChiTietDoan> chiTietDoanOptional = chiTietDoanExtendRepository.findById(request.getIdChiTietDoan());
+                    if (chiTietDoanOptional.isPresent()) {
+                        chiTietDoan = chiTietDoanOptional.get();
+                        chiTietDoan.setDoanLuuTru(doanLuuTru);
+                        chiTietDoan.setKhachHang(khachHang);
+                        chiTietDoan.setTrangThaiChiTietDoan(EntityTrangThaiChiTietDoan.BOOKED);
+                    } else {
+                        return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy chi tiết phòng");
+                    }
+                }
+                chiTietDoanExtendRepository.save(chiTietDoan);
+            }
             // Case 1: Assigned specific rooms
             if (request.getDanhSachIdPhong() != null && !request.getDanhSachIdPhong().isEmpty()) {
                 Long now = Instant.now().toEpochMilli();
