@@ -309,7 +309,14 @@ public class AdDoanLuuTruServiceImpl implements AdDoanLuuTruService {
         Optional<ChiTietDoan> chiTietDoanOptional = chiTietDoanExtendRepository.findById(idChiTietDoan);
         if (chiTietDoanOptional.isPresent()) {
             ChiTietDoan chiTietDoan = chiTietDoanOptional.get();
-
+            Optional<DoanLuuTru> doanLuuTruOptional = doanLuuTruRepository.findById(chiTietDoan.getDoanLuuTru().getId());
+            if(!doanLuuTruOptional.isPresent()) {
+                return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy đoàn");
+            }
+            DoanLuuTru doan = doanLuuTruOptional.get();
+            if(doan.getTrangThai().equals(DoanLuuTruStatus.DANG_LUU_TRU) && chiTietDoan.getPhong()!=null){
+                return new ResponseObject<>(null, HttpStatus.BAD_REQUEST, "Đã check in không thể đổi phòng");
+            }
             Optional<Phong> phongOptional = adPhongRepository.findById(request.getIdPhong());
             if (!phongOptional.isPresent()) {
                 return new ResponseObject<>(null, HttpStatus.NOT_FOUND, "Không tìm thấy phòng");
