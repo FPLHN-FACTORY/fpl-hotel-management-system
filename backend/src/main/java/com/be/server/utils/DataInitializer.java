@@ -21,14 +21,14 @@ public class DataInitializer {
     public void init() {
         if (appConfig.isGenerateDb()) {
             // Kiểm tra xem nhân viên đã tồn tại chưa
-            if (!nhanVienRepository.existsById(appConfig.getUserCode())) {
+            if (!nhanVienRepository.existsByMa(appConfig.getUserCode())) {
                 NhanVien employee = new NhanVien();
                 employee.setMa(appConfig.getUserCode());
                 employee.setTen(appConfig.getUserName());
                 employee.setEmail(appConfig.getUserEmail());
                 employee.setSdt(appConfig.getUserPhone());
                 employee.setStatus(EntityStatus.ACTIVE);
-                employee.setChucVu(appConfig.getRole() == "ADMIN" ? EntityRole.ADMIN : EntityRole.STAFF);
+                employee.setChucVu("ADMIN".equalsIgnoreCase(appConfig.getRole()) ? EntityRole.ADMIN : EntityRole.STAFF);
                 employee.setMatKhau("$2a$12$Im2Kx70E9o9a.JUkANbTe.4Tqa3imV9/WJO4LOEt7qBlgmF.Qp5B6");
                 nhanVienRepository.save(employee);
                 System.out.println("Employee data saved to database: " + employee);
